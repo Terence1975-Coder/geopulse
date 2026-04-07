@@ -113,9 +113,15 @@ export default function DashboardPage() {
   }, []);
 
   const profile = useMemo(
-    () => getMotionProfile(motionPreference, mode, browserReduceMotion, lowPowerMode),
-    [motionPreference, mode, browserReduceMotion, lowPowerMode]
-  );
+  () =>
+    getMotionProfile(
+      motionPreference,
+      mode,
+      browserReduceMotion ?? undefined,
+      lowPowerMode ?? undefined
+    ),
+  [motionPreference, mode, browserReduceMotion, lowPowerMode]
+);
 
   const isFocused = (id: string) => focusTarget === id;
   const isDimmed = (id: string) => Boolean(focusTarget && focusTarget !== id);
