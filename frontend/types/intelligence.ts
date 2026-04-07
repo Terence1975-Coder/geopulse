@@ -145,7 +145,8 @@ export type EngageAgentRequest = {
 
 export type EngageAgentResponse = {
   output?: StructuredAgentOutput | Record<string, unknown> | null;
-  outputs?: Partial<Record<AgentStage, StructuredAgentOutput>> & Record<string, StructuredAgentOutput>;
+  outputs?: Partial<Record<AgentStage, StructuredAgentOutput>> &
+    Record<string, StructuredAgentOutput>;
   chain_outputs?: ChainOutputs | null;
   analyst_views?: MultiAnalystView[];
   analysis_selection?: AnalysisSelection | null;

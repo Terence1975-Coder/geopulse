@@ -33,7 +33,7 @@ import type {
   ChainOutputs,
   CompanyProfile,
   WorkspaceMessage,
-} from "@/types/intelligence";
+} from "../types/intelligence";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8000";
@@ -666,26 +666,28 @@ export default function HomePage() {
           return;
         }
 
-        setProfile((prev: any) => ({
-          ...prev,
-          ...data.profile,
-          company_name:
-            data.profile.company_name ||
-            data.company_name ||
-            prev.company_name,
-          strategic_priorities:
-            data.profile.strategic_priorities ||
-            data.strategic_priorities ||
-            prev.strategic_priorities,
-          recommendation_style:
-            data.profile.recommendation_style ||
-            data.recommendation_posture ||
-            prev.recommendation_style,
-          markets:
-            data.profile.markets ||
-            data.market_focus ||
-            prev.markets,
-        }));
+        const savedProfile = data.profile;
+
+		setProfile((prev: any) => ({
+			...prev,
+			...savedProfile,
+			company_name:
+				savedProfile.company_name ||
+				data.company_name ||
+				prev.company_name,
+			strategic_priorities:
+				savedProfile.strategic_priorities ||
+				data.strategic_priorities ||
+				prev.strategic_priorities,
+			recommendation_style:
+				savedProfile.recommendation_style ||
+				data.recommendation_posture ||
+				prev.recommendation_style,
+			markets:
+				savedProfile.markets ||
+				data.market_focus ||
+				prev.markets,
+		  }));
       } catch (error) {
         console.error("Failed to load saved company profile", error);
       } finally {
