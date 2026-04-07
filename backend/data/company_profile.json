@@ -1,0 +1,21 @@
+{
+  "company_id": "default",
+  "identity": null,
+  "user_exposure_inputs": {
+    "energy": 0.5,
+    "supply_chain": 0.5,
+    "inflation": 0.5,
+    "consumer_demand": 0.5,
+    "market_volatility": 0.5
+  },
+  "behavioural_signals": {
+    "most_discussed_risk_category": null,
+    "most_simulated_scenario_type": null,
+    "preferred_severity_assumption": 0.5,
+    "executive_question_themes": [],
+    "mitigation_bias": 0.5,
+    "opportunity_bias": 0.5,
+    "interaction_count": 0,
+    "last_updated": null
+  }
+}

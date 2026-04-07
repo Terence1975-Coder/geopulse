@@ -1,0 +1,1 @@
+import { OpportunityItem } from "../../types/geopulse";

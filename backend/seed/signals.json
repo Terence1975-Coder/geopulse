@@ -1,0 +1,102 @@
+[
+  {
+    "headline": "Brent crude jumps after renewed Gulf shipping disruption",
+    "short_content": "Energy traders reacted to fresh maritime security concerns in a major export corridor, increasing pressure on fuel pricing expectations and freight risk.",
+    "region": "Middle East",
+    "sector_tags": ["energy", "shipping", "markets"],
+    "severity_hint": 84,
+    "source_name": "Reuters-style Feed",
+    "credibility_score": 0.9,
+    "signal_strength_modifier": 1.2
+  },
+  {
+    "headline": "Asian port congestion worsens as customs checks tighten",
+    "short_content": "Container dwell times increased again across several strategic ports, raising concerns for manufacturing throughput and automotive parts availability.",
+    "region": "Asia",
+    "sector_tags": ["logistics", "manufacturing", "trade"],
+    "severity_hint": 76,
+    "source_name": "Global Logistics Watch",
+    "credibility_score": 0.82,
+    "signal_strength_modifier": 1.1
+  },
+  {
+    "headline": "European factory output softens amid weaker consumer demand",
+    "short_content": "Several industrial surveys point to slower order pipelines and more cautious inventory positioning among downstream buyers.",
+    "region": "Europe",
+    "sector_tags": ["consumer", "manufacturing", "automotive"],
+    "severity_hint": 61,
+    "source_name": "Euro Industry Tracker",
+    "credibility_score": 0.78,
+    "signal_strength_modifier": 1.0
+  },
+  {
+    "headline": "Central bank warns commodity pressure may prolong inflation stickiness",
+    "short_content": "Policymakers flagged imported input cost pressure and transport volatility as continued upside risks to inflation expectations.",
+    "region": "Global",
+    "sector_tags": ["inflation", "commodities", "policy"],
+    "severity_hint": 73,
+    "source_name": "IMF-style Briefing",
+    "credibility_score": 0.95,
+    "signal_strength_modifier": 1.15
+  },
+  {
+    "headline": "Regional unrest sparks concern over pipeline security",
+    "short_content": "Security analysts reported elevated tension near critical energy infrastructure, though physical disruption remains unconfirmed.",
+    "region": "Middle East",
+    "sector_tags": ["energy", "security", "oil"],
+    "severity_hint": 67,
+    "source_name": "Open Source Alert Desk",
+    "credibility_score": 0.58,
+    "signal_strength_modifier": 0.95
+  },
+  {
+    "headline": "Freight insurers raise premiums on high-risk trade routes",
+    "short_content": "Shipping operators face higher cover costs as underwriters reprice exposure on selected maritime corridors.",
+    "region": "Global",
+    "sector_tags": ["shipping", "insurance", "trade"],
+    "severity_hint": 71,
+    "source_name": "Marine Risk Bulletin",
+    "credibility_score": 0.86,
+    "signal_strength_modifier": 1.05
+  },
+  {
+    "headline": "Emerging-market currencies weaken as investors rotate into safe havens",
+    "short_content": "Cross-asset volatility picked up during late trading after renewed geopolitical uncertainty affected broader risk appetite.",
+    "region": "Global",
+    "sector_tags": ["markets", "fx", "finance"],
+    "severity_hint": 69,
+    "source_name": "Market Pulse Monitor",
+    "credibility_score": 0.88,
+    "signal_strength_modifier": 1.08
+  },
+  {
+    "headline": "Food and fuel price expectations climb in latest business survey",
+    "short_content": "Survey respondents reported worsening cost assumptions for logistics, energy, and commodity-linked inputs over the next quarter.",
+    "region": "Europe",
+    "sector_tags": ["inflation", "energy", "consumer"],
+    "severity_hint": 65,
+    "source_name": "Business Survey Network",
+    "credibility_score": 0.8,
+    "signal_strength_modifier": 1.0
+  },
+  {
+    "headline": "Automotive suppliers flag lead-time risk for electronic components",
+    "short_content": "Tier-one suppliers warned that transport disruption and customs delays may create selective production bottlenecks.",
+    "region": "Asia",
+    "sector_tags": ["automotive", "manufacturing", "logistics"],
+    "severity_hint": 74,
+    "source_name": "Auto Supply Chain Review",
+    "credibility_score": 0.84,
+    "signal_strength_modifier": 1.12
+  },
+  {
+    "headline": "Unverified blog claims unrest may spread to nearby export hubs",
+    "short_content": "Speculative commentary suggests broader disruption risk, but confirmation from official sources is currently limited.",
+    "region": "Middle East",
+    "sector_tags": ["security", "shipping", "rumour"],
+    "severity_hint": 59,
+    "source_name": "Unknown Blog",
+    "credibility_score": 0.34,
+    "signal_strength_modifier": 0.75
+  }
+]

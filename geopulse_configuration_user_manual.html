@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GeoPulse AI — User Manual | Configuration Workspace</title>
+  <style>
+    :root {
+      --bg: #020617;
+      --bg-soft: #071226;
+      --panel: rgba(15, 23, 42, 0.88);
+      --panel-2: rgba(8, 15, 30, 0.9);
+      --line: rgba(255,255,255,0.10);
+      --line-strong: rgba(34,211,238,0.24);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --cyan: #22d3ee;
+      --cyan-soft: rgba(34,211,238,0.12);
+      --emerald: #34d399;
+      --amber: #fbbf24;
+      --indigo: #818cf8;
+      --shadow: 0 20px 60px rgba(0,0,0,0.35);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 16px;
+      --max: 1200px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background:
+        radial-gradient(circle at top, rgba(6,182,212,0.12), transparent 30%),
+        radial-gradient(circle at right, rgba(16,185,129,0.08), transparent 25%),
+        linear-gradient(180deg, #020617 0%, #020617 100%);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.6;
+    }
+
+    a { color: var(--cyan); }
+
+    .wrap {
+      width: min(calc(100% - 32px), var(--max));
+      margin: 0 auto;
+      padding: 28px 0 60px;
+    }
+
+    .hero {
+      border: 1px solid var(--line);
+      background: linear-gradient(135deg, rgba(2,6,23,0.95), rgba(8,15,30,0.9));
+      border-radius: 32px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(34,211,238,0.04), transparent);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      font-size: 12px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 14px;
+    }
+
+    h1, h2, h3 { margin: 0; }
+
+    .hero h1 {
+      font-size: clamp(32px, 5vw, 54px);
+      line-height: 1.05;
+      margin-bottom: 12px;
+    }
+
+    .hero p {
+      max-width: 880px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 17px;
+    }
+
+    .hero-meta {
+      margin-top: 22px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      color: #dbeafe;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 13px;
+    }
+
+    .section {
+      margin-top: 22px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .section > p.lead {
+      margin: 10px 0 0;
+      color: var(--muted);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+    }
+
+    .card h3 {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .card p,
+    .card li,
+    .section li {
+      color: var(--muted);
+    }
+
+    .manual-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 18px;
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .manual-table th,
+    .manual-table td {
+      padding: 14px 16px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .manual-table th {
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #cbd5e1;
+      background: rgba(34,211,238,0.08);
+    }
+
+    .manual-table td strong {
+      color: white;
+    }
+
+    .callout {
+      margin-top: 18px;
+      border: 1px solid var(--line-strong);
+      background: var(--cyan-soft);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+    }
+
+    .callout strong {
+      color: var(--text);
+    }
+
+    .steps {
+      margin: 16px 0 0;
+      padding-left: 20px;
+    }
+
+    .steps li + li {
+      margin-top: 10px;
+    }
+
+    .footer-note {
+      margin-top: 20px;
+      color: #7dd3fc;
+      font-size: 14px;
+    }
+
+    .placeholder {
+      border: 1px dashed rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.02);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      margin-top: 18px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 920px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .manual-table,
+      .manual-table thead,
+      .manual-table tbody,
+      .manual-table th,
+      .manual-table td,
+      .manual-table tr {
+        display: block;
+      }
+
+      .manual-table thead {
+        display: none;
+      }
+
+      .manual-table tr {
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+      }
+
+      .manual-table td {
+        border-bottom: none;
+        padding-top: 8px;
+        padding-bottom: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <div class="eyebrow">GeoPulse AI • User Manual</div>
+      <h1>Configuration Workspace Guide</h1>
+      <p>
+        This guide explains the GeoPulse <strong>Calibration &amp; Settings Workspace</strong> so a user can understand what each section controls, why it matters, and how those settings influence platform behaviour.
+      </p>
+      <div class="hero-meta">
+        <div class="pill">Module: Configuration</div>
+        <div class="pill">Audience: End users / pilot users / admins</div>
+        <div class="pill">Purpose: Platform calibration and control</div>
+      </div>
+    </header>
+
+    <section class="section">
+      <div class="eyebrow">Overview</div>
+      <h2>What this workspace does</h2>
+      <p class="lead">
+        The Configuration workspace is the control surface for tuning how GeoPulse interprets signals, how assertive the agents should be, how often sources refresh, and how privacy-related permissions are handled.
+      </p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Why a user would use it</h3>
+          <ul>
+            <li>Adjust how sensitive GeoPulse is to incoming signals.</li>
+            <li>Shift the platform toward risk detection or upside detection.</li>
+            <li>Control tone and posture of embedded agents.</li>
+            <li>Enable or restrict live ingestion and external enrichment.</li>
+            <li>Set privacy boundaries for anonymisation and profile enrichment.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>What this changes in practice</h3>
+          <ul>
+            <li>What kinds of signals are surfaced sooner or filtered out.</li>
+            <li>How firm or cautious recommendations feel.</li>
+            <li>Whether the system leans short-term or longer-term.</li>
+            <li>How much external context GeoPulse is allowed to use.</li>
+            <li>Whether user data is masked before deeper AI processing.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="eyebrow">Screen layout</div>
+      <h2>How the page is organised</h2>
+      <p class="lead">
+        The workspace is arranged as a set of configuration cards. Each card groups related controls so the user can quickly tune one part of the system without hunting through unrelated settings.
+      </p>
+
+      <table class="manual-table">
+        <thead>
+          <tr>
+            <th>Area</th>
+            <th>Purpose</th>
+            <th>User outcome</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Intelligence Settings</strong></td>
+            <td>Controls how GeoPulse scores and prioritises signals.</td>
+            <td>Changes the balance between alert filtering, severity focus, and opportunity sensitivity.</td>
+          </tr>
+          <tr>
+            <td><strong>Agent Behaviour Settings</strong></td>
+            <td>Controls how the Analyst, Advisor, and Profile-related behaviours feel.</td>
+            <td>Changes tone, stance, and how assertive recommendations become.</td>
+          </tr>
+          <tr>
+            <td><strong>Source Settings</strong></td>
+            <td>Controls whether ingestion is active and how often data refreshes.</td>
+            <td>Changes the freshness and reach of live intelligence inputs.</td>
+          </tr>
+          <tr>
+            <td><strong>Privacy Settings</strong></td>
+            <td>Controls masking and enrichment permissions.</td>
+            <td>Changes what data can be processed, enriched, or protected.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <div class="eyebrow">Section 1</div>
+      <h2>Intelligence Settings</h2>
+      <p class="lead">
+        These controls shape the way GeoPulse interprets incoming intelligence and how strongly different factors influence scoring.
+      </p>
+
+      <table class="manual-table">
+        <thead>
+          <tr>
+            <th>Control</th>
+            <th>What it does</th>
+            <th>How a user should think about it</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Signal Threshold</strong></td>
+            <td>Sets the minimum signal strength needed before GeoPulse treats something as important enough to surface.</td>
+            <td>Lower values make GeoPulse more sensitive. Higher values make it more selective.</td>
+          </tr>
+          <tr>
+            <td><strong>Severity Weighting</strong></td>
+            <td>Increases or reduces the emphasis placed on the seriousness of a signal.</td>
+            <td>Raise this when the user wants the platform to prioritise high-impact disruptions.</td>
+          </tr>
+          <tr>
+            <td><strong>Opportunity Sensitivity</strong></td>
+            <td>Controls how readily positive or growth-related openings are detected.</td>
+            <td>Raise this when the user wants more upside discovery, not just threat monitoring.</td>
+          </tr>
+          <tr>
+            <td><strong>Risk / Opportunity Weighting</strong></td>
+            <td>Balances the platform between defensive monitoring and proactive upside detection.</td>
+            <td>Move lower to lean toward risk control, or higher to lean toward opportunity capture, depending on how your scoring model is defined in deployment.</td>
+          </tr>
+          <tr>
+            <td><strong>Horizon Preference</strong></td>
+            <td>Sets the preferred time lens for the system: immediate, balanced, or longer-term.</td>
+            <td>Useful when a user wants GeoPulse focused on urgent issues versus emerging medium-term developments.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <strong>Best-use guidance:</strong> If a client wants earlier warning signals, lower the threshold slightly and keep severity weighting moderately high. If they want more growth ideas, increase opportunity sensitivity and keep the horizon balanced or longer-term.
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="eyebrow">Section 2</div>
+      <h2>Agent Behaviour Settings</h2>
+      <p class="lead">
+        These controls shape how GeoPulse agents communicate and how forcefully recommendations are framed.
+      </p>
+
+      <table class="manual-table">
+        <thead>
+          <tr>
+            <th>Control</th>
+            <th>What it does</th>
+            <th>User effect</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Analyst Tone Mode</strong></td>
+            <td>Sets the style of analytical output, such as boardroom, analytical, or calm.</td>
+            <td>Changes the feel of analysis without changing the underlying intelligence itself.</td>
+          </tr>
+          <tr>
+            <td><strong>Advisor Stance Mode</strong></td>
+            <td>Sets whether the advisor behaves more conservatively, in a balanced way, or more aggressively.</td>
+            <td>Useful for matching the user’s decision style or company risk appetite.</td>
+          </tr>
+          <tr>
+            <td><strong>Recommendation Aggressiveness</strong></td>
+            <td>Controls how assertive GeoPulse should be when suggesting actions.</td>
+            <td>Higher values create stronger, more forward-leaning recommendations.</td>
+          </tr>
+          <tr>
+            <td><strong>Profile Question Depth</strong></td>
+            <td>Controls how deeply GeoPulse should explore company-specific profile information.</td>
+            <td>Deeper settings can improve relevance, but may require more user input.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <strong>Best-use guidance:</strong> For executive users, a boardroom or analytical tone with balanced stance usually works well. For internal testing, deeper profile questioning can help improve calibration quality faster.
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="eyebrow">Section 3</div>
+      <h2>Source Settings</h2>
+      <p class="lead">
+        These controls determine how live the platform is and how much external data it is allowed to bring into its reasoning environment.
+      </p>
+
+      <table class="manual-table">
+        <thead>
+          <tr>
+            <th>Control</th>
+            <th>What it does</th>
+            <th>User effect</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Live Ingestion Enabled</strong></td>
+            <td>Turns the live signal ingestion layer on or off.</td>
+            <td>When enabled, GeoPulse can work with fresher intelligence inputs.</td>
+          </tr>
+          <tr>
+            <td><strong>Refresh Cadence</strong></td>
+            <td>Sets how often the system should refresh or pull new data.</td>
+            <td>Shorter cadence improves freshness but may increase noise and system load.</td>
+          </tr>
+          <tr>
+            <td><strong>External Lookup Enabled</strong></td>
+            <td>Allows GeoPulse to use external lookup or enrichment sources where supported.</td>
+            <td>Improves context depth, but should be controlled carefully for privacy and trust reasons.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <div class="eyebrow">Section 4</div>
+      <h2>Privacy Settings</h2>
+      <p class="lead">
+        These controls define what GeoPulse is permitted to do with user and company data before it enriches, interprets, or passes information through AI workflows.
+      </p>
+
+      <table class="manual-table">
+        <thead>
+          <tr>
+            <th>Control</th>
+            <th>What it does</th>
+            <th>User effect</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Anonymisation Enabled</strong></td>
+            <td>Masks or redacts sensitive data before deeper processing.</td>
+            <td>Improves privacy protection and is especially valuable for enterprise or sensitive company inputs.</td>
+          </tr>
+          <tr>
+            <td><strong>Profile Enrichment Allowed</strong></td>
+            <td>Determines whether GeoPulse is allowed to enrich the company profile using available context or lookup sources.</td>
+            <td>Can improve relevance, but should only be enabled when the user is comfortable with that level of processing.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <strong>Best-use guidance:</strong> For pilots and enterprise demonstrations, it usually makes sense to keep anonymisation enabled by default, then selectively allow enrichment where the client has approved it.
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="eyebrow">How to use it</div>
+      <h2>Suggested user workflow</h2>
+      <ol class="steps">
+        <li>Open the <strong>Configuration</strong> workspace from the main navigation.</li>
+        <li>Review <strong>Intelligence Settings</strong> first to make sure signal scoring matches the user’s current priorities.</li>
+        <li>Adjust <strong>Agent Behaviour</strong> so the Analyst and Advisor match the client’s preferred tone and level of assertiveness.</li>
+        <li>Confirm <strong>Source Settings</strong> if live monitoring is required for the current session or pilot.</li>
+        <li>Review <strong>Privacy Settings</strong> before using sensitive company data or profile enrichment.</li>
+        <li>Return to other workspaces such as Executive Dashboard, Analyst, Advisor, or Company Intelligence to see the operational impact of the chosen settings.</li>
+      </ol>
+    </section>
+
+    <section class="section">
+      <div class="eyebrow">User notes</div>
+      <h2>Important interpretation notes</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>What this page is today</h3>
+          <p>
+            In the current build, this workspace is a front-end control surface. It provides live UI controls for calibration and settings, and is positioned as the central place for tuning GeoPulse behaviour.
+          </p>
+        </div>
+        <div class="card">
+          <h3>What this page is expected to become</h3>
+          <p>
+            As GeoPulse matures, these controls can be connected to persistence, backend calibration logic, policy enforcement, and role-based administration.
+          </p>
+        </div>
+      </div>
+      <p class="footer-note">
+        Manual extension note: this HTML is structured so new sections can be appended later for Executive Dashboard, Live Signals, Opportunity Workspace, Company Intelligence, Governance, and Agent Workspaces.
+      </p>
+    </section>
+
+    <section class="section">
+      <div class="eyebrow">Next manual sections</div>
+      <h2>Planned expansion area</h2>
+      <div class="placeholder">
+        Add future user guide sections here for:
+        <br /><br />
+        • Executive Dashboard<br />
+        • Live Signals Workspace<br />
+        • Opportunity Workspace<br />
+        • Company Intelligence Workspace<br />
+        • Data Governance Workspace<br />
+        • Analyst / Advisor / Planner / Profile Agent workspaces
+      </div>
+    </section>
+  </div>
+</body>
+</html>

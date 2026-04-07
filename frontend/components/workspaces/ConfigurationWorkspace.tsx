@@ -1,0 +1,1 @@
+import { ConfigState } from "../../types/geopulse";

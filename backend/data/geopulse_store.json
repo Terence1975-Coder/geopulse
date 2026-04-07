@@ -1,0 +1,157 @@
+{
+  "events": {
+    "26d73391-8706-4b49-aaae-7d64868f390a": {
+      "id": "26d73391-8706-4b49-aaae-7d64868f390a",
+      "headline": "Global clean energy investment hits record high as businesses accelerate transition",
+      "body": "Content overview\n\nCompanies worldwide are increasing spending on solar, wind, battery storage, and EV infrastructure, driving strong growth across the renewable sector.\n\nLower technology costs and supportive government policies are helping businesses reduce long-term energy expenses and improve sustainability credentials.\n\nInvestors are responding positively, with renewable-focused firms outperforming traditional energy stocks in several markets.\n\nThe shift is also creating new jobs, innovation opportunities, and supply-chain expansion, particularly in Europe and Asia.",
+      "region": "Global",
+      "source": "Manual",
+      "credibility": 0.8,
+      "created_at": "2026-03-15T08:47:44.118344"
+    },
+    "36b39178-27a5-4718-85b0-c36e826994f8": {
+      "id": "36b39178-27a5-4718-85b0-c36e826994f8",
+      "headline": "Markets brace for inflation and energy shock as geopolitical tensions drive volatility",
+      "body": "Content overview\n\nGlobal financial markets are showing heightened volatility as investors await fresh inflation data and react to rising geopolitical tensions impacting energy supplies.\n\nOil prices have climbed amid fears of supply disruption, which could push inflation higher in coming months, even if near-term inflation readings appear stable.\n\nBond yields have risen and equity markets remain sensitive to macro signals, reflecting uncertainty about interest-rate direction and economic growth.\n\nCorporate-specific developments are also influencing sentiment \u2014 for example, strong earnings boosted some tech stocks, while manufacturing quality issues in the aerospace sector may delay deliveries and weigh on performance.",
+      "region": "Global",
+      "source": "Manual",
+      "credibility": 0.8,
+      "created_at": "2026-03-15T08:50:02.792592"
+    }
+  },
+  "analyses": {
+    "26d73391-8706-4b49-aaae-7d64868f390a": {
+      "event_id": "26d73391-8706-4b49-aaae-7d64868f390a",
+      "summary": "Event may influence multiple business risk channels.",
+      "severity": 42,
+      "momentum": 47,
+      "categories": [
+        {
+          "name": "Energy Risk",
+          "score": 40,
+          "delta": 0,
+          "explanation": "Energy Risk triggered by keyword pattern"
+        },
+        {
+          "name": "Supply Chain Risk",
+          "score": 40,
+          "delta": 0,
+          "explanation": "Supply Chain Risk triggered by keyword pattern"
+        },
+        {
+          "name": "Inflation Risk",
+          "score": 40,
+          "delta": 0,
+          "explanation": "Inflation Risk triggered by keyword pattern"
+        },
+        {
+          "name": "Market Volatility",
+          "score": 50,
+          "delta": 0,
+          "explanation": "Market Volatility triggered by keyword pattern"
+        }
+      ],
+      "recommended_actions": [
+        "Review exposure",
+        "Monitor escalation",
+        "Prepare contingency"
+      ],
+      "related_tags": []
+    },
+    "36b39178-27a5-4718-85b0-c36e826994f8": {
+      "event_id": "36b39178-27a5-4718-85b0-c36e826994f8",
+      "summary": "Event may influence multiple business risk channels.",
+      "severity": 50,
+      "momentum": 55,
+      "categories": [
+        {
+          "name": "Energy Risk",
+          "score": 50,
+          "delta": 0,
+          "explanation": "Energy Risk triggered by keyword pattern"
+        },
+        {
+          "name": "Supply Chain Risk",
+          "score": 30,
+          "delta": 0,
+          "explanation": "Supply Chain Risk triggered by keyword pattern"
+        },
+        {
+          "name": "Inflation Risk",
+          "score": 50,
+          "delta": 0,
+          "explanation": "Inflation Risk triggered by keyword pattern"
+        },
+        {
+          "name": "Market Volatility",
+          "score": 70,
+          "delta": 0,
+          "explanation": "Market Volatility triggered by keyword pattern"
+        }
+      ],
+      "recommended_actions": [
+        "Review exposure",
+        "Monitor escalation",
+        "Prepare contingency"
+      ],
+      "related_tags": []
+    }
+  },
+  "signals": {
+    "sig-1": {
+      "id": "sig-1",
+      "title": "Shipping corridor pressure",
+      "category": "Supply Chain Risk",
+      "score": 72,
+      "momentum": 68,
+      "credibility": 0.87,
+      "region": "Middle East"
+    },
+    "sig-2": {
+      "id": "sig-2",
+      "title": "Energy price sensitivity elevated",
+      "category": "Energy Risk",
+      "score": 76,
+      "momentum": 71,
+      "credibility": 0.89,
+      "region": "Global"
+    },
+    "sig-3": {
+      "id": "sig-3",
+      "title": "Sticky inflation transmission risk",
+      "category": "Inflation Risk",
+      "score": 63,
+      "momentum": 57,
+      "credibility": 0.81,
+      "region": "Europe"
+    },
+    "sig-4": {
+      "id": "sig-4",
+      "title": "Market volatility watch",
+      "category": "Market Volatility",
+      "score": 66,
+      "momentum": 62,
+      "credibility": 0.84,
+      "region": "Global"
+    }
+  },
+  "company_profile": {
+    "company_name": "Tesco",
+    "sector": "General Business",
+    "sub_sector": "SME",
+    "supply_chain_exposure_regions": [],
+    "energy_dependency_level": 50,
+    "import_export_exposure": 50,
+    "consumer_sensitivity_level": 50,
+    "financial_leverage_sensitivity": 50,
+    "strategic_priorities": [
+      "resilience"
+    ]
+  },
+  "memory": {
+    "last_discussed_event_id": null,
+    "last_question": null,
+    "recent_risk_concern": null,
+    "last_scenario": null
+  }
+}
