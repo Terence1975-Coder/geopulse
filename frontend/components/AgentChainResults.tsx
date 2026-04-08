@@ -1,9 +1,9 @@
 "use client";
 
-import { ChainResponse } from "../types/agentChain";
+import type { AgentChainResponse } from "../types/geopulse";
 
 type Props = {
-  data: ChainResponse | null;
+  data: AgentChainResponse | null;
 };
 
 function StageCard({
