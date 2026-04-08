@@ -7,7 +7,7 @@ import ExecutiveDashboardView from "../workspaces/ExecutiveDashboardView";
 import LiveSignalsWorkspace from "../workspaces/LiveSignalsWorkspace";
 import OpportunityWorkspace from "../workspaces/OpportunityWorkspace";
 import CompanyIntelligenceWorkspace from "../workspaces/CompanyIntelligenceWorkspace";
-import PlannerAgentWorkspace from "../components/PlannerAgentWorkspace";
+import PlannerAgentWorkspace from "../workspaces/PlannerAgentWorkspace";
 import AdvisorAgentWorkspace from "../workspaces/AdvisorAgentWorkspace";
 import AnalystAgentWorkspace from "../workspaces/AnalystAgentWorkspace";
 import CompanyProfileAgentWorkspace from "../workspaces/CompanyProfileAgentWorkspace";
