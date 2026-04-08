@@ -15,12 +15,12 @@ import DataGovernanceWorkspace from "../workspaces/DataGovernanceWorkspace";
 import ConfigurationWorkspace from "../workspaces/ConfigurationWorkspace";
 
 import {
-  demoAnalystMessages,
+  demoAnalystMessages,profile_agent:
   demoAdvisorMessages,
   demoCompanyProfile,
   demoConfig,
-  demoDashboardSummary,
-  demoGovernance,
+  demoDashboardSummary,profile_agent:
+  demoGovernance,profile_agent:
   demoOpportunities,
   demoProfileAgentMessages,
   demoSignals,
@@ -84,13 +84,14 @@ export default function HomePage() {
         advisor:
           safeSummary.agent_snapshots?.advisor ??
           "No advisor snapshot available yet.",
-        profile_agent:
-          profile.strategic_priorities.length > 0
-            ? `GeoPulse is currently calibrated around: ${profile.strategic_priorities.join(
-                ", "
-              )}. More market and exposure detail will further improve advisory precision.`
-            : safeSummary.agent_snapshots?.profile_agent ??
-              "No profile agent snapshot available yet.",
+        const priorities = profile?.strategic_priorities ?? [];
+
+	    profile_agent:
+		  priorities.length > 0
+			? `GeoPulse is currently calibrated around: ${priorities.join(
+		    	", "
+		      )}. More market and exposure detail will further improve advisory precision.`
+			: "No profile agent snapshot available yet.",
       },
     };
   }, [profile]);
