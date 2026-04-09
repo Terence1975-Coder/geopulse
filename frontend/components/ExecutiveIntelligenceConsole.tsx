@@ -1,160 +1,97 @@
 "use client";
 
 import { useState } from "react";
-import { apiPost } from "../lib/api";
-import { AgentChainResponse, AgentStage } from "../types/geopulse";
+import { engageAgent } from "../lib/engageAgent";
+import type { AgentStage } from "../types/intelligence";
+import type { AgentChainResponse } from "../types/geopulse";
 import ExplainabilityPanel from "./ExplainabilityPanel";
 
-const stageLabels: Record<AgentStage, string> = {
-  analyse: "Analyse",
-  advise: "Advise",
-  plan: "Create Plan",
-  profile: "Build Company Profile",
+type Props = {
+  defaultStage?: AgentStage;
 };
 
-export default function ExecutiveIntelligenceConsole() {
+export default function ExecutiveIntelligenceConsole({
+  defaultStage = "full_chain",
+}: Props) {
   const [input, setInput] = useState("");
-  const [companyName, setCompanyName] = useState("GeoPulse Demo Company");
-  const [loadingStage, setLoadingStage] = useState<AgentStage | null>(null);
-  const [response, setResponse] = useState<AgentChainResponse | null>(null);
+  const [stage, setStage] = useState<AgentStage>(defaultStage);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<AgentChainResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function engage(stage: AgentStage) {
-    try {
-      setError(null);
-      setLoadingStage(stage);
+  async function handleRun() {
+    const text = input.trim();
+    if (!text || loading) return;
 
-      const result = await apiPost<AgentChainResponse>("/intel/agent/engage", {
-        input,
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await engageAgent({
+        input: text,
         stage,
-        company_name: companyName,
-        previous_chain_state: response?.chain_state ?? null,
       });
 
-      setResponse(result);
+      setResult(response as unknown as AgentChainResponse);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to run agent chain");
+      setError(
+        err instanceof Error ? err.message : "GeoPulse request failed."
+      );
     } finally {
-      setLoadingStage(null);
+      setLoading(false);
     }
   }
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
-        <div className="text-xs uppercase tracking-[0.22em] text-slate-400">
-          Unified Agent Console
+    <div className="space-y-6 rounded-3xl border border-white/10 bg-white/[0.03] p-6">
+      <div>
+        <div className="text-xs uppercase tracking-[0.2em] text-cyan-300/70">
+          Executive Intelligence Console
         </div>
-
-        <div className="mt-4 grid gap-4">
-          <input
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-            className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none"
-            placeholder="Company name"
-          />
-
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Enter company context, risk signal, market event, or executive question..."
-            className="min-h-[160px] rounded-2xl border border-white/10 bg-black/20 px-4 py-4 text-sm text-white outline-none"
-          />
-
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            {(["analyse", "advise", "plan", "profile"] as AgentStage[]).map(
-              (stage) => (
-                <button
-                  key={stage}
-                  onClick={() => engage(stage)}
-                  disabled={loadingStage === stage}
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white transition hover:bg-white/10 disabled:opacity-60"
-                >
-                  {loadingStage === stage ? "Running..." : stageLabels[stage]}
-                </button>
-              )
-            )}
-          </div>
-
-          {error ? (
-            <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-200">
-              {error}
-            </div>
-          ) : null}
-        </div>
+        <h2 className="mt-2 text-2xl font-semibold text-white">
+          Run GeoPulse Intelligence
+        </h2>
       </div>
 
-      {response ? (
-        <>
-          <div className="grid gap-6 xl:grid-cols-2">
-            <OutputCard title="Analysis" content={response.outputs.analyse} />
-            <OutputCard title="Advice" content={response.outputs.advise} />
-            <OutputCard title="Plan" content={response.outputs.plan} />
-            <OutputCard title="Company Profile" content={response.outputs.profile} />
-          </div>
+      <div className="grid gap-4 md:grid-cols-[180px_minmax(0,1fr)]">
+        <select
+          value={stage}
+          onChange={(e) => setStage(e.target.value as AgentStage)}
+          className="rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white"
+        >
+          <option value="analyse">Analyse</option>
+          <option value="advise">Advise</option>
+          <option value="plan">Plan</option>
+          <option value="profile">Profile</option>
+          <option value="full_chain">Full Chain</option>
+          <option value="multi_path">Multi Path</option>
+        </select>
 
-          <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
-            <div className="text-xs uppercase tracking-[0.22em] text-slate-400">
-              Privacy Layer
-            </div>
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Describe the market signal, company challenge, or opportunity..."
+          className="min-h-[110px] rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/35"
+        />
+      </div>
 
-            <div className="mt-4 grid gap-4 xl:grid-cols-3">
-              <PanelBlock title="Raw Input" content={response.input} />
-              <PanelBlock
-                title="Anonymized Input"
-                content={response.anonymized_input}
-              />
-              <PanelBlock
-                title="Privacy Risk"
-                content={response.privacy.risk_level}
-              />
-            </div>
-          </div>
+      <div className="flex flex-wrap gap-3">
+        <button
+          onClick={() => void handleRun()}
+          disabled={loading || !input.trim()}
+          className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-3 text-sm font-medium text-cyan-100 transition hover:bg-cyan-400/20 disabled:opacity-50"
+        >
+          {loading ? "Running..." : "Run"}
+        </button>
+      </div>
 
-          <ExplainabilityPanel
-            explanation={response.explanation}
-            evidence={response.evidence}
-          />
-        </>
+      {error ? (
+        <div className="rounded-2xl border border-rose-400/20 bg-rose-500/10 p-4 text-sm text-rose-200">
+          {error}
+        </div>
       ) : null}
-    </div>
-  );
-}
 
-function OutputCard({
-  title,
-  content,
-}: {
-  title: string;
-  content?: string | null;
-}) {
-  return (
-    <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
-      <div className="text-xs uppercase tracking-[0.22em] text-slate-400">
-        {title}
-      </div>
-      <div className="mt-4 whitespace-pre-wrap text-sm leading-7 text-slate-200">
-        {content || "No output yet."}
-      </div>
-    </div>
-  );
-}
-
-function PanelBlock({
-  title,
-  content,
-}: {
-  title: string;
-  content: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-      <div className="text-xs uppercase tracking-[0.18em] text-slate-400">
-        {title}
-      </div>
-      <div className="mt-2 whitespace-pre-wrap text-sm text-slate-200">
-        {content}
-      </div>
+      {result ? <ExplainabilityPanel data={result} /> : null}
     </div>
   );
 }
