@@ -430,7 +430,7 @@ export default function AgentChainWorkspace({
   onSave,
   onReject,
 }: Props) {
-    async function runChain() {
+  async function runChain() {
     const text = input.trim();
     if (!text || loading) return;
 
@@ -470,30 +470,6 @@ export default function AgentChainWorkspace({
     } finally {
       setLoading(false);
     }
-  }
-
-        if ((data as AnyRecord)?.chain_outputs) {
-        setChainOutputs((data as AnyRecord).chain_outputs);
-      }
-    } catch (error) {
-    
-	  setResult({
-        output: {
-          headline: "Chain execution failed",
-          key_insight:
-            error instanceof Error
-              ? `GeoPulse could not complete chain execution: ${error.message}`
-              : "GeoPulse could not complete chain execution.",
-          recommended_actions: [
-            "Check backend is running",
-			"Verify API endpoint configuration",
-			"Retry the request",
-          ],
-		  confidence: 0,
-		  time_horizon: "short",
-		},
-  });
-}
   }
 
   const data = (result ?? null) as AnyRecord | null;
@@ -554,7 +530,8 @@ export default function AgentChainWorkspace({
 
         <div className="mt-4 flex flex-wrap gap-2">
           <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
-            Profile calibration {companyProfile?.company_name ? "active" : "limited"}
+            Profile calibration{" "}
+            {companyProfile?.company_name ? "active" : "limited"}
           </span>
           <span className="rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-200">
             Shared chain state active
@@ -617,7 +594,11 @@ export default function AgentChainWorkspace({
       ) : (
         <div className="space-y-6">
           <AnalyseCard value={analyseValue} />
-          {multiPathValue ? <MultiPathCard value={multiPathValue} /> : <AdviseCard value={adviseValue} />}
+          {multiPathValue ? (
+            <MultiPathCard value={multiPathValue} />
+          ) : (
+            <AdviseCard value={adviseValue} />
+          )}
           <PlanCard value={planValue} />
         </div>
       )}
