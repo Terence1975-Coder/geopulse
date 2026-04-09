@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import AgentChainResults from "./AgentChainResults";
-import { engageAgent } from "../lib/api";
 import { ChainResponse } from "../types/agentChain";
 
 export default function AgentChainWorkspace() {
