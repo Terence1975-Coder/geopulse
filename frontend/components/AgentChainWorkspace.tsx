@@ -430,7 +430,7 @@ export default function AgentChainWorkspace({
   onSave,
   onReject,
 }: Props) {
-  async function runChain() {
+    async function runChain() {
     const text = input.trim();
     if (!text || loading) return;
 
@@ -450,7 +450,33 @@ export default function AgentChainWorkspace({
       if ((data as AnyRecord)?.chain_outputs) {
         setChainOutputs((data as AnyRecord).chain_outputs);
       }
-    catch (error) {
+    } catch (error) {
+      setResult({
+        output: {
+          headline: "Chain execution failed",
+          key_insight:
+            error instanceof Error
+              ? `GeoPulse could not complete chain execution: ${error.message}`
+              : "GeoPulse could not complete chain execution.",
+          recommended_actions: [
+            "Check backend is running",
+            "Verify API endpoint configuration",
+            "Retry the request",
+          ],
+          confidence: 0,
+          time_horizon: "short",
+        },
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+        if ((data as AnyRecord)?.chain_outputs) {
+        setChainOutputs((data as AnyRecord).chain_outputs);
+      }
+    } catch (error) {
+    
 	  setResult({
         output: {
           headline: "Chain execution failed",
