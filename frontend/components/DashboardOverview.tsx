@@ -86,7 +86,10 @@ export default function DashboardOverview({ dashboard }: Props) {
           <Radar size={18} className="text-indigo-300" />
         </div>
         <div className="mt-4 text-3xl font-semibold text-white">
-          {dashboard.signal_coverage ?? "N/A"}
+          {typeof dashboard.signal_coverage === "number" ||
+		  typeof dashboard.signal_coverage === "string"
+			? dashboard.signal_coverage
+			: "N/A"}
         </div>
         <div className="mt-2 text-sm text-slate-300">
           Active signals tracked
