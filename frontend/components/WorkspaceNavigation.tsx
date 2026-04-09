@@ -208,7 +208,7 @@ export default function WorkspaceNavigation({ active, onChange }: Props) {
     <aside className="h-fit rounded-[32px] border border-white/10 bg-slate-950/72 p-4 shadow-[0_28px_90px_rgba(0,0,0,0.36)] backdrop-blur-xl">
       <div className="rounded-[28px] border border-cyan-400/15 bg-gradient-to-br from-cyan-500/[0.10] via-slate-950 to-slate-950 p-5">
         <div className="mb-6">
-          <GeoPulseLogo size="LG" showWordmark={false} />
+          <GeoPulseLogo size="lg" showWordmark={false} />
         </div>
 
         <div className="text-[11px] uppercase tracking-[0.32em] text-cyan-300/80">
