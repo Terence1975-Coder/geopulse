@@ -4,7 +4,6 @@ import { useState } from "react";
 import { engageAgent } from "../lib/engageAgent";
 import type { AgentStage } from "../types/intelligence";
 import type { AgentChainResponse } from "../types/geopulse";
-import ExplainabilityPanel from "./ExplainabilityPanel";
 
 type Props = {
   defaultStage?: AgentStage;
@@ -91,7 +90,16 @@ export default function ExecutiveIntelligenceConsole({
         </div>
       ) : null}
 
-      {result ? <ExplainabilityPanel data={result} /> : null}
+      {result ? (
+        <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4">
+          <div className="text-xs uppercase tracking-[0.18em] text-slate-400">
+            Response Preview
+          </div>
+          <pre className="mt-3 overflow-x-auto whitespace-pre-wrap text-xs text-slate-200">
+            {JSON.stringify(result, null, 2)}
+          </pre>
+        </div>
+      ) : null}
     </div>
   );
 }
