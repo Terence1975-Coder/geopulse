@@ -30,9 +30,11 @@ export default function DashboardOverview({ dashboard }: Props) {
     );
   }
 
+  const momentum =
+    typeof dashboard.momentum === "string" ? dashboard.momentum : undefined;
+
   return (
     <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-      {/* Risk Score */}
       <div className="rounded-3xl border border-rose-400/20 bg-rose-500/10 p-5">
         <div className="flex items-center justify-between">
           <span className="text-xs uppercase tracking-[0.2em] text-rose-200/70">
@@ -48,7 +50,6 @@ export default function DashboardOverview({ dashboard }: Props) {
         </div>
       </div>
 
-      {/* Opportunity Score */}
       <div className="rounded-3xl border border-emerald-400/20 bg-emerald-500/10 p-5">
         <div className="flex items-center justify-between">
           <span className="text-xs uppercase tracking-[0.2em] text-emerald-200/70">
@@ -64,23 +65,19 @@ export default function DashboardOverview({ dashboard }: Props) {
         </div>
       </div>
 
-      {/* Momentum */}
       <div className="rounded-3xl border border-cyan-400/20 bg-cyan-500/10 p-5">
         <div className="flex items-center justify-between">
           <span className="text-xs uppercase tracking-[0.2em] text-cyan-200/70">
             Momentum
           </span>
-          {momentumIcon(dashboard.momentum)}
+          {momentumIcon(momentum)}
         </div>
         <div className="mt-4 text-3xl font-semibold text-white">
-          {dashboard.momentum ?? "—"}
+          {momentum ?? "—"}
         </div>
-        <div className="mt-2 text-sm text-slate-300">
-          Trend direction
-        </div>
+        <div className="mt-2 text-sm text-slate-300">Trend direction</div>
       </div>
 
-      {/* Coverage */}
       <div className="rounded-3xl border border-indigo-400/20 bg-indigo-500/10 p-5">
         <div className="flex items-center justify-between">
           <span className="text-xs uppercase tracking-[0.2em] text-indigo-200/70">
