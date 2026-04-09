@@ -1,6 +1,6 @@
 import AgentSection from "./AgentSection";
 import AgentBadgeRow from "./AgentBadgeRow";
-import type { StructuredAgentOutput } from "@/types/intelligence";
+import type { StructuredAgentOutput } from "../../types/intelligence";
 
 type AgentResponseCardProps = {
   data: StructuredAgentOutput;
