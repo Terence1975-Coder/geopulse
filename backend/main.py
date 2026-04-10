@@ -15,7 +15,7 @@ from backend.api.company_intelligence import router as company_router  # ✅ ADD
 Base.metadata.create_all(bind=engine)
 
 # Create FastAPI app
-aapp.add_middleware(
+app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
