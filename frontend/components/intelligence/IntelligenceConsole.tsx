@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import AnalystAgentWorkspace from "@/components/workspaces/AnalystAgentWorkspace";
-import AdvisorAgentWorkspace from "@/components/workspaces/AdvisorAgentWorkspace";
-import PlannerAgentWorkspace from "@/components/workspaces/PlannerAgentWorkspace";
+import AnalystAgentWorkspace from "../../workspaces/AnalystAgentWorkspace";
+import AdvisorAgentWorkspace from "../../workspaces/AdvisorAgentWorkspace";
+import PlannerAgentWorkspace from "../../workspaces/PlannerAgentWorkspace";
 import type {
   ChainOutputs,
   CompanyProfile,
