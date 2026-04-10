@@ -1,5 +1,7 @@
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8000";
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_BASE ||
+  "http://127.0.0.1:8000";
 
 import type {
   AgentStage,
@@ -70,7 +72,10 @@ export async function engageAgent(
     previous_chain_state: params.previousChainState ?? undefined,
   };
 
-  const response = await fetch(`${API_BASE}/intel/agent/engage`, {
+  const base = API_BASE.replace(/\/+$/, "");
+  const url = `${base}/intel/agent/engage`;
+
+  const response = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -80,7 +85,7 @@ export async function engageAgent(
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Backend error: ${errorText}`);
+    throw new Error(`Backend error ${response.status}: ${errorText}`);
   }
 
   return (await response.json()) as EngageAgentResponse;
