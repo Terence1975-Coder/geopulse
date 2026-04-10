@@ -9,12 +9,15 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.db import Base, engine
 from backend.intel.router import router as intel_router
-from backend.api.company_intelligence import router as company_router  # ✅ ADD
+from backend.api.company_intelligence import router as company_router
 
 # Ensure DB tables exist
 Base.metadata.create_all(bind=engine)
 
 # Create FastAPI app
+app = FastAPI(title="GeoPulse Backend")
+
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -28,7 +31,7 @@ app.add_middleware(
 
 # Routers
 app.include_router(intel_router)
-app.include_router(company_router)  # ✅ CRITICAL FIX
+app.include_router(company_router)
 
 # Health check
 @app.get("/health")
