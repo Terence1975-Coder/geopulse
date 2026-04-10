@@ -1,11 +1,11 @@
 "use client";
 
-import BaseAgentWorkspace from "@/components/intelligence/BaseAgentWorkspace";
+import BaseAgentWorkspace from "../intelligence/BaseAgentWorkspace";
 import type {
   ChainOutputs,
   CompanyProfile,
   WorkspaceMessage,
-} from "@/types/intelligence";
+} from "../../types/intelligence";
 
 type AdvisorAgentWorkspaceProps = {
   messages: WorkspaceMessage[];
