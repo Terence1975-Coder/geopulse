@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { CompanyProfile } from "../../types/intelligence";
+import type { CompanyProfile } from "../types/intelligence";
 
 type CompanyIntelligenceWorkspaceProps = {
   profile: Partial<CompanyProfile> & Record<string, any>;
