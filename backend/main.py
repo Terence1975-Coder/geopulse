@@ -15,14 +15,11 @@ from backend.api.company_intelligence import router as company_router  # ✅ ADD
 Base.metadata.create_all(bind=engine)
 
 # Create FastAPI app
-app = FastAPI(title="GeoPulse AI Backend")
-
-# CORS for frontend (Next.js)
-app.add_middleware(
+aapp.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "http://127.0.0.1:3000",
+        "https://geopulse-3u8t.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
