@@ -64,14 +64,14 @@ export function mergeChainOutputs(
     };
   }
 
-  if (
+    if (
     stage &&
     stage !== "full_chain" &&
     stage !== "multi_path"
   ) {
     const stageOutput = extractStageOutput(incoming, stage);
-    if (stageOutput && typeof stageOutput === "object") {
-      next[stage] = stageOutput;
+    if (stageOutput && typeof stageOutput === "object" && !Array.isArray(stageOutput)) {
+      next[stage] = stageOutput as ChainOutputs[typeof stage];
     }
   }
 
