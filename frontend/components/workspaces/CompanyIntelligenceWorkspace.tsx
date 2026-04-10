@@ -1,6 +1,6 @@
 "use client";
 
-import CompanyUploadPanel from "../components/CompanyUploadPanel";
+import CompanyUploadPanel from "../CompanyUploadPanel";
 import type { CompanyProfile } from "../../types/intelligence";
 
 type CompanyIntelligenceWorkspaceProps = {
