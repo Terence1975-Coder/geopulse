@@ -57,14 +57,15 @@ def _normalise_company_context(payload: AgentEngageRequest) -> dict[str, Any]:
     return company_context
 
 
-@router.get("/signals", response_model=List[SignalRecord])
-async def get_signals(limit: int = Query(default=50, ge=1, le=200)) -> List[dict[str, Any]]:
-    try:
-        return list_signals(limit=limit)
-    except Exception as exc:
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"get_signals failed: {str(exc)}") from exc
-
+@router.get("/dashboard/summary")
+def get_dashboard_summary():
+    return {
+        "overall_risk_score": 72,
+        "opportunity_score": 81,
+        "posture": "Heightened Attention",
+        "opportunity_posture": "Targeted Upside",
+        "urgency": "Moderate",
+    }
 
 @router.post("/signals/store", response_model=SignalStoreResponse)
 async def store_signal_records(payload: SignalStoreRequest) -> SignalStoreResponse:
