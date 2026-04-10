@@ -1,11 +1,7 @@
 "use client";
 
 import type {
-  AdviseOutput,
-  AnalyseOutput,
-  PlanOutput,
-  ProfileOutput,
-  StrategicOption,
+  StructuredAgentOutput,
   WorkspaceMessage,
 } from "../../types/intelligence";
 
@@ -18,19 +14,19 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object";
 }
 
-function isAnalyseOutput(value: unknown): value is AnalyseOutput {
+function isStructuredAgentOutput(value: unknown): value is StructuredAgentOutput {
   return isObject(value) && "drivers" in value && "second_order_effects" in value;
 }
 
-function isAdviseOutput(value: unknown): value is AdviseOutput {
+function isStructuredAgentOutput(value: unknown): value is StructuredAgentOutput {
   return isObject(value) && "strategic_options" in value && "recommended_option" in value;
 }
 
-function isPlanOutput(value: unknown): value is PlanOutput {
+function isStructuredAgentOutput(value: unknown): value is StructuredAgentOutput {
   return isObject(value) && "execution_phases" in value && "go_no_go_criteria" in value;
 }
 
-function isProfileOutput(value: unknown): value is ProfileOutput {
+function isStructuredAgentOutput(value: unknown): value is StructuredAgentOutput {
   return isObject(value) && "profile_summary" in value && "calibration_notes" in value;
 }
 
@@ -91,7 +87,7 @@ function MetaBar({
   );
 }
 
-function AnalyseCard({ data }: { data: AnalyseOutput }) {
+function AnalyseCard({ data }: { data: StructuredAgentOutput }) {
   return (
     <div className="space-y-4">
       <Section title="Headline">
@@ -209,7 +205,7 @@ function OptionCard({
   );
 }
 
-function AdviseCard({ data }: { data: AdviseOutput }) {
+function AdviseCard({ data }: { data: StructuredAgentOutput }) {
   return (
     <div className="space-y-4">
       <Section title="Decision Context">
@@ -252,7 +248,7 @@ function AdviseCard({ data }: { data: AdviseOutput }) {
   );
 }
 
-function PlanCard({ data }: { data: PlanOutput }) {
+function PlanCard({ data }: { data: StructuredAgentOutput }) {
   return (
     <div className="space-y-4">
       <Section title="Objective">
@@ -325,7 +321,7 @@ function PlanCard({ data }: { data: PlanOutput }) {
   );
 }
 
-function ProfileCard({ data }: { data: ProfileOutput }) {
+function ProfileCard({ data }: { data: StructuredAgentOutput }) {
   return (
     <div className="space-y-4">
       <Section title="Profile Summary">
@@ -377,13 +373,13 @@ export default function WorkspaceMessageRenderer({
         <p className="whitespace-pre-wrap text-sm leading-7 text-slate-200">
           {message.content}
         </p>
-      ) : isAnalyseOutput(message.content) ? (
+      ) : isStructuredAgentOutput(message.content) ? (
         <AnalyseCard data={message.content} />
-      ) : isAdviseOutput(message.content) ? (
+      ) : isStructuredAgentOutput(message.content) ? (
         <AdviseCard data={message.content} />
-      ) : isPlanOutput(message.content) ? (
+      ) : isStructuredAgentOutput(message.content) ? (
         <PlanCard data={message.content} />
-      ) : isProfileOutput(message.content) ? (
+      ) : isStructuredAgentOutput(message.content) ? (
         <ProfileCard data={message.content} />
       ) : (
         <pre className="overflow-x-auto whitespace-pre-wrap text-xs text-slate-300">
