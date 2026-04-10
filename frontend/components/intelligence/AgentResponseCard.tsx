@@ -42,7 +42,7 @@ export default function AgentResponseCard({
       <div className="mt-5 border-t border-white/10 pt-4">
         <AgentBadgeRow
           confidence={data.confidence ?? 0}
-          timeHorizon={data.time_horizon}
+          timeHorizon={data.time_horizon ?? "short"}
           basedOnStages={data.based_on_stages}
         />
 
