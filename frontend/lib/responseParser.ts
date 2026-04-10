@@ -2,7 +2,7 @@ import type {
   AgentStage,
   ChainOutputs,
   EngageAgentResponse,
-} from "./api";
+} from "../types/intelligence";
 
 type UnknownRecord = Record<string, unknown>;
 
