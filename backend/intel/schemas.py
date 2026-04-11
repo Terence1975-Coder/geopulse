@@ -263,6 +263,32 @@ class AgentRunRecord(BaseModel):
     duration_ms: Optional[int] = None
 
     metadata: Dict[str, Any] = Field(default_factory=dict)
+    
+    class CompanyProfileFetchResponse(BaseModel):
+    """
+    Backward-compatibility response model for older profile routes.
+    """
+    model_config = ConfigDict(extra="allow")
+
+    success: bool = True
+    profile: Optional[Dict[str, Any]] = None
+    company_id: Optional[str] = None
+    company_name: Optional[str] = None
+    message: Optional[str] = None
+
+
+class CompanyProfileSaveResponse(BaseModel):
+    """
+    Backward-compatibility response model for older profile save routes.
+    """
+    model_config = ConfigDict(extra="allow")
+
+    success: bool = True
+    profile: Optional[Dict[str, Any]] = None
+    company_id: Optional[str] = None
+    company_name: Optional[str] = None
+    saved: bool = True
+    message: Optional[str] = None
 
 class AgentEngageResponse(BaseModel):
     model_config = ConfigDict(extra="allow")
@@ -282,3 +308,12 @@ class AgentEngageResponse(BaseModel):
     context_summary: Optional[Dict[str, Any]] = None
     meta: Optional[Dict[str, Any]] = None
     
+class CompanyProfileSaveRequest(BaseModel):
+    """
+    Backward-compatibility request model for older profile save routes.
+    """
+    model_config = ConfigDict(extra="allow")
+
+    company_id: Optional[str] = None
+    company_name: Optional[str] = None
+    profile: Dict[str, Any] = Field(default_factory=dict)
