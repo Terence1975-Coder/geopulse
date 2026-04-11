@@ -19,18 +19,28 @@ AgentStage = Literal[
 
 
 class SupportingSignalDetail(BaseModel):
+    """
+    Flexible nested signal model to prevent serializer warnings when
+    upstream services return signal detail dictionaries.
+    """
     model_config = ConfigDict(extra="allow")
 
     id: Optional[str] = None
     headline: Optional[str] = None
     summary: Optional[str] = None
     source: Optional[str] = None
+    source_type: Optional[str] = None
     region: Optional[str] = None
+    cluster_tag: Optional[str] = None
     kind: Optional[str] = None
     severity: Optional[str] = None
     lifecycle: Optional[str] = None
+
     confidence: Optional[float] = None
     confidence_score: Optional[float] = None
+    signal_strength: Optional[float] = None
+    freshness_minutes: Optional[int] = None
+
     timestamp: Optional[str] = None
     detected_at: Optional[str] = None
     updated_at: Optional[str] = None
@@ -38,6 +48,10 @@ class SupportingSignalDetail(BaseModel):
 
 
 class StructuredAgentOutput(BaseModel):
+    """
+    Main structured output used by context_builder.py and agent_service.py.
+    Kept permissive so older / newer payloads do not break execution.
+    """
     model_config = ConfigDict(extra="allow")
 
     summary: Optional[str] = None
@@ -51,15 +65,30 @@ class StructuredAgentOutput(BaseModel):
 
     confidence: float = 0.0
     time_horizon: Optional[TimeHorizon] = None
+    urgency: Optional[str] = None
+    time_relevance: Optional[str] = None
 
     missing_profile_data: List[str] = Field(default_factory=list)
     profile_references: List[str] = Field(default_factory=list)
     based_on_stages: List[str] = Field(default_factory=list)
     based_on_signals: List[str] = Field(default_factory=list)
-    time_relevance: Optional[str] = None
 
-    supporting_signal_details: List[SupportingSignalDetail] = Field(default_factory=list)
+    supporting_signal_details: List[SupportingSignalDetail] = Field(
+        default_factory=list
+    )
 
+    reasoning_notes: List[str] = Field(default_factory=list)
+    explanation_notes: List[str] = Field(default_factory=list)
+
+    # Useful compatibility fields for richer stage outputs
+    decision_context: Optional[str] = None
+    tradeoffs: List[str] = Field(default_factory=list)
+    dependencies: List[str] = Field(default_factory=list)
+    milestones: List[str] = Field(default_factory=list)
+    success_metrics: List[str] = Field(default_factory=list)
+    review_checkpoints: List[str] = Field(default_factory=list)
+
+    # Legacy / compatibility fields
     response: Optional[str] = None
     message: Optional[str] = None
     content: Optional[str] = None
@@ -78,6 +107,9 @@ class ChainOutputs(BaseModel):
 
 
 class CompanyProfile(BaseModel):
+    """
+    Matches what context_builder.py expects to read.
+    """
     model_config = ConfigDict(extra="allow")
 
     company_name: Optional[str] = None
@@ -95,6 +127,7 @@ class CompanyProfile(BaseModel):
     recommendation_style: Optional[str] = None
     notes: Optional[str] = None
 
+    # Backward compatibility fields from earlier versions
     market_focus: List[str] = Field(default_factory=list)
     recommendation_posture: Optional[str] = None
     profile_json: Dict[str, Any] = Field(default_factory=dict)
@@ -216,79 +249,13 @@ class AgentEngageResponse(BaseModel):
     outputs: Optional[Dict[str, Any]] = None
     chain_outputs: Optional[Any] = None
 
-    analyst_views: Optional[List[MultiAnalystView]] = None
-    analysis_selection: Optional[AnalysisSelection] = None
-    strategic_paths: Optional[List[StrategicPath]] = None
-    strategy_decision: Optional[StrategyDecision] = None
-    execution_plan: Optional[ExecutionPlan] = None
-    interaction_hooks: Optional[InteractionHooks] = None
+    analyst_views: Optional[List[Dict[str, Any]]] = None
+    analysis_selection: Optional[Dict[str, Any]] = None
+    strategic_paths: Optional[List[Dict[str, Any]]] = None
+    strategy_decision: Optional[Dict[str, Any]] = None
+    execution_plan: Optional[Dict[str, Any]] = None
+    interaction_hooks: Optional[Dict[str, Any]] = None
 
     multi_path_output: Optional[MultiPathOutput] = None
     context_summary: Optional[Dict[str, Any]] = None
     meta: Optional[Dict[str, Any]] = None
-
-
-class SignalRecord(BaseModel):
-    model_config = ConfigDict(extra="allow")
-
-    id: Optional[str] = None
-    headline: str
-    summary: str = ""
-    region: str = "Global"
-    cluster_tag: str = "General"
-    kind: str = "risk"
-    severity: str = "medium"
-    source: str = "Unknown"
-    source_type: str = "manual"
-    timestamp: Optional[str] = None
-    supporting_facts: Dict[str, Any] = Field(default_factory=dict)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-
-
-class SignalStoreRequest(BaseModel):
-    items: List[SignalRecord] = Field(default_factory=list)
-
-
-class SignalStoreResponse(BaseModel):
-    ok: bool = True
-    stored: int = 0
-
-
-class CompanyProfileSaveRequest(BaseModel):
-    company_name: str
-    company_id: Optional[str] = None
-    profile: Dict[str, Any] = Field(default_factory=dict)
-
-
-class CompanyProfileSaveResponse(BaseModel):
-    ok: bool = True
-    company_name: Optional[str] = None
-    company_id: Optional[str] = None
-    profile: Dict[str, Any] = Field(default_factory=dict)
-    updated_at: Optional[str] = None
-
-
-class CompanyProfileFetchResponse(BaseModel):
-    company_name: Optional[str] = None
-    company_id: Optional[str] = None
-    market_focus: List[str] = Field(default_factory=list)
-    strategic_priorities: List[str] = Field(default_factory=list)
-    recommendation_posture: Optional[str] = None
-    profile: Dict[str, Any] = Field(default_factory=dict)
-    updated_at: Optional[str] = None
-
-
-class AgentRunRecord(BaseModel):
-    model_config = ConfigDict(extra="allow")
-
-    id: int
-    company_name: Optional[str] = None
-    input_text: str
-    anonymized_input: Optional[str] = None
-    requested_stage: str
-    completed_steps: List[str] = Field(default_factory=list)
-    outputs: Dict[str, Any] = Field(default_factory=dict)
-    evidence: Dict[str, Any] = Field(default_factory=dict)
-    explanation: Dict[str, Any] = Field(default_factory=dict)
-    privacy: Dict[str, Any] = Field(default_factory=dict)
-    created_at: Optional[str] = None
