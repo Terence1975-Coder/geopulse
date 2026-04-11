@@ -67,6 +67,19 @@ def get_dashboard_summary():
         "urgency": "Moderate",
     }
 
+
+@router.get("/signals", response_model=List[SignalRecord])
+async def get_signals() -> List[SignalRecord]:
+    try:
+        return list_signals()
+    except Exception as exc:
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"get_signals failed: {str(exc)}",
+        ) from exc
+
+
 @router.post("/signals/store", response_model=SignalStoreResponse)
 async def store_signal_records(payload: SignalStoreRequest) -> SignalStoreResponse:
     try:
@@ -74,7 +87,10 @@ async def store_signal_records(payload: SignalStoreRequest) -> SignalStoreRespon
         return SignalStoreResponse(**result)
     except Exception as exc:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"store_signal_records failed: {str(exc)}") from exc
+        raise HTTPException(
+            status_code=500,
+            detail=f"store_signal_records failed: {str(exc)}",
+        ) from exc
 
 
 @router.get("/runs", response_model=List[AgentRunRecord])
@@ -83,7 +99,10 @@ async def get_runs(limit: int = Query(default=20, ge=1, le=100)) -> List[dict[st
         return list_agent_runs(limit=limit)
     except Exception as exc:
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"get_runs failed: {str(exc)}") from exc
+        raise HTTPException(
+            status_code=500,
+            detail=f"get_runs failed: {str(exc)}",
+        ) from exc
 
 
 @router.post("/company-profile/save", response_model=CompanyProfileSaveResponse)
