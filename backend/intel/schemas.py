@@ -240,27 +240,8 @@ class MultiPathOutput(BaseModel):
     strategy_decision: StrategyDecision
     execution_plan: ExecutionPlan
     interaction_hooks: InteractionHooks
-
-
-class AgentEngageResponse(BaseModel):
-    model_config = ConfigDict(extra="allow")
-
-    output: Optional[Any] = None
-    outputs: Optional[Dict[str, Any]] = None
-    chain_outputs: Optional[Any] = None
-
-    analyst_views: Optional[List[Dict[str, Any]]] = None
-    analysis_selection: Optional[Dict[str, Any]] = None
-    strategic_paths: Optional[List[Dict[str, Any]]] = None
-    strategy_decision: Optional[Dict[str, Any]] = None
-    execution_plan: Optional[Dict[str, Any]] = None
-    interaction_hooks: Optional[Dict[str, Any]] = None
-
-    multi_path_output: Optional[MultiPathOutput] = None
-    context_summary: Optional[Dict[str, Any]] = None
-    meta: Optional[Dict[str, Any]] = None
     
-    class AgentRunRecord(BaseModel):
+class AgentRunRecord(BaseModel):
     """
     Backward-compatibility model for older router/service imports.
     Keep permissive so older code paths do not break.
@@ -282,3 +263,22 @@ class AgentEngageResponse(BaseModel):
     duration_ms: Optional[int] = None
 
     metadata: Dict[str, Any] = Field(default_factory=dict)
+
+class AgentEngageResponse(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    output: Optional[Any] = None
+    outputs: Optional[Dict[str, Any]] = None
+    chain_outputs: Optional[Any] = None
+
+    analyst_views: Optional[List[Dict[str, Any]]] = None
+    analysis_selection: Optional[Dict[str, Any]] = None
+    strategic_paths: Optional[List[Dict[str, Any]]] = None
+    strategy_decision: Optional[Dict[str, Any]] = None
+    execution_plan: Optional[Dict[str, Any]] = None
+    interaction_hooks: Optional[Dict[str, Any]] = None
+
+    multi_path_output: Optional[MultiPathOutput] = None
+    context_summary: Optional[Dict[str, Any]] = None
+    meta: Optional[Dict[str, Any]] = None
+    
