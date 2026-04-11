@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { engageAgent } from "../lib/engageAgent";
 import type {
   ChainOutputs,
@@ -11,6 +11,10 @@ import type {
 type ExecutePayload = {
   prompt: string;
   methodology: "auto" | "prince2" | "agile";
+  summary: {
+    methodologyLabel: string;
+    objectiveHint: string;
+  };
 };
 
 type Props = {
@@ -116,6 +120,30 @@ function StageShell({
       </div>
       <div className="mt-4 space-y-4">{children}</div>
     </article>
+  );
+}
+
+function MethodologyButton({
+  active,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={[
+        "rounded-2xl border px-4 py-2 text-sm transition",
+        active
+          ? "border-cyan-400/30 bg-cyan-500/15 text-cyan-100"
+          : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10",
+      ].join(" ")}
+    >
+      {label}
+    </button>
   );
 }
 
@@ -440,6 +468,12 @@ export default function AgentChainWorkspace({
     "auto"
   );
 
+  const methodologyLabel = useMemo(() => {
+    if (methodology === "prince2") return "PRINCE2";
+    if (methodology === "agile") return "Agile";
+    return "Hybrid";
+  }, [methodology]);
+
   async function runChain() {
     const text = input.trim();
     if (!text || loading) return;
@@ -485,12 +519,10 @@ export default function AgentChainWorkspace({
   function handleExecute() {
     if (!chainOutputs?.analyse || !chainOutputs?.advise) return;
 
-    const methodologyLabel =
-      methodology === "prince2"
-        ? "PRINCE2"
-        : methodology === "agile"
-        ? "Agile"
-        : "Hybrid / Auto-select";
+    const objectiveHint =
+      chainOutputs.advise?.headline ||
+      chainOutputs.analyse?.headline ||
+      "Execution plan requested";
 
     const executionPrompt = `
 You are GeoPulse Planner.
@@ -517,6 +549,9 @@ INSTRUCTIONS:
   - Hybrid when both governance and adaptability are required
 - Translate strategy into action.
 - Make the output boardroom-ready, practical, and measurable.
+- Explicitly state why the chosen methodology fits.
+- Include governance or review cadence.
+- Include a next-7-days view.
 
 OUTPUT MUST INCLUDE:
 - Objective
@@ -526,6 +561,7 @@ OUTPUT MUST INCLUDE:
 - Actions per phase
 - Owners
 - Dependencies
+- Milestones
 - Success metrics
 - Risks
 - Review checkpoints
@@ -537,6 +573,10 @@ Be concrete, structured, and executive-grade.
     onExecute?.({
       prompt: executionPrompt,
       methodology,
+      summary: {
+        methodologyLabel,
+        objectiveHint,
+      },
     });
   }
 
@@ -606,21 +646,27 @@ Be concrete, structured, and executive-grade.
           </span>
         </div>
 
-        <div className="mt-4">
-          <label className="mb-2 block text-xs uppercase tracking-[0.18em] text-slate-400">
-            Planner methodology
-          </label>
-          <select
-            value={methodology}
-            onChange={(e) =>
-              setMethodology(e.target.value as "auto" | "prince2" | "agile")
-            }
-            className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none"
-          >
-            <option value="auto">Auto / Hybrid</option>
-            <option value="prince2">PRINCE2</option>
-            <option value="agile">Agile</option>
-          </select>
+        <div className="mt-5">
+          <div className="mb-3 text-xs uppercase tracking-[0.18em] text-slate-400">
+            Planner delivery mode
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <MethodologyButton
+              active={methodology === "auto"}
+              label="Hybrid"
+              onClick={() => setMethodology("auto")}
+            />
+            <MethodologyButton
+              active={methodology === "prince2"}
+              label="PRINCE2"
+              onClick={() => setMethodology("prince2")}
+            />
+            <MethodologyButton
+              active={methodology === "agile"}
+              label="Agile"
+              onClick={() => setMethodology("agile")}
+            />
+          </div>
         </div>
 
         <div className="mt-6 flex gap-3">
@@ -647,7 +693,7 @@ Be concrete, structured, and executive-grade.
                 onClick={handleExecute}
                 className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-200 transition hover:bg-emerald-500/20"
               >
-                Execute
+                Execute with {methodologyLabel}
               </button>
             ) : null}
 

@@ -143,12 +143,19 @@ STAGE RULES: ADVISOR
     if stage == "plan":
         return """
 STAGE RULES: PLANNER
-- Prioritise sequencing
-- Convert advice into practical steps
-- Clarify likely ownership and execution order
-- Focus on operationalisation, not broad commentary
-- Use measurable milestones and review checkpoints
-- Include dependencies and success metrics where possible
+- You are producing a PROFESSIONAL DELIVERY PLAN, not light operational commentary
+- Convert strategy into an execution-grade delivery structure
+- Recommend the best-fit methodology: PRINCE2, Agile, or Hybrid
+- Explicitly explain WHY the chosen methodology fits the situation
+- Include governance, control, sequencing, owners, measurable success, and review cadence
+- If PRINCE2 is appropriate, use stage-based delivery, governance, tolerances, risks, and review gates
+- If Agile is appropriate, use iterative delivery, sprint logic, backlog-style actions, feedback loops, and adaptation points
+- If Hybrid is appropriate, combine governance with iterative execution and explain the split
+- Prioritise dependencies, milestones, success metrics, review checkpoints, and execution risks
+- Produce plan content that could be used in a professional steering-group or board discussion
+- Avoid generic planning language that could apply to any project
+- Include an immediate first-step view for the next 7 days
+- Make owners plausible and specific by function even if exact names are unknown
 """.strip()
 
     if stage == "profile":
@@ -245,7 +252,17 @@ Use exactly this schema:
   "review_checkpoints": ["optional string"]
 }
 
-QUALITY FLOOR
+PLANNER-SPECIFIC QUALITY FLOOR
+- For PLAN stage, headline must read like a professional delivery objective
+- For PLAN stage, recommended_actions must contain concrete actions, not vague advice
+- For PLAN stage, dependencies must be meaningful and operational
+- For PLAN stage, milestones must feel like real stage gates or sprint outcomes
+- For PLAN stage, success_metrics must be measurable
+- For PLAN stage, review_checkpoints must describe governance or iteration review moments
+- For PLAN stage, reasoning_notes should explain methodology fit, delivery logic, or sequencing rationale
+- For PLAN stage, explanation_notes should state any delivery assumptions or evidence limits
+
+GENERAL QUALITY FLOOR
 - headline must never be empty
 - key_insight must never be empty
 - return at least 2 items in drivers when evidence allows
@@ -298,6 +315,7 @@ GLOBAL RESPONSE RULES
 - Produce decision-useful output
 - Write for an executive dashboard
 - Prefer concise, specific statements over broad abstractions
+- For planning outputs, optimise for professional execution quality
 
 {output_contract}
 """.strip()

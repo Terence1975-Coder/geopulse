@@ -16,6 +16,10 @@ type PlannerExecutionRequest = {
   id: string;
   prompt: string;
   methodology: "auto" | "prince2" | "agile";
+  summary?: {
+    methodologyLabel: string;
+    objectiveHint: string;
+  };
 };
 
 type PlannerAgentWorkspaceProps = {
@@ -93,6 +97,51 @@ function PlanSummaryCard({ plan }: { plan: unknown }) {
   );
 }
 
+function ExecutionBriefCard({
+  executionRequest,
+}: {
+  executionRequest?: PlannerExecutionRequest | null;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!executionRequest) return null;
+
+  return (
+    <section className="rounded-3xl border border-cyan-400/20 bg-cyan-500/10 p-5">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <div className="text-xs uppercase tracking-[0.18em] text-cyan-200/80">
+            Execution Handoff
+          </div>
+          <div className="mt-2 text-lg font-semibold text-white">
+            {executionRequest.summary?.objectiveHint ?? "Execution brief sent to Planner"}
+          </div>
+          <div className="mt-2 text-sm text-slate-200">
+            Methodology preference:{" "}
+            <span className="font-medium text-cyan-100">
+              {executionRequest.summary?.methodologyLabel ??
+                executionRequest.methodology.toUpperCase()}
+            </span>
+          </div>
+        </div>
+
+        <button
+          onClick={() => setExpanded((prev) => !prev)}
+          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10"
+        >
+          {expanded ? "Hide execution brief" : "Show execution brief"}
+        </button>
+      </div>
+
+      {expanded ? (
+        <pre className="mt-4 overflow-auto rounded-2xl border border-white/10 bg-slate-950/60 p-4 text-xs leading-6 text-slate-300 whitespace-pre-wrap">
+          {executionRequest.prompt}
+        </pre>
+      ) : null}
+    </section>
+  );
+}
+
 export default function PlannerAgentWorkspace(
   props: PlannerAgentWorkspaceProps
 ) {
@@ -109,6 +158,8 @@ export default function PlannerAgentWorkspace(
 
   const [autoRunning, setAutoRunning] = useState(false);
   const handledRequestId = useRef<string | null>(null);
+  const [latestExecutionBrief, setLatestExecutionBrief] =
+    useState<PlannerExecutionRequest | null>(null);
 
   useEffect(() => {
     async function runExecutionRequest() {
@@ -116,17 +167,8 @@ export default function PlannerAgentWorkspace(
       if (handledRequestId.current === executionRequest.id) return;
 
       handledRequestId.current = executionRequest.id;
+      setLatestExecutionBrief(executionRequest);
       setAutoRunning(true);
-
-      const userMessage: WorkspaceMessage = {
-        id: crypto.randomUUID(),
-        role: "user",
-        timestamp: new Date().toISOString(),
-        tone: "executive",
-        content: executionRequest.prompt,
-      };
-
-      setMessages((prev) => [...(Array.isArray(prev) ? prev : []), userMessage]);
 
       try {
         const data = await engageAgent({
@@ -134,7 +176,7 @@ export default function PlannerAgentWorkspace(
           stage: "plan",
           companyProfile,
           chainOutputs,
-          messages: [...messages, userMessage],
+          messages,
           companyId,
         });
 
@@ -192,10 +234,12 @@ export default function PlannerAgentWorkspace(
     <div className="space-y-6">
       {autoRunning ? (
         <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-4 text-sm text-cyan-100">
-          GeoPulse is converting the selected chain output into an execution-grade
-          planner response.
+          GeoPulse is converting the selected chain output into a professional
+          execution-grade planner response.
         </div>
       ) : null}
+
+      <ExecutionBriefCard executionRequest={latestExecutionBrief} />
 
       <PlanSummaryCard plan={props.chainOutputs?.plan} />
 
