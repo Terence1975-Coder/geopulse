@@ -77,6 +77,31 @@ class SignalRecord(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
+class SignalStoreRequest(BaseModel):
+    """
+    Backward-compatibility request model for older signal storage routes.
+    """
+    model_config = ConfigDict(extra="allow")
+
+    signal: Optional[Dict[str, Any]] = None
+    signals: List[Dict[str, Any]] = Field(default_factory=list)
+    source: Optional[str] = None
+    replace_existing: bool = False
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+class SignalStoreResponse(BaseModel):
+    """
+    Backward-compatibility response model for older signal storage routes.
+    """
+    model_config = ConfigDict(extra="allow")
+
+    success: bool = True
+    stored_count: int = 0
+    signals: List[Dict[str, Any]] = Field(default_factory=list)
+    message: Optional[str] = None
+
+
 class StructuredAgentOutput(BaseModel):
     """
     Main structured output used by context_builder.py and agent_service.py.
@@ -162,6 +187,68 @@ class CompanyProfile(BaseModel):
     market_focus: List[str] = Field(default_factory=list)
     recommendation_posture: Optional[str] = None
     profile_json: Dict[str, Any] = Field(default_factory=dict)
+
+
+class CompanyProfileSaveRequest(BaseModel):
+    """
+    Backward-compatibility request model for older profile save routes.
+    """
+    model_config = ConfigDict(extra="allow")
+
+    company_id: Optional[str] = None
+    company_name: Optional[str] = None
+    profile: Dict[str, Any] = Field(default_factory=dict)
+
+
+class CompanyProfileFetchResponse(BaseModel):
+    """
+    Backward-compatibility response model for older profile routes.
+    """
+    model_config = ConfigDict(extra="allow")
+
+    success: bool = True
+    profile: Optional[Dict[str, Any]] = None
+    company_id: Optional[str] = None
+    company_name: Optional[str] = None
+    message: Optional[str] = None
+
+
+class CompanyProfileSaveResponse(BaseModel):
+    """
+    Backward-compatibility response model for older profile save routes.
+    """
+    model_config = ConfigDict(extra="allow")
+
+    success: bool = True
+    profile: Optional[Dict[str, Any]] = None
+    company_id: Optional[str] = None
+    company_name: Optional[str] = None
+    saved: bool = True
+    message: Optional[str] = None
+
+
+class AgentRunRecord(BaseModel):
+    """
+    Backward-compatibility model for older router/service imports.
+    Keep permissive so older code paths do not break.
+    """
+    model_config = ConfigDict(extra="allow")
+
+    id: Optional[str] = None
+    stage: Optional[str] = None
+    status: Optional[str] = None
+
+    input: Optional[str] = None
+    output: Optional[Any] = None
+
+    company_id: Optional[str] = None
+    company_name: Optional[str] = None
+
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+    duration_ms: Optional[int] = None
+
+    metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
 class AgentEngageRequest(BaseModel):
@@ -271,68 +358,6 @@ class MultiPathOutput(BaseModel):
     strategy_decision: StrategyDecision
     execution_plan: ExecutionPlan
     interaction_hooks: InteractionHooks
-
-
-class AgentRunRecord(BaseModel):
-    """
-    Backward-compatibility model for older router/service imports.
-    Keep permissive so older code paths do not break.
-    """
-    model_config = ConfigDict(extra="allow")
-
-    id: Optional[str] = None
-    stage: Optional[str] = None
-    status: Optional[str] = None
-
-    input: Optional[str] = None
-    output: Optional[Any] = None
-
-    company_id: Optional[str] = None
-    company_name: Optional[str] = None
-
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
-    duration_ms: Optional[int] = None
-
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-
-
-class CompanyProfileSaveRequest(BaseModel):
-    """
-    Backward-compatibility request model for older profile save routes.
-    """
-    model_config = ConfigDict(extra="allow")
-
-    company_id: Optional[str] = None
-    company_name: Optional[str] = None
-    profile: Dict[str, Any] = Field(default_factory=dict)
-
-
-class CompanyProfileFetchResponse(BaseModel):
-    """
-    Backward-compatibility response model for older profile routes.
-    """
-    model_config = ConfigDict(extra="allow")
-
-    success: bool = True
-    profile: Optional[Dict[str, Any]] = None
-    company_id: Optional[str] = None
-    company_name: Optional[str] = None
-    message: Optional[str] = None
-
-
-class CompanyProfileSaveResponse(BaseModel):
-    """
-    Backward-compatibility response model for older profile save routes.
-    """
-    model_config = ConfigDict(extra="allow")
-
-    success: bool = True
-    profile: Optional[Dict[str, Any]] = None
-    company_id: Optional[str] = None
-    company_name: Optional[str] = None
-    saved: bool = True
-    message: Optional[str] = None
 
 
 class AgentEngageResponse(BaseModel):
