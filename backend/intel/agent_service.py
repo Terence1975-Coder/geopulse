@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, List, Optional
 
 from backend.intel.chain_state import update_chain_outputs
@@ -17,7 +18,6 @@ from backend.intel.schemas import (
     StrategicPath,
     StrategyDecision,
     StructuredAgentOutput,
-    SupportingSignalDetail,
 )
 from backend.services.signal_ingestion import select_supporting_signals_for_text
 
@@ -36,57 +36,65 @@ class AgentService:
         chain_outputs: Optional[ChainOutputs] = req.chain_outputs
         outputs: Dict[str, StructuredAgentOutput] = {}
 
-        analyse_req = req.model_copy(update={"stage": "analyse", "chain_outputs": chain_outputs})
+        analyse_req = req.model_copy(
+            update={"stage": "analyse", "chain_outputs": chain_outputs}
+        )
         analyse_res = self._run_single_stage(analyse_req)
         chain_outputs = analyse_res.chain_outputs
-        if isinstance(analyse_res.output, StructuredAgentOutput):
+        if analyse_res.output and isinstance(analyse_res.output, StructuredAgentOutput):
             outputs["analyse"] = analyse_res.output
 
-        advise_req = req.model_copy(update={"stage": "advise", "chain_outputs": chain_outputs})
+        advise_req = req.model_copy(
+            update={"stage": "advise", "chain_outputs": chain_outputs}
+        )
         advise_res = self._run_single_stage(advise_req)
         chain_outputs = advise_res.chain_outputs
-        if isinstance(advise_res.output, StructuredAgentOutput):
+        if advise_res.output and isinstance(advise_res.output, StructuredAgentOutput):
             outputs["advise"] = advise_res.output
 
-        plan_req = req.model_copy(update={"stage": "plan", "chain_outputs": chain_outputs})
+        plan_req = req.model_copy(
+            update={"stage": "plan", "chain_outputs": chain_outputs}
+        )
         plan_res = self._run_single_stage(plan_req)
         chain_outputs = plan_res.chain_outputs
-        if isinstance(plan_res.output, StructuredAgentOutput):
+        if plan_res.output and isinstance(plan_res.output, StructuredAgentOutput):
             outputs["plan"] = plan_res.output
 
         if "analyse" not in outputs or "advise" not in outputs or "plan" not in outputs:
-            raise ValueError("Full chain execution did not return all expected stage outputs.")
+            raise ValueError(
+                "Full chain execution did not return all expected stage outputs."
+            )
 
-        analyst_views = self._build_analyst_views(outputs["analyse"])
+        analyst_views = self._build_analyst_views(req.input, outputs["analyse"])
         analysis_selection = self._select_best_analyst(analyst_views)
         strategic_paths = self._build_strategic_paths(
+            req.input,
             analysis_selection=analysis_selection,
             advise_output=outputs["advise"],
-            analyse_output=outputs["analyse"],
         )
         strategy_decision = self._select_strategy_path(strategic_paths)
         execution_plan = self._build_execution_plan(
+            req.input,
             strategy_decision=strategy_decision,
             plan_output=outputs["plan"],
         )
         interaction_hooks = self._build_interaction_hooks(strategy_decision)
 
         supporting_signals = select_supporting_signals_for_text(req.input, limit=4)
-        supporting_signal_ids = [signal.get("id", "") for signal in supporting_signals]
 
         context_summary = {
             "chain_executed": True,
             "stages": ["analyse", "advise", "plan"],
-            "phase": "v8_3_signal_grounded_chain",
+            "phase": "v8_3_methodology_enforced",
             "multi_analyst_generated": True,
             "strategic_paths_generated": len(strategic_paths),
             "selected_analyst_id": analysis_selection.recommended_analyst_id,
             "selected_path_id": strategy_decision.selected_path_id,
-            "supporting_signals": supporting_signal_ids,
+            "supporting_signals": [signal.get("id", "") for signal in supporting_signals],
             "company_id": req.company_id,
-            "company_name": req.company_name or (
-                req.company_profile.company_name if req.company_profile else None
-            ),
+            "company_name": req.company_name
+            or (req.company_profile.company_name if req.company_profile else None),
+            "delivery_mode": getattr(outputs["plan"], "delivery_mode", "hybrid"),
         }
 
         multi_path_output = {
@@ -102,12 +110,12 @@ class AgentService:
             output=None,
             outputs=outputs,
             chain_outputs=chain_outputs,
-            analyst_views=[item.model_dump() for item in analyst_views],
-            analysis_selection=analysis_selection.model_dump(),
-            strategic_paths=[item.model_dump() for item in strategic_paths],
-            strategy_decision=strategy_decision.model_dump(),
-            execution_plan=execution_plan.model_dump(),
-            interaction_hooks=interaction_hooks.model_dump(),
+            analyst_views=analyst_views,
+            analysis_selection=analysis_selection,
+            strategic_paths=strategic_paths,
+            strategy_decision=strategy_decision,
+            execution_plan=execution_plan,
+            interaction_hooks=interaction_hooks,
             multi_path_output=multi_path_output,
             context_summary=context_summary,
             meta={
@@ -124,15 +132,12 @@ class AgentService:
             for item in (req.conversation_history or [])
         ]
 
-        supporting_signals = select_supporting_signals_for_text(req.input, limit=4)
-
         context = build_context_block(
             user_input=req.input,
             stage=req.stage,
             profile=req.company_profile,
             chain_outputs=req.chain_outputs,
             conversation_history=conversation_history,
-            supporting_signals=supporting_signals,
         )
 
         output = self.llm.generate_structured_json(
@@ -141,48 +146,6 @@ class AgentService:
             response_model=StructuredAgentOutput,
         )
 
-        output = self._enrich_output(
-            req=req,
-            output=output,
-            supporting_signals=supporting_signals,
-            context=context,
-        )
-
-        updated_chain = update_chain_outputs(
-            chain_outputs=req.chain_outputs,
-            stage=req.stage,
-            output=output,
-        )
-
-        return AgentEngageResponse(
-            output=output,
-            outputs=None,
-            chain_outputs=updated_chain,
-            context_summary={
-                "follow_up_detected": context["follow_up"],
-                "profile_references": output.profile_references,
-                "missing_profile_data": output.missing_profile_data,
-                "based_on_stages": output.based_on_stages,
-                "based_on_signals": output.based_on_signals,
-                "time_relevance": output.time_relevance,
-                "company_id": req.company_id,
-                "supporting_signal_count": context.get("supporting_signal_count", 0),
-            },
-            meta={
-                "stage": req.stage,
-                "supporting_signals": supporting_signals,
-                "credibility_layer": True,
-                "contract_version": "v8.3",
-            },
-        )
-
-    def _enrich_output(
-        self,
-        req: AgentEngageRequest,
-        output: StructuredAgentOutput,
-        supporting_signals: List[Dict[str, Any]],
-        context: Dict[str, Any],
-    ) -> StructuredAgentOutput:
         if not output.missing_profile_data:
             output.missing_profile_data = list(context["missing_profile_data"])
 
@@ -203,265 +166,476 @@ class AgentService:
         if not output.based_on_stages:
             output.based_on_stages = prior_stages
 
-        output.based_on_signals = [
-            signal.get("id", "")
-            for signal in supporting_signals
-            if signal.get("id")
-        ]
+        supporting_signals = select_supporting_signals_for_text(req.input, limit=3)
+        derived_confidence = self._derive_confidence(output, supporting_signals)
+        time_relevance = self._derive_time_relevance(supporting_signals)
 
-        output.time_relevance = self._derive_time_relevance(supporting_signals)
-        output.confidence = self._derive_confidence(output, supporting_signals)
+        output.confidence = derived_confidence
+        output.based_on_signals = [signal.get("id", "") for signal in supporting_signals]
+        output.time_relevance = time_relevance
         output.supporting_signal_details = [
-            self._normalise_signal_detail(signal) for signal in supporting_signals
+            {
+                "id": signal.get("id", ""),
+                "headline": signal.get("headline", ""),
+                "source": signal.get("source", ""),
+                "confidence_score": float(signal.get("confidence_score", 0.0)),
+                "relative_time": signal.get("relative_time", ""),
+                "lifecycle": signal.get("lifecycle", ""),
+            }
+            for signal in supporting_signals
         ]
 
-        if not output.time_horizon:
-            output.time_horizon = self._map_time_relevance_to_horizon(output.time_relevance)
+        if req.stage == "plan":
+            output = self._enforce_planner_methodology(req, output, supporting_signals)
+        else:
+            output = self._repair_generic_output(req, output)
 
-        if not output.urgency:
-            output.urgency = self._derive_urgency(supporting_signals)
+        updated_chain = update_chain_outputs(
+            chain_outputs=req.chain_outputs,
+            stage=req.stage,
+            output=output,
+        )
 
-        output = self._repair_output(req=req, output=output, supporting_signals=supporting_signals)
+        return AgentEngageResponse(
+            output=output,
+            outputs=None,
+            chain_outputs=updated_chain,
+            context_summary={
+                "follow_up_detected": context["follow_up"],
+                "profile_references": output.profile_references,
+                "missing_profile_data": output.missing_profile_data,
+                "based_on_stages": output.based_on_stages,
+                "based_on_signals": getattr(output, "based_on_signals", []),
+                "time_relevance": getattr(output, "time_relevance", None),
+                "company_id": req.company_id,
+                "delivery_mode": getattr(output, "delivery_mode", None),
+            },
+            meta={
+                "stage": req.stage,
+                "supporting_signals": supporting_signals,
+                "credibility_layer": True,
+                "contract_version": "v8.3",
+            },
+        )
+
+    def _repair_generic_output(
+        self,
+        req: AgentEngageRequest,
+        output: StructuredAgentOutput,
+    ) -> StructuredAgentOutput:
+        if not output.headline:
+            output.headline = f"{req.stage.title()} response"
+
+        if not output.key_insight:
+            output.key_insight = (
+                "GeoPulse generated a structured response, but the model returned limited narrative detail."
+            )
+
+        if req.stage in {"advise", "analyse"} and len(output.recommended_actions) < 2:
+            output.recommended_actions = self._merge_unique(
+                output.recommended_actions,
+                [
+                    "Review the strongest evidence and confirm the next management decision.",
+                    "Validate company exposure and timing before scaling response.",
+                ],
+                limit=4,
+            )
+
+        if req.stage == "advise" and not getattr(output, "decision_context", None):
+            output.decision_context = (
+                "Management should decide how aggressively to respond given evidence strength, timing, and company priorities."
+            )
+
+        if req.stage == "advise" and len(getattr(output, "tradeoffs", []) or []) < 2:
+            output.tradeoffs = [
+                "Moving early may capture upside faster but increase execution risk.",
+                "Waiting for more confirmation may reduce false moves but narrow the timing window.",
+            ]
 
         return output
 
-    def _normalise_signal_detail(self, signal: Dict[str, Any]) -> SupportingSignalDetail:
-        return SupportingSignalDetail(
-            id=signal.get("id"),
-            headline=signal.get("headline"),
-            summary=signal.get("summary"),
-            source=signal.get("source"),
-            source_type=signal.get("source_type"),
-            region=signal.get("region"),
-            cluster_tag=signal.get("cluster_tag"),
-            kind=signal.get("kind"),
-            severity=signal.get("severity"),
-            lifecycle=signal.get("lifecycle"),
-            confidence=signal.get("confidence"),
-            confidence_score=float(signal.get("confidence_score", 0.0))
-            if signal.get("confidence_score") is not None
-            else None,
-            signal_strength=float(signal.get("signal_strength", 0.0))
-            if signal.get("signal_strength") is not None
-            else None,
-            freshness_minutes=int(signal.get("freshness_minutes"))
-            if signal.get("freshness_minutes") is not None
-            else None,
-            timestamp=signal.get("timestamp"),
-            detected_at=signal.get("detected_at"),
-            updated_at=signal.get("updated_at"),
-            relative_time=signal.get("relative_time"),
-        )
-
-    def _repair_output(
+    def _enforce_planner_methodology(
         self,
         req: AgentEngageRequest,
         output: StructuredAgentOutput,
         supporting_signals: List[Dict[str, Any]],
     ) -> StructuredAgentOutput:
-        signal_headlines = [
-            str(signal.get("headline", "")).strip()
-            for signal in supporting_signals
-            if signal.get("headline")
-        ]
-        signal_clusters = [
-            str(signal.get("cluster_tag", "")).strip()
-            for signal in supporting_signals
-            if signal.get("cluster_tag")
-        ]
-        signal_summaries = [
-            str(signal.get("summary", "")).strip()
-            for signal in supporting_signals
-            if signal.get("summary")
-        ]
+        mode = self._extract_requested_methodology(req.input)
+        company_name = (
+            req.company_profile.company_name
+            if req.company_profile and req.company_profile.company_name
+            else "the company"
+        )
 
-        profile_name = req.company_profile.company_name if req.company_profile else None
-        priorities = list(req.company_profile.strategic_priorities or []) if req.company_profile else []
-
-        if not output.headline or output.headline.strip().lower() in {"not available", "unknown", "n/a"}:
-            if signal_clusters:
-                cluster = signal_clusters[0]
-                if req.stage == "analyse":
-                    output.headline = f"{cluster} signal pattern is shaping executive attention"
-                elif req.stage == "advise":
-                    output.headline = f"{cluster} conditions require a near-term management response"
-                elif req.stage == "plan":
-                    output.headline = f"{cluster} response plan should be sequenced and owned"
-                else:
-                    output.headline = f"{cluster} context should recalibrate company interpretation"
+        if not output.headline or output.headline.strip().lower() in {
+            "not available",
+            "unknown",
+            "n/a",
+        }:
+            if mode == "prince2":
+                output.headline = f"PRINCE2-governed execution plan for {company_name}"
+            elif mode == "agile":
+                output.headline = f"Agile execution plan for {company_name}"
             else:
-                output.headline = f"{req.stage.title()} response for {profile_name or 'the company'}"
+                output.headline = f"Hybrid execution plan for {company_name}"
 
-        if not output.key_insight or output.key_insight.strip().lower() in {"not available", "unknown", "n/a"}:
-            if signal_summaries:
-                insight_seed = signal_summaries[0]
-                if req.stage == "analyse":
-                    output.key_insight = (
-                        f"Supporting signals indicate that {insight_seed[:220].rstrip('.')}."
-                    )
-                elif req.stage == "advise":
-                    output.key_insight = (
-                        "The strongest next move is to make a decision that matches the current signal pattern "
-                        "to company priorities and timing."
-                    )
-                elif req.stage == "plan":
-                    output.key_insight = (
-                        "The selected response now needs clear ownership, short sequencing, and measurable checkpoints."
-                    )
-                else:
-                    output.key_insight = (
-                        "Profile calibration should focus on the company details that most change relevance and action quality."
-                    )
-            else:
-                output.key_insight = f"GeoPulse generated a {req.stage} view with limited supporting evidence depth."
-
-        if len(output.drivers) < 2:
-            inferred_drivers = []
-            for signal in supporting_signals[:3]:
-                headline = str(signal.get("headline", "")).strip()
-                cluster = str(signal.get("cluster_tag", "")).strip()
-                if headline:
-                    inferred_drivers.append(headline)
-                elif cluster:
-                    inferred_drivers.append(f"Signal cluster: {cluster}")
-            output.drivers = self._merge_unique(output.drivers, inferred_drivers, limit=4)
-
-        if len(output.second_order_effects) < 2 and req.stage in {"analyse", "advise"}:
-            inferred_effects = [
-                "Management attention may shift toward timing-sensitive risk and opportunity decisions.",
-                "Budget, delivery, or prioritisation pressure may increase if multiple signals keep reinforcing the same pattern.",
-            ]
-            output.second_order_effects = self._merge_unique(
-                output.second_order_effects,
-                inferred_effects,
-                limit=4,
-            )
-
-        if len(output.implications) < 2:
-            inferred_implications = []
-            if priorities:
-                inferred_implications.append(
-                    f"Any response should be evaluated against current priorities: {', '.join(priorities[:3])}."
+        if not output.key_insight or output.key_insight.strip().lower() in {
+            "not available",
+            "unknown",
+            "n/a",
+        }:
+            if mode == "prince2":
+                output.key_insight = (
+                    "The plan should be controlled through formal stage governance, defined owners, milestone gates, and review tolerances."
                 )
-            inferred_implications.append(
-                "Leadership should treat this as an evidence-led decision area rather than a generic market observation."
-            )
-            output.implications = self._merge_unique(output.implications, inferred_implications, limit=4)
+            elif mode == "agile":
+                output.key_insight = (
+                    "The plan should move through short iterations, visible priorities, rapid review loops, and continuous adaptation."
+                )
+            else:
+                output.key_insight = (
+                    "The plan should combine executive control with iterative delivery so governance and speed reinforce each other."
+                )
 
-        if len(output.recommended_actions) < 2:
-            stage_actions = {
-                "analyse": [
-                    "Validate whether the signal pattern is strengthening, stabilising, or fading over the next monitoring cycle.",
-                    "Review direct company exposure against the strongest supporting signals.",
-                ],
-                "advise": [
-                    "Choose a near-term response that aligns with company priorities and delivery reality.",
-                    "Test the preferred option against downside risk, timing, and commercial upside.",
-                ],
-                "plan": [
-                    "Assign an accountable owner for the first response phase.",
-                    "Define the first checkpoint, success metric, and review date.",
-                ],
-                "profile": [
-                    "Fill the most material missing company profile fields before deeper analysis.",
-                    "Confirm the priority weighting GeoPulse should use for future recommendations.",
-                ],
-            }
+        setattr(output, "delivery_mode", mode)
+        setattr(output, "recommended_methodology", mode.upper() if mode != "hybrid" else "HYBRID")
+        setattr(output, "methodology_rationale", self._methodology_rationale(mode, req))
+        setattr(output, "governance_model", self._governance_model(mode))
+        setattr(output, "cadence_model", self._cadence_model(mode))
+        setattr(output, "workstreams", self._build_workstreams(mode, req))
+        setattr(output, "risks", self._build_plan_risks(mode, req, supporting_signals))
+        setattr(output, "next_7_days", self._build_next_7_days(mode, req))
+        setattr(output, "plan_display_mode", mode)
+
+        output.recommended_actions = self._merge_unique(
+            output.recommended_actions,
+            self._recommended_actions_by_mode(mode, req),
+            limit=8,
+        )
+        output.dependencies = self._merge_unique(
+            getattr(output, "dependencies", []) or [],
+            self._dependencies_by_mode(mode),
+            limit=8,
+        )
+        output.milestones = self._merge_unique(
+            getattr(output, "milestones", []) or [],
+            self._milestones_by_mode(mode),
+            limit=8,
+        )
+        output.success_metrics = self._merge_unique(
+            getattr(output, "success_metrics", []) or [],
+            self._success_metrics_by_mode(mode),
+            limit=8,
+        )
+        output.review_checkpoints = self._merge_unique(
+            getattr(output, "review_checkpoints", []) or [],
+            self._review_checkpoints_by_mode(mode),
+            limit=8,
+        )
+        output.reasoning_notes = self._merge_unique(
+            getattr(output, "reasoning_notes", []) or [],
+            self._reasoning_notes_by_mode(mode, req),
+            limit=8,
+        )
+        output.explanation_notes = self._merge_unique(
+            getattr(output, "explanation_notes", []) or [],
+            [
+                "Planner mode was explicitly enforced from the execution handoff request.",
+                "Plan detail is grounded in analyse and advise outputs plus current evidence context.",
+            ],
+            limit=8,
+        )
+
+        if len(output.recommended_actions) < 3:
             output.recommended_actions = self._merge_unique(
                 output.recommended_actions,
-                stage_actions.get(req.stage, []),
-                limit=5,
+                [
+                    "Confirm executive sponsor and delivery owner.",
+                    "Validate first-phase scope and decision boundary.",
+                    "Set the first formal review point before launch.",
+                ],
+                limit=8,
             )
-
-        if req.stage == "advise":
-            if not output.decision_context:
-                output.decision_context = (
-                    "Management should decide how aggressively to respond given current evidence strength, timing, "
-                    "and company priorities."
-                )
-            if not output.tradeoffs:
-                output.tradeoffs = [
-                    "Moving early may capture upside faster but increase execution risk.",
-                    "Waiting for more confirmation may reduce false moves but can narrow the timing window.",
-                ]
-
-        if req.stage == "plan":
-            if not output.dependencies:
-                output.dependencies = [
-                    "Confirmed executive owner",
-                    "Clear target outcome",
-                    "Access to current supporting evidence and company context",
-                ]
-            if not output.milestones:
-                output.milestones = [
-                    "Initial decision confirmed",
-                    "First response actions launched",
-                    "Review point completed with evidence update",
-                ]
-            if not output.success_metrics:
-                output.success_metrics = [
-                    "Decision executed on time",
-                    "First response actions completed",
-                    "Executive review shows improved clarity or reduced exposure",
-                ]
-            if not output.review_checkpoints:
-                output.review_checkpoints = [
-                    "Review evidence quality after first cycle",
-                    "Check whether the signal pattern is strengthening or weakening",
-                    "Decide whether to scale, adjust, or stop the response",
-                ]
-
-        if not output.explanation_notes:
-            if supporting_signals:
-                output.explanation_notes = [
-                    f"Response grounded in {len(supporting_signals)} supporting signals.",
-                    "Confidence blends model output quality with supporting signal confidence.",
-                ]
-            else:
-                output.explanation_notes = [
-                    "Supporting signal depth was limited, so confidence is constrained."
-                ]
 
         return output
 
-    def _merge_unique(self, existing: List[str], additions: List[str], limit: int) -> List[str]:
-        result: List[str] = []
-        for item in list(existing or []) + list(additions or []):
-            text = str(item or "").strip()
-            if text and text not in result:
-                result.append(text)
-            if len(result) >= limit:
-                break
-        return result
+    def _extract_requested_methodology(self, user_input: str) -> str:
+        text = (user_input or "").lower()
+
+        explicit_match = re.search(
+            r"preferred methodology:\s*(prince2|agile|hybrid|auto|hybrid / auto-select)",
+            text,
+        )
+        if explicit_match:
+            value = explicit_match.group(1)
+            if value == "prince2":
+                return "prince2"
+            if value == "agile":
+                return "agile"
+            return "hybrid"
+
+        if "prince2" in text:
+            return "prince2"
+        if "agile" in text:
+            return "agile"
+
+        return "hybrid"
+
+    def _methodology_rationale(self, mode: str, req: AgentEngageRequest) -> str:
+        priorities = (
+            ", ".join(req.company_profile.strategic_priorities[:3])
+            if req.company_profile and req.company_profile.strategic_priorities
+            else "company priorities"
+        )
+
+        if mode == "prince2":
+            return (
+                f"PRINCE2 fits because the requested execution pattern requires stronger governance, stage control, ownership clarity, and formal review against {priorities}."
+            )
+        if mode == "agile":
+            return (
+                f"Agile fits because the requested execution pattern benefits from speed, iteration, short feedback loops, and rapid adaptation while still aligning to {priorities}."
+            )
+        return (
+            f"Hybrid fits because the plan needs executive governance and review discipline while also preserving iterative delivery speed against {priorities}."
+        )
+
+    def _governance_model(self, mode: str) -> str:
+        if mode == "prince2":
+            return "Executive sponsor, project manager, stage gate reviews, exception-based escalation."
+        if mode == "agile":
+            return "Product-led governance with sprint reviews, backlog prioritisation, and lightweight executive oversight."
+        return "Executive steering oversight with iterative delivery reviews and milestone-based governance."
+
+    def _cadence_model(self, mode: str) -> str:
+        if mode == "prince2":
+            return "Stage reviews, milestone control, formal checkpoint cadence."
+        if mode == "agile":
+            return "Sprint planning, weekly progress review, sprint demo, retrospective."
+        return "Weekly delivery rhythm with milestone gates and monthly executive review."
+
+    def _build_workstreams(self, mode: str, req: AgentEngageRequest) -> List[str]:
+        common = [
+            "Executive alignment and ownership",
+            "Commercial / stakeholder mobilisation",
+            "Delivery readiness and execution",
+        ]
+        if mode == "prince2":
+            return common + [
+                "Governance and stage control",
+                "Risk / issue / dependency management",
+            ]
+        if mode == "agile":
+            return common + [
+                "Backlog and priority management",
+                "Iteration review and adaptation",
+            ]
+        return common + [
+            "Governance checkpoints",
+            "Iterative execution and learning",
+        ]
+
+    def _build_plan_risks(
+        self,
+        mode: str,
+        req: AgentEngageRequest,
+        supporting_signals: List[Dict[str, Any]],
+    ) -> List[str]:
+        signal_risks = []
+        for signal in supporting_signals[:2]:
+            headline = str(signal.get("headline", "")).strip()
+            if headline:
+                signal_risks.append(f"Execution assumptions may be invalidated if the signal pattern around '{headline}' shifts materially.")
+
+        mode_risks = {
+            "prince2": [
+                "Governance overhead can slow momentum if stage control becomes too heavy.",
+                "Escalation or approval delays may stall execution timing.",
+            ],
+            "agile": [
+                "Iteration speed can create drift if executive decision boundaries are unclear.",
+                "Backlog growth may weaken focus if priorities are not actively managed.",
+            ],
+            "hybrid": [
+                "Governance and agility can conflict if ownership of decisions is ambiguous.",
+                "The team may default to either control or speed rather than balancing both intentionally.",
+            ],
+        }
+
+        return self._merge_unique(mode_risks.get(mode, []), signal_risks, limit=6)
+
+    def _build_next_7_days(self, mode: str, req: AgentEngageRequest) -> List[str]:
+        if mode == "prince2":
+            return [
+                "Confirm executive sponsor, project manager, and stage owner.",
+                "Define stage-one scope, tolerances, and approval gate.",
+                "Create a first-stage checkpoint pack with risks, dependencies, and success criteria.",
+            ]
+        if mode == "agile":
+            return [
+                "Define the initial sprint objective and delivery owner.",
+                "Prioritise the first actionable backlog items.",
+                "Schedule sprint review and retrospective dates before work starts.",
+            ]
+        return [
+            "Confirm executive sponsor and delivery lead.",
+            "Define the first milestone and the first iteration goal.",
+            "Set both a weekly delivery review and a milestone governance checkpoint.",
+        ]
+
+    def _recommended_actions_by_mode(
+        self,
+        mode: str,
+        req: AgentEngageRequest,
+    ) -> List[str]:
+        if mode == "prince2":
+            return [
+                "Define project board structure and approval authority.",
+                "Break delivery into formal stages with entry and exit criteria.",
+                "Set tolerances for scope, timing, and escalation.",
+                "Create a RAID view before stage one begins.",
+            ]
+        if mode == "agile":
+            return [
+                "Define the initial sprint goal and visible backlog.",
+                "Prioritise the first iteration against highest-value outcomes.",
+                "Set sprint review and adaptation cadence from day one.",
+                "Track learning and reprioritise after each review cycle.",
+            ]
+        return [
+            "Create an executive governance rail alongside an iterative delivery rail.",
+            "Define milestone checkpoints and weekly delivery reviews.",
+            "Separate non-negotiable controls from adaptable execution tasks.",
+            "Use milestone outcomes to re-prioritise the next delivery cycle.",
+        ]
+
+    def _dependencies_by_mode(self, mode: str) -> List[str]:
+        if mode == "prince2":
+            return [
+                "Executive sponsor confirmed",
+                "Project manager or equivalent control owner assigned",
+                "Stage-one scope approved",
+                "Risk and dependency register created",
+            ]
+        if mode == "agile":
+            return [
+                "Product or delivery owner confirmed",
+                "Initial backlog prioritised",
+                "Sprint rhythm agreed",
+                "Stakeholder feedback loop available",
+            ]
+        return [
+            "Executive sponsor confirmed",
+            "Delivery lead confirmed",
+            "Milestone governance checkpoints agreed",
+            "Iterative review rhythm agreed",
+        ]
+
+    def _milestones_by_mode(self, mode: str) -> List[str]:
+        if mode == "prince2":
+            return [
+                "Stage one approved",
+                "First governance checkpoint passed",
+                "Stage transition decision completed",
+                "Board review confirms continuation or adjustment",
+            ]
+        if mode == "agile":
+            return [
+                "Sprint 1 objective delivered",
+                "Sprint review completed",
+                "Backlog reprioritised after first iteration",
+                "Iteration velocity and outcome fit validated",
+            ]
+        return [
+            "Initial governance gate passed",
+            "First delivery cycle completed",
+            "Weekly learning converted into milestone update",
+            "Scale / adjust / stop decision taken at review gate",
+        ]
+
+    def _success_metrics_by_mode(self, mode: str) -> List[str]:
+        if mode == "prince2":
+            return [
+                "Stage objectives achieved on approved scope",
+                "No ungoverned exceptions or uncontrolled scope growth",
+                "Review gates passed with clear sponsor confidence",
+            ]
+        if mode == "agile":
+            return [
+                "Sprint objectives achieved",
+                "Cycle time and review quality improve over iterations",
+                "Priority outcomes delivered with validated feedback",
+            ]
+        return [
+            "Milestones achieved without loss of delivery speed",
+            "Executive reviews confirm control and adaptability are both working",
+            "Early execution evidence supports continuation or scaling",
+        ]
+
+    def _review_checkpoints_by_mode(self, mode: str) -> List[str]:
+        if mode == "prince2":
+            return [
+                "End-of-stage review",
+                "Exception escalation checkpoint",
+                "Sponsor / board decision gate",
+            ]
+        if mode == "agile":
+            return [
+                "Sprint planning",
+                "Sprint review",
+                "Retrospective and reprioritisation checkpoint",
+            ]
+        return [
+            "Weekly delivery review",
+            "Milestone governance review",
+            "Monthly executive steering checkpoint",
+        ]
+
+    def _reasoning_notes_by_mode(
+        self,
+        mode: str,
+        req: AgentEngageRequest,
+    ) -> List[str]:
+        priorities = (
+            ", ".join(req.company_profile.strategic_priorities[:3])
+            if req.company_profile and req.company_profile.strategic_priorities
+            else "current company priorities"
+        )
+
+        if mode == "prince2":
+            return [
+                f"PRINCE2 was selected because stronger control and stage governance appear more important for {priorities}.",
+                "The delivery logic prioritises formal ownership, approvals, and checkpoint discipline.",
+            ]
+        if mode == "agile":
+            return [
+                f"Agile was selected because speed, iteration, and adaptive execution appear more important for {priorities}.",
+                "The delivery logic prioritises short-cycle learning and rapid reprioritisation.",
+            ]
+        return [
+            f"Hybrid was selected because both executive control and adaptive execution matter for {priorities}.",
+            "The delivery logic combines governance checkpoints with iterative progress cycles.",
+        ]
 
     def _derive_confidence(
         self,
         output: StructuredAgentOutput,
         supporting_signals: List[Dict[str, Any]],
     ) -> float:
-        signal_confidence_values: List[float] = []
-        for signal in supporting_signals:
-            raw = signal.get("confidence_score", 0.0)
-            try:
-                value = float(raw)
-                if value > 1:
-                    value = value / 100.0
-                signal_confidence_values.append(value)
-            except (TypeError, ValueError):
-                continue
-
         signal_confidence = (
-            sum(signal_confidence_values) / max(1, len(signal_confidence_values))
-            if signal_confidence_values
-            else 0.45
+            sum(float(signal.get("confidence_score", 0.0)) for signal in supporting_signals)
+            / max(1, len(supporting_signals))
         )
+
+        if signal_confidence > 1:
+            signal_confidence = signal_confidence / 100.0
 
         base_confidence = getattr(output, "confidence", None)
         if isinstance(base_confidence, (int, float)):
             base_value = float(base_confidence)
             if base_value > 1:
                 base_value = base_value / 100.0
-            blended = (base_value * 0.60) + (signal_confidence * 0.40)
+            blended = (base_value * 0.55) + (signal_confidence * 0.45)
         else:
             blended = signal_confidence
 
@@ -471,18 +645,9 @@ class AgentService:
         if not supporting_signals:
             return "Short-term"
 
-        freshness_values: List[int] = []
-        for signal in supporting_signals:
-            raw = signal.get("freshness_minutes", 999999)
-            try:
-                freshness_values.append(int(raw))
-            except (TypeError, ValueError):
-                continue
-
-        if not freshness_values:
-            return "Short-term"
-
-        freshest = min(freshness_values)
+        freshest = min(
+            int(signal.get("freshness_minutes", 999999)) for signal in supporting_signals
+        )
 
         if freshest < 60:
             return "Immediate"
@@ -490,46 +655,14 @@ class AgentService:
             return "Short-term"
         return "Medium-term"
 
-    def _map_time_relevance_to_horizon(self, time_relevance: Optional[str]) -> str:
-        mapping = {
-            "Immediate": "short",
-            "Short-term": "short",
-            "Medium-term": "medium",
-        }
-        return mapping.get(time_relevance or "", "medium")
-
-    def _derive_urgency(self, supporting_signals: List[Dict[str, Any]]) -> str:
-        if not supporting_signals:
-            return "Medium"
-
-        severe_count = 0
-        fresh_count = 0
-
-        for signal in supporting_signals:
-            severity = str(signal.get("severity", "")).lower()
-            freshness = signal.get("freshness_minutes", 999999)
-
-            if severity == "high":
-                severe_count += 1
-
-            try:
-                if int(freshness) <= 180:
-                    fresh_count += 1
-            except (TypeError, ValueError):
-                pass
-
-        if severe_count >= 2 or (severe_count >= 1 and fresh_count >= 2):
-            return "High"
-        if fresh_count >= 1:
-            return "Medium"
-        return "Low"
-
     def _build_analyst_views(
         self,
+        user_input: str,
         analyse_output: StructuredAgentOutput,
     ) -> List[MultiAnalystView]:
         base_drivers = list(analyse_output.drivers or [])
         base_effects = list(analyse_output.second_order_effects or [])
+        base_actions = list(analyse_output.recommended_actions or [])
 
         systemic_view = MultiAnalystView(
             id="A1",
@@ -538,9 +671,9 @@ class AgentService:
             key_insight=analyse_output.key_insight or "",
             drivers=base_drivers,
             second_order_effects=base_effects,
-            opportunity_signal="Cross-signal alignment may create demand for resilience, advisory, and timing-sensitive decision support.",
-            risk_signal="If the pattern intensifies, leadership may face compounding pressure across priorities, capital allocation, and delivery focus.",
-            confidence=max(0.0, min(1.0, float(analyse_output.confidence or 0.0))),
+            opportunity_signal="Resilience pressure may create demand for advisory, operational, and implementation support.",
+            risk_signal="Without prioritisation, resources may be spread too broadly and commercial focus may weaken.",
+            confidence=analyse_output.confidence,
         )
 
         commercial_view = MultiAnalystView(
@@ -549,13 +682,13 @@ class AgentService:
             headline=f"Commercial Opportunity: {analyse_output.headline or 'Emerging window'}",
             key_insight=(
                 f"{analyse_output.key_insight or ''} "
-                "The strongest upside is likely in offers that can be packaged quickly and tied to measurable outcomes."
+                "The strongest upside is likely in offers that can be packaged, deployed quickly, and tied to measurable outcomes."
             ).strip(),
             drivers=base_drivers,
             second_order_effects=base_effects,
-            opportunity_signal="Where signals reinforce urgency or pressure, buying intent may accelerate for practical and outcome-led offers.",
-            risk_signal="Commercial upside can still be missed if the offer is vague, slow to deploy, or weakly differentiated.",
-            confidence=max(0.0, min(1.0, float(analyse_output.confidence or 0.0) + 0.04)),
+            opportunity_signal="Clients under resilience pressure often unlock budget faster for services linked to continuity, speed, and efficiency.",
+            risk_signal="Fast-growing demand can become commoditised if differentiation and delivery speed are weak.",
+            confidence=min(1.0, float(analyse_output.confidence) + 0.05),
         )
 
         operational_view = MultiAnalystView(
@@ -564,13 +697,13 @@ class AgentService:
             headline=f"Operational Constraint: {analyse_output.headline or 'Execution pressure'}",
             key_insight=(
                 f"{analyse_output.key_insight or ''} "
-                "Execution risk rises if capability, capacity, ownership, or sequencing are unclear."
+                "Execution risk rises if capability, delivery capacity, or target-sector fit are unclear."
             ).strip(),
             drivers=base_drivers,
-            second_order_effects=base_effects,
-            opportunity_signal="A narrow, operationally realistic response can create credibility and repeatable delivery confidence.",
-            risk_signal="Over-committing before readiness is clear can weaken trust and reduce future room to expand.",
-            confidence=max(0.0, min(1.0, float(analyse_output.confidence or 0.0) - 0.05)),
+            second_order_effects=base_effects + (base_actions[:2] if base_actions else []),
+            opportunity_signal="Operationally realistic offers can establish early credibility and create repeatable service lines.",
+            risk_signal="Over-committing before delivery readiness is proven can damage trust and reduce future expansion options.",
+            confidence=max(0.0, float(analyse_output.confidence) - 0.05),
         )
 
         return [systemic_view, commercial_view, operational_view]
@@ -579,7 +712,7 @@ class AgentService:
         selected = next((view for view in analyst_views if view.id == "A2"), analyst_views[0])
         return AnalysisSelection(
             recommended_analyst_id=selected.id,
-            reason="This view is the most commercially actionable because it balances signal strength, monetisation potential, and speed-to-action.",
+            reason="This view is the most commercially actionable because it balances demand signal strength, monetisation potential, and speed-to-offer.",
             tradeoffs=[
                 "A more systemic view may be stronger for board-level risk framing.",
                 "A more operational view may reduce execution risk but slow market entry.",
@@ -588,74 +721,69 @@ class AgentService:
 
     def _build_strategic_paths(
         self,
+        user_input: str,
         analysis_selection: AnalysisSelection,
         advise_output: StructuredAgentOutput,
-        analyse_output: StructuredAgentOutput,
     ) -> List[StrategicPath]:
         base_actions = list(advise_output.recommended_actions or [])
-        analyse_confidence = max(0.0, min(1.0, float(analyse_output.confidence or 0.0)))
-        advise_confidence = max(0.0, min(1.0, float(advise_output.confidence or 0.0)))
 
         return [
             StrategicPath(
                 id="S1",
                 name="Rapid Pilot Launch",
-                approach="Launch a focused response quickly using current capabilities and test demand or exposure with a contained first move.",
-                where_it_wins="Best when speed matters, evidence is fresh, and leadership needs real-world proof before wider commitment.",
+                approach="Launch a focused resilience service pilot quickly using existing capabilities and test demand with priority clients.",
+                where_it_wins="Best when speed matters, demand is visible, and the organisation needs commercial validation before wider investment.",
                 risks=[
-                    "The first move may be too narrow if demand or exposure is misread.",
-                    "Pilot quality may suffer if ownership and delivery readiness are unclear.",
+                    "Offer may be too narrow if demand assumptions are wrong.",
+                    "Pilot may underperform if target segment is poorly chosen.",
                 ],
                 requirements=[
-                    "Named executive owner",
-                    "Clear first use case or pilot audience",
-                    "Ability to move within a short window",
+                    "Fast packaging of an offer",
+                    "Access to a small set of target clients",
+                    "Basic delivery readiness",
                 ],
                 time_horizon="short",
-                confidence=max(0.0, min(1.0, (advise_confidence * 0.65) + (analyse_confidence * 0.35))),
+                confidence=max(0.0, min(1.0, float(advise_output.confidence))),
                 recommended_actions=base_actions[:3] if base_actions else [],
                 selected_from_analyst=analysis_selection.recommended_analyst_id,
-                commercial_impact="Fastest route to market learning and early executive proof.",
             ),
             StrategicPath(
                 id="S2",
                 name="Sector-Focused Differentiation",
-                approach="Prioritise a narrower segment or use case and build a more differentiated response around that focus area.",
-                where_it_wins="Best when premium positioning and sharper relevance matter more than immediate speed.",
+                approach="Prioritise one or two sectors with acute resilience pressure and build a more differentiated sector-specific offer.",
+                where_it_wins="Best when premium positioning and sharper differentiation matter more than speed.",
                 risks=[
                     "Longer time to market",
-                    "Risk of narrowing too early before enough evidence is gathered",
+                    "Risk of over-specialisation too early",
                 ],
                 requirements=[
-                    "Sharper segmentation decision",
-                    "Focused messaging",
-                    "Clear sector or use-case relevance",
+                    "Sector insight",
+                    "Sharper messaging",
+                    "Capability alignment to specific client needs",
                 ],
                 time_horizon="medium",
-                confidence=max(0.0, min(1.0, advise_confidence - 0.05)),
+                confidence=max(0.0, min(1.0, float(advise_output.confidence) - 0.05)),
                 recommended_actions=base_actions[1:4] if len(base_actions) > 1 else base_actions,
                 selected_from_analyst=analysis_selection.recommended_analyst_id,
-                commercial_impact="Stronger differentiation if the chosen focus area is correct.",
             ),
             StrategicPath(
                 id="S3",
                 name="Capability-First Internal Readiness",
-                approach="Strengthen internal readiness, packaging, decision discipline, and delivery confidence before moving more aggressively.",
-                where_it_wins="Best when internal execution risk is high and early failure would be costly.",
+                approach="Delay external push slightly and strengthen capability, packaging, and delivery readiness before go-to-market.",
+                where_it_wins="Best when internal readiness is low and delivery failure would be costly.",
                 risks=[
-                    "Window may narrow while internal work continues",
-                    "Competitors or alternatives may move first",
+                    "Opportunity window may narrow",
+                    "Competitors may establish stronger market position first",
                 ],
                 requirements=[
                     "Internal alignment",
-                    "Capability and ownership clarity",
-                    "Disciplined review process",
+                    "Clear service architecture",
+                    "Delivery capability mapping",
                 ],
                 time_horizon="medium",
-                confidence=max(0.0, min(1.0, advise_confidence - 0.10)),
+                confidence=max(0.0, min(1.0, float(advise_output.confidence) - 0.1)),
                 recommended_actions=base_actions[-3:] if base_actions else [],
                 selected_from_analyst=analysis_selection.recommended_analyst_id,
-                commercial_impact="Safer initial posture with lower near-term execution risk.",
             ),
         ]
 
@@ -663,54 +791,77 @@ class AgentService:
         selected = next((path for path in strategic_paths if path.id == "S1"), strategic_paths[0])
         return StrategyDecision(
             selected_path_id=selected.id,
-            reason="Rapid Pilot Launch is the strongest first move because it maximises speed of learning, limits downside exposure, and creates real operating evidence quickly.",
+            reason="Rapid Pilot Launch is the strongest first move because it maximises speed of learning, limits downside exposure, and creates real market evidence.",
             why_not_others=[
                 "Sector-Focused Differentiation may be stronger later, but slows first proof.",
                 "Capability-First Internal Readiness is safer, but risks losing momentum.",
             ],
-            scoring_summary={
-                "speed_of_learning": "high",
-                "downside_control": "medium-high",
-                "proof_generation": "high",
-            },
         )
 
     def _build_execution_plan(
         self,
+        user_input: str,
         strategy_decision: StrategyDecision,
         plan_output: StructuredAgentOutput,
     ) -> ExecutionPlan:
-        immediate_actions = [
-            "Confirm executive owner for the selected response path.",
-            "Define the first target outcome, target audience, and decision boundary.",
-            "Review current evidence, dependencies, and delivery constraints before launch.",
-        ]
+        mode = getattr(plan_output, "delivery_mode", "hybrid")
+        base_actions = list(plan_output.recommended_actions or [])
 
-        short_term_actions = [
-            "Launch the first controlled response or pilot.",
-            "Track early feedback, objections, risks, and evidence changes.",
-            "Refine messaging, offer shape, or mitigation logic based on live results.",
-        ]
+        if mode == "prince2":
+            immediate_actions = [
+                "Confirm executive sponsor, project manager, and stage owner.",
+                "Approve stage-one scope, tolerances, and first review gate.",
+                "Create RAID register and stage checkpoint pack.",
+            ]
+            short_term_actions = [
+                "Execute stage-one activities under agreed controls.",
+                "Review progress against milestone gate and tolerances.",
+                "Escalate exceptions formally where thresholds are exceeded.",
+            ]
+            mid_term_actions = [
+                "Complete stage transition review and continuation decision.",
+                "Refine controls, resource plans, and scope for the next stage.",
+                "Confirm sponsor confidence before scaling execution.",
+            ]
+        elif mode == "agile":
+            immediate_actions = [
+                "Confirm delivery owner and first sprint objective.",
+                "Prioritise the first backlog against the highest-value outcome.",
+                "Schedule sprint review and retrospective dates before launch.",
+            ]
+            short_term_actions = [
+                "Execute sprint work and review visible progress weekly.",
+                "Capture delivery feedback and reprioritise backlog items.",
+                "Adjust iteration scope based on evidence from the first cycle.",
+            ]
+            mid_term_actions = [
+                "Use sprint outcomes to confirm scale, pivot, or stop decisions.",
+                "Stabilise cadence and improve velocity or focus quality.",
+                "Convert validated execution patterns into repeatable delivery motion.",
+            ]
+        else:
+            immediate_actions = [
+                "Confirm executive sponsor and delivery lead.",
+                "Define first milestone and first iteration goal.",
+                "Set both a weekly delivery review and a milestone governance checkpoint.",
+            ]
+            short_term_actions = [
+                "Deliver the first execution cycle while maintaining governance visibility.",
+                "Use review cadence to refine next-step priorities without losing control.",
+                "Track milestone movement and adapt delivery tasks where evidence changes.",
+            ]
+            mid_term_actions = [
+                "Convert early learning into a more repeatable operating model.",
+                "Review whether governance and delivery rhythm remain balanced.",
+                "Decide whether to scale, narrow, or reposition the response path.",
+            ]
 
-        mid_term_actions = [
-            "Decide whether to scale, narrow, or reposition based on real-world results.",
-            "Convert learning into a repeatable operating motion.",
-            "Refresh the evidence base and rerun GeoPulse to validate the next move.",
-        ]
-
-        if plan_output.recommended_actions:
-            short_term_actions = self._merge_unique(
-                short_term_actions,
-                list(plan_output.recommended_actions[:2]),
-                limit=5,
-            )
+        if base_actions:
+            short_term_actions = short_term_actions + base_actions[:2]
 
         return ExecutionPlan(
-            objective=(
-                plan_output.headline
-                or plan_output.objective
-                or "Execute the selected strategy path in a way that captures near-term value while validating fit, timing, and execution readiness."
-            ),
+            objective=plan_output.headline
+            or "Execute the selected strategy path in a way that captures near-term demand while validating commercial fit and delivery readiness.",
             selected_path_id=strategy_decision.selected_path_id,
             phases=[
                 ExecutionPlanPhase(
@@ -721,7 +872,7 @@ class AgentService:
                 ExecutionPlanPhase(
                     phase="Short-term (1-4 weeks)",
                     actions=short_term_actions,
-                    owner="Commercial / Product / Delivery Lead",
+                    owner="Delivery / Commercial Lead",
                 ),
                 ExecutionPlanPhase(
                     phase="Mid-term (1-3 months)",
@@ -742,3 +893,18 @@ class AgentService:
                 {"id": "reject", "label": "Reject"},
             ],
         )
+
+    def _merge_unique(
+        self,
+        existing: List[str],
+        additions: List[str],
+        limit: int,
+    ) -> List[str]:
+        result: List[str] = []
+        for item in list(existing or []) + list(additions or []):
+            text = str(item or "").strip()
+            if text and text not in result:
+                result.append(text)
+            if len(result) >= limit:
+                break
+        return result
