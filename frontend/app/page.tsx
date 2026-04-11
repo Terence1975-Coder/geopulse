@@ -581,6 +581,12 @@ export default function HomePage() {
     "Panel",
   ]);
   const [selectedSignal, setSelectedSignal] = useState<SignalItem | null>(null);
+  
+  const [plannerExecutionRequest, setPlannerExecutionRequest] = useState<{
+	id: string;
+	prompt: string;
+	methodology: "auto" | "prince2" | "agile";
+  } | null>(null);
 
   const companyProfile = useMemo(
     () => mapProfileToIntelligenceProfile(profile),
@@ -899,10 +905,12 @@ export default function HomePage() {
         return (
           <PlannerAgentWorkspace
             messages={plannerMessages}
-            setMessages={setPlannerMessages}
-            chainOutputs={chainOutputs}
-            setChainOutputs={setChainOutputs}
-            companyProfile={companyProfile}
+			setMessages={setPlannerMessages}
+			chainOutputs={chainOutputs}
+			setChainOutputs={setChainOutputs}
+			companyProfile={companyProfile}
+			executionRequest={plannerExecutionRequest}
+			clearExecutionRequest={() => setPlannerExecutionRequest(null)}
           />
         );
 
@@ -928,18 +936,29 @@ export default function HomePage() {
 
             <AgentChainWorkspace
               input={chainInput}
-              setInput={setChainInput}
-              result={chainResult}
-              setResult={setChainResult}
-              loading={chainLoading}
-              setLoading={setChainLoading}
-              companyProfile={companyProfile}
-              chainOutputs={chainOutputs}
-              setChainOutputs={setChainOutputs}
-              onExecute={handleChainExecute}
-              onSave={handleChainSave}
-              onReject={handleChainReject}
-            />
+			  setInput={setChainInput}
+			  result={chainResult}
+			  setResult={setChainResult}
+			  loading={chainLoading}
+			  setLoading={setChainLoading}
+			  companyProfile={companyProfile}
+			  chainOutputs={chainOutputs}
+			  setChainOutputs={setChainOutputs}
+			  onExecute={({ prompt, methodology }) => {
+				setPlannerExecutionRequest({
+				  id: crypto.randomUUID(),
+				  prompt,
+				  methodology,
+				});
+				setActiveWorkspace("planner");
+			  }}
+			  onSave={() => {
+				console.log("Save for later clicked");
+			  }}
+			  onReject={() => {
+				console.log("Reject clicked");
+			  }}
+			/>
           </div>
         );
 

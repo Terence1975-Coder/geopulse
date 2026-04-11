@@ -1,11 +1,17 @@
 ﻿"use client";
 
+import { useState } from "react";
 import { engageAgent } from "../lib/engageAgent";
 import type {
   ChainOutputs,
   CompanyProfile,
   EngageAgentResponse,
 } from "../types/intelligence";
+
+type ExecutePayload = {
+  prompt: string;
+  methodology: "auto" | "prince2" | "agile";
+};
 
 type Props = {
   input: string;
@@ -17,7 +23,7 @@ type Props = {
   companyProfile?: CompanyProfile | null;
   chainOutputs: ChainOutputs;
   setChainOutputs: React.Dispatch<React.SetStateAction<ChainOutputs>>;
-  onExecute?: () => void;
+  onExecute?: (payload: ExecutePayload) => void;
   onSave?: () => void;
   onReject?: () => void;
 };
@@ -417,7 +423,6 @@ function PlanCard({ value }: { value: AnyRecord | null | undefined }) {
 }
 
 export default function AgentChainWorkspace({
-  const [methodology, setMethodology] = useState("auto");
   input,
   setInput,
   result,
@@ -431,50 +436,11 @@ export default function AgentChainWorkspace({
   onSave,
   onReject,
 }: Props) {
+  const [methodology, setMethodology] = useState<"auto" | "prince2" | "agile">(
+    "auto"
+  );
+
   async function runChain() {
-	  function handleExecute() {
-		if (!chainOutputs?.analyse || !chainOutputs?.advise) return;
-
-		const executionPrompt = `
-	  You are GeoPulse Planner.
-
-	  Your task is to convert the following intelligence into an EXECUTION-GRADE PLAN.
-
-	  CONTEXT:
-	  Analyse Output:
-	  ${JSON.stringify(chainOutputs.analyse, null, 2)}
-
-	  Advise Output:
-	  ${JSON.stringify(chainOutputs.advise, null, 2)}
-
-	  Preferred Methodology: ${methodology}
-
-	  INSTRUCTIONS:
-	  - Build a structured execution plan
-	  - Choose the most appropriate methodology:
-		- PRINCE2 (governance, risk, scale)
-		- Agile (speed, iteration)
-		- Hybrid (default)
-
-	  OUTPUT MUST INCLUDE:
-	  - Objective
-	  - Methodology
-	  - Phases
-	  - Actions per phase
-	  - Owners
-	  - Success metrics
-	  - Risks
-	  - Review checkpoints
-
-	  This must be BOARDROOM READY.
-	  No generic output.
-	  `;
-
-		setInput(executionPrompt);
-
-		onExecute?.();
-	  }
-	  
     const text = input.trim();
     if (!text || loading) return;
 
@@ -510,10 +476,68 @@ export default function AgentChainWorkspace({
           confidence: 0,
           time_horizon: "short",
         },
-      });
+      } as EngageAgentResponse);
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleExecute() {
+    if (!chainOutputs?.analyse || !chainOutputs?.advise) return;
+
+    const methodologyLabel =
+      methodology === "prince2"
+        ? "PRINCE2"
+        : methodology === "agile"
+        ? "Agile"
+        : "Hybrid / Auto-select";
+
+    const executionPrompt = `
+You are GeoPulse Planner.
+
+Convert the following intelligence into a BOARDROOM-READY EXECUTION PLAN.
+
+COMPANY PROFILE:
+${JSON.stringify(companyProfile ?? {}, null, 2)}
+
+ANALYSE OUTPUT:
+${JSON.stringify(chainOutputs.analyse, null, 2)}
+
+ADVISE OUTPUT:
+${JSON.stringify(chainOutputs.advise, null, 2)}
+
+PLANNING PREFERENCE:
+Preferred methodology: ${methodologyLabel}
+
+INSTRUCTIONS:
+- Build a comprehensive execution-grade plan.
+- Choose the best-fit delivery structure:
+  - PRINCE2 for governance, control, risk, and formal stage management
+  - Agile for iteration, speed, and evolving requirements
+  - Hybrid when both governance and adaptability are required
+- Translate strategy into action.
+- Make the output boardroom-ready, practical, and measurable.
+
+OUTPUT MUST INCLUDE:
+- Objective
+- Recommended methodology
+- Why that methodology fits
+- Phases
+- Actions per phase
+- Owners
+- Dependencies
+- Success metrics
+- Risks
+- Review checkpoints
+
+Do not be generic.
+Be concrete, structured, and executive-grade.
+`.trim();
+
+    onExecute?.({
+      prompt: executionPrompt,
+      methodology,
+    });
   }
 
   const data = (result ?? null) as AnyRecord | null;
@@ -582,17 +606,22 @@ export default function AgentChainWorkspace({
           </span>
         </div>
 
-		<div className="mt-4">
-			<select
-				value={methodology}
-				onChange={(e) => setMethodology(e.target.value)}
-				className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
-			>
-				<option value="auto">Auto (Recommended)</option>
-				<option value="prince2">PRINCE2</option>
-				<option value="agile">Agile</option>
-			</select>
-		</div>
+        <div className="mt-4">
+          <label className="mb-2 block text-xs uppercase tracking-[0.18em] text-slate-400">
+            Planner methodology
+          </label>
+          <select
+            value={methodology}
+            onChange={(e) =>
+              setMethodology(e.target.value as "auto" | "prince2" | "agile")
+            }
+            className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none"
+          >
+            <option value="auto">Auto / Hybrid</option>
+            <option value="prince2">PRINCE2</option>
+            <option value="agile">Agile</option>
+          </select>
+        </div>
 
         <div className="mt-6 flex gap-3">
           <textarea

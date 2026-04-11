@@ -1,13 +1,22 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import BaseAgentWorkspace from "../components/intelligence/BaseAgentWorkspace";
+import { engageAgent } from "../lib/engageAgent";
 import { extractPlanShape } from "../lib/responseParser";
 import type {
   ChainOutputs,
   CompanyProfile,
+  EngageAgentResponse,
+  StructuredAgentOutput,
   WorkspaceMessage,
 } from "../types/intelligence";
+
+type PlannerExecutionRequest = {
+  id: string;
+  prompt: string;
+  methodology: "auto" | "prince2" | "agile";
+};
 
 type PlannerAgentWorkspaceProps = {
   messages: WorkspaceMessage[];
@@ -16,7 +25,17 @@ type PlannerAgentWorkspaceProps = {
   setChainOutputs: React.Dispatch<React.SetStateAction<ChainOutputs>>;
   companyProfile?: CompanyProfile | null;
   companyId?: string;
+  executionRequest?: PlannerExecutionRequest | null;
+  clearExecutionRequest?: () => void;
 };
+
+function buildAssistantContent(
+  data: EngageAgentResponse
+): StructuredAgentOutput | Record<string, unknown> | string {
+  if (data.output) return data.output;
+  if (data.outputs && data.outputs["plan"]) return data.outputs["plan"];
+  return "No structured planner response returned from backend.";
+}
 
 function PlanSummaryCard({ plan }: { plan: unknown }) {
   const parsed = extractPlanShape(plan);
@@ -77,58 +96,107 @@ function PlanSummaryCard({ plan }: { plan: unknown }) {
 export default function PlannerAgentWorkspace(
   props: PlannerAgentWorkspaceProps
 ) {
-  const { chainOutputs, messages, setMessages } = props;
+  const {
+    messages,
+    setMessages,
+    chainOutputs,
+    setChainOutputs,
+    companyProfile,
+    companyId,
+    executionRequest,
+    clearExecutionRequest,
+  } = props;
+
+  const [autoRunning, setAutoRunning] = useState(false);
+  const handledRequestId = useRef<string | null>(null);
 
   useEffect(() => {
-    if (
-      !chainOutputs?.analyse ||
-      !chainOutputs?.advise ||
-      chainOutputs?.plan ||
-      messages.length > 0
-    ) {
-      return;
-    }
+    async function runExecutionRequest() {
+      if (!executionRequest?.id || !executionRequest.prompt.trim()) return;
+      if (handledRequestId.current === executionRequest.id) return;
 
-    const executionPrompt = `
-You are GeoPulse Planner.
+      handledRequestId.current = executionRequest.id;
+      setAutoRunning(true);
 
-Convert the following intelligence into a BOARDROOM-READY EXECUTION PLAN.
-
-Analyse:
-${JSON.stringify(chainOutputs.analyse, null, 2)}
-
-Advise:
-${JSON.stringify(chainOutputs.advise, null, 2)}
-
-INSTRUCTIONS:
-- Select methodology (PRINCE2 / Agile / Hybrid)
-- Build structured plan
-
-OUTPUT:
-- Objective
-- Methodology
-- Phases
-- Actions
-- Owners
-- Metrics
-- Risks
-- Review checkpoints
-
-No generic output.
-`;
-
-    setMessages([
-      {
+      const userMessage: WorkspaceMessage = {
         id: crypto.randomUUID(),
         role: "user",
-        content: executionPrompt,
         timestamp: new Date().toISOString(),
-      },
-    ]);
-  }, [chainOutputs, messages, setMessages]);
+        tone: "executive",
+        content: executionRequest.prompt,
+      };
+
+      setMessages((prev) => [...(Array.isArray(prev) ? prev : []), userMessage]);
+
+      try {
+        const data = await engageAgent({
+          input: executionRequest.prompt,
+          stage: "plan",
+          companyProfile,
+          chainOutputs,
+          messages: [...messages, userMessage],
+          companyId,
+        });
+
+        const assistantMessage: WorkspaceMessage = {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          timestamp: new Date().toISOString(),
+          tone: "executive",
+          content: buildAssistantContent(data),
+        };
+
+        setMessages((prev) => [
+          ...(Array.isArray(prev) ? prev : []),
+          assistantMessage,
+        ]);
+
+        if (data?.chain_outputs) {
+          setChainOutputs(data.chain_outputs);
+        }
+      } catch (error) {
+        const assistantError: WorkspaceMessage = {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          timestamp: new Date().toISOString(),
+          tone: "warning",
+          content:
+            error instanceof Error
+              ? `GeoPulse could not complete planner execution: ${error.message}`
+              : "GeoPulse could not complete planner execution.",
+        };
+
+        setMessages((prev) => [
+          ...(Array.isArray(prev) ? prev : []),
+          assistantError,
+        ]);
+      } finally {
+        setAutoRunning(false);
+        clearExecutionRequest?.();
+      }
+    }
+
+    void runExecutionRequest();
+  }, [
+    executionRequest,
+    companyProfile,
+    chainOutputs,
+    messages,
+    companyId,
+    setMessages,
+    setChainOutputs,
+    clearExecutionRequest,
+  ]);
 
   return (
     <div className="space-y-6">
+      {autoRunning ? (
+        <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-4 text-sm text-cyan-100">
+          GeoPulse is converting the selected chain output into an execution-grade
+          planner response.
+        </div>
+      ) : null}
+
       <PlanSummaryCard plan={props.chainOutputs?.plan} />
 
       <BaseAgentWorkspace
