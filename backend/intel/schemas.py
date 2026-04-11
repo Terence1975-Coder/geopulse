@@ -47,6 +47,36 @@ class SupportingSignalDetail(BaseModel):
     relative_time: Optional[str] = None
 
 
+class SignalRecord(BaseModel):
+    """
+    Backward-compatibility signal model for older routes and services.
+    """
+    model_config = ConfigDict(extra="allow")
+
+    id: Optional[str] = None
+    headline: Optional[str] = None
+    summary: Optional[str] = None
+    source: Optional[str] = None
+    source_type: Optional[str] = None
+    region: Optional[str] = None
+    cluster_tag: Optional[str] = None
+    kind: Optional[str] = None
+    severity: Optional[str] = None
+    lifecycle: Optional[str] = None
+
+    confidence: Optional[float] = None
+    confidence_score: Optional[float] = None
+    signal_strength: Optional[float] = None
+    freshness_minutes: Optional[int] = None
+
+    timestamp: Optional[str] = None
+    detected_at: Optional[str] = None
+    updated_at: Optional[str] = None
+    relative_time: Optional[str] = None
+
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
 class StructuredAgentOutput(BaseModel):
     """
     Main structured output used by context_builder.py and agent_service.py.
