@@ -259,3 +259,26 @@ class AgentEngageResponse(BaseModel):
     multi_path_output: Optional[MultiPathOutput] = None
     context_summary: Optional[Dict[str, Any]] = None
     meta: Optional[Dict[str, Any]] = None
+    
+    class AgentRunRecord(BaseModel):
+    """
+    Backward-compatibility model for older router/service imports.
+    Keep permissive so older code paths do not break.
+    """
+    model_config = ConfigDict(extra="allow")
+
+    id: Optional[str] = None
+    stage: Optional[str] = None
+    status: Optional[str] = None
+
+    input: Optional[str] = None
+    output: Optional[Any] = None
+
+    company_id: Optional[str] = None
+    company_name: Optional[str] = None
+
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+    duration_ms: Optional[int] = None
+
+    metadata: Dict[str, Any] = Field(default_factory=dict)
