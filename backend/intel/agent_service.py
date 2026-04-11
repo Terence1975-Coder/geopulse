@@ -108,14 +108,14 @@ class AgentService:
 
         return AgentEngageResponse(
             output=None,
-            outputs=outputs,
-            chain_outputs=chain_outputs,
-            analyst_views=analyst_views,
-            analysis_selection=analysis_selection,
-            strategic_paths=strategic_paths,
-            strategy_decision=strategy_decision,
-            execution_plan=execution_plan,
-            interaction_hooks=interaction_hooks,
+            outputs={key: value.model_dump() for key, value in outputs.items()},
+            chain_outputs=chain_outputs.model_dump() if chain_outputs else None,
+            analyst_views=[item.model_dump() for item in analyst_views],
+            analysis_selection=analysis_selection.model_dump(),
+            strategic_paths=[item.model_dump() for item in strategic_paths],
+            strategy_decision=strategy_decision.model_dump(),
+            execution_plan=execution_plan.model_dump(),
+            interaction_hooks=interaction_hooks.model_dump(),
             multi_path_output=multi_path_output,
             context_summary=context_summary,
             meta={
