@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, ConfigDict
 
 
 TimeHorizon = Literal["short", "medium", "long"]
+DeliveryMode = Literal["prince2", "agile", "hybrid"]
 
 AgentStage = Literal[
     "analyse",
@@ -135,13 +136,22 @@ class StructuredAgentOutput(BaseModel):
     reasoning_notes: List[str] = Field(default_factory=list)
     explanation_notes: List[str] = Field(default_factory=list)
 
-    # Useful compatibility fields for richer stage outputs
+    # Richer planning / advisory fields
     decision_context: Optional[str] = None
     tradeoffs: List[str] = Field(default_factory=list)
     dependencies: List[str] = Field(default_factory=list)
     milestones: List[str] = Field(default_factory=list)
     success_metrics: List[str] = Field(default_factory=list)
     review_checkpoints: List[str] = Field(default_factory=list)
+
+    # Methodology enforcement fields
+    delivery_mode: Optional[DeliveryMode] = None
+    methodology_rationale: Optional[str] = None
+    governance_model: List[str] = Field(default_factory=list)
+    cadence_model: List[str] = Field(default_factory=list)
+    workstreams: List[str] = Field(default_factory=list)
+    risks: List[str] = Field(default_factory=list)
+    next_7_days: List[str] = Field(default_factory=list)
 
     # Legacy / compatibility fields
     response: Optional[str] = None
