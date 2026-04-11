@@ -583,26 +583,22 @@ Be concrete, structured, and executive-grade.
   const data = (result ?? null) as AnyRecord | null;
 
   const analyseValue =
-    data?.chain_outputs?.analyse ??
-    data?.outputs?.analyse ??
-    data?.output?.analyse ??
-    (data?.output &&
-    typeof data.output === "object" &&
-    "headline" in data.output
-      ? data.output
-      : null);
+	chainOutputs?.analyse ??
+	data?.chain_outputs?.analyse ??
+	data?.outputs?.analyse ??
+	null;
 
   const adviseValue =
-    data?.chain_outputs?.advise ??
-    data?.outputs?.advise ??
-    data?.output?.advise ??
-    null;
+	chainOutputs?.advise ??
+	data?.chain_outputs?.advise ??
+	data?.outputs?.advise ??
+	null;
 
   const planValue =
-    data?.chain_outputs?.plan ??
-    data?.outputs?.plan ??
-    data?.output?.plan ??
-    null;
+	chainOutputs?.plan ??
+	data?.chain_outputs?.plan ??
+	data?.outputs?.plan ??
+	null;
 
   const multiPathValue =
     data?.multi_path_output ??
