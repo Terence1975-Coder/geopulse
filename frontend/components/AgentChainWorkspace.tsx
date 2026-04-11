@@ -417,6 +417,7 @@ function PlanCard({ value }: { value: AnyRecord | null | undefined }) {
 }
 
 export default function AgentChainWorkspace({
+  const [methodology, setMethodology] = useState("auto");
   input,
   setInput,
   result,
@@ -431,6 +432,49 @@ export default function AgentChainWorkspace({
   onReject,
 }: Props) {
   async function runChain() {
+	  function handleExecute() {
+		if (!chainOutputs?.analyse || !chainOutputs?.advise) return;
+
+		const executionPrompt = `
+	  You are GeoPulse Planner.
+
+	  Your task is to convert the following intelligence into an EXECUTION-GRADE PLAN.
+
+	  CONTEXT:
+	  Analyse Output:
+	  ${JSON.stringify(chainOutputs.analyse, null, 2)}
+
+	  Advise Output:
+	  ${JSON.stringify(chainOutputs.advise, null, 2)}
+
+	  Preferred Methodology: ${methodology}
+
+	  INSTRUCTIONS:
+	  - Build a structured execution plan
+	  - Choose the most appropriate methodology:
+		- PRINCE2 (governance, risk, scale)
+		- Agile (speed, iteration)
+		- Hybrid (default)
+
+	  OUTPUT MUST INCLUDE:
+	  - Objective
+	  - Methodology
+	  - Phases
+	  - Actions per phase
+	  - Owners
+	  - Success metrics
+	  - Risks
+	  - Review checkpoints
+
+	  This must be BOARDROOM READY.
+	  No generic output.
+	  `;
+
+		setInput(executionPrompt);
+
+		onExecute?.();
+	  }
+	  
     const text = input.trim();
     if (!text || loading) return;
 
@@ -538,6 +582,18 @@ export default function AgentChainWorkspace({
           </span>
         </div>
 
+		<div className="mt-4">
+			<select
+				value={methodology}
+				onChange={(e) => setMethodology(e.target.value)}
+				className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
+			>
+				<option value="auto">Auto (Recommended)</option>
+				<option value="prince2">PRINCE2</option>
+				<option value="agile">Agile</option>
+			</select>
+		</div>
+
         <div className="mt-6 flex gap-3">
           <textarea
             value={input}
@@ -559,7 +615,7 @@ export default function AgentChainWorkspace({
           <div className="mt-5 flex flex-wrap gap-3">
             {onExecute ? (
               <button
-                onClick={onExecute}
+                onClick={handleExecute}
                 className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-200 transition hover:bg-emerald-500/20"
               >
                 Execute
