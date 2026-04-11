@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import BaseAgentWorkspace from "../components/intelligence/BaseAgentWorkspace";
 import { extractPlanShape } from "../lib/responseParser";
 import type {
@@ -76,6 +77,56 @@ function PlanSummaryCard({ plan }: { plan: unknown }) {
 export default function PlannerAgentWorkspace(
   props: PlannerAgentWorkspaceProps
 ) {
+  const { chainOutputs, messages, setMessages } = props;
+
+  useEffect(() => {
+    if (
+      !chainOutputs?.analyse ||
+      !chainOutputs?.advise ||
+      chainOutputs?.plan ||
+      messages.length > 0
+    ) {
+      return;
+    }
+
+    const executionPrompt = `
+You are GeoPulse Planner.
+
+Convert the following intelligence into a BOARDROOM-READY EXECUTION PLAN.
+
+Analyse:
+${JSON.stringify(chainOutputs.analyse, null, 2)}
+
+Advise:
+${JSON.stringify(chainOutputs.advise, null, 2)}
+
+INSTRUCTIONS:
+- Select methodology (PRINCE2 / Agile / Hybrid)
+- Build structured plan
+
+OUTPUT:
+- Objective
+- Methodology
+- Phases
+- Actions
+- Owners
+- Metrics
+- Risks
+- Review checkpoints
+
+No generic output.
+`;
+
+    setMessages([
+      {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: executionPrompt,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+  }, [chainOutputs, messages, setMessages]);
+
   return (
     <div className="space-y-6">
       <PlanSummaryCard plan={props.chainOutputs?.plan} />
