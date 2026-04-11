@@ -3,11 +3,10 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 from typing_extensions import Literal
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 TimeHorizon = Literal["short", "medium", "long"]
-DeliveryMode = Literal["prince2", "agile", "hybrid"]
 
 AgentStage = Literal[
     "analyse",
@@ -20,10 +19,6 @@ AgentStage = Literal[
 
 
 class SupportingSignalDetail(BaseModel):
-    """
-    Flexible nested signal model to prevent serializer warnings when
-    upstream services return signal detail dictionaries.
-    """
     model_config = ConfigDict(extra="allow")
 
     id: Optional[str] = None
@@ -46,68 +41,9 @@ class SupportingSignalDetail(BaseModel):
     detected_at: Optional[str] = None
     updated_at: Optional[str] = None
     relative_time: Optional[str] = None
-
-
-class SignalRecord(BaseModel):
-    """
-    Backward-compatibility signal model for older routes and services.
-    """
-    model_config = ConfigDict(extra="allow")
-
-    id: Optional[str] = None
-    headline: Optional[str] = None
-    summary: Optional[str] = None
-    source: Optional[str] = None
-    source_type: Optional[str] = None
-    region: Optional[str] = None
-    cluster_tag: Optional[str] = None
-    kind: Optional[str] = None
-    severity: Optional[str] = None
-    lifecycle: Optional[str] = None
-
-    confidence: Optional[float] = None
-    confidence_score: Optional[float] = None
-    signal_strength: Optional[float] = None
-    freshness_minutes: Optional[int] = None
-
-    timestamp: Optional[str] = None
-    detected_at: Optional[str] = None
-    updated_at: Optional[str] = None
-    relative_time: Optional[str] = None
-
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-
-
-class SignalStoreRequest(BaseModel):
-    """
-    Backward-compatibility request model for older signal storage routes.
-    """
-    model_config = ConfigDict(extra="allow")
-
-    signal: Optional[Dict[str, Any]] = None
-    signals: List[Dict[str, Any]] = Field(default_factory=list)
-    source: Optional[str] = None
-    replace_existing: bool = False
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-
-
-class SignalStoreResponse(BaseModel):
-    """
-    Backward-compatibility response model for older signal storage routes.
-    """
-    model_config = ConfigDict(extra="allow")
-
-    success: bool = True
-    stored_count: int = 0
-    signals: List[Dict[str, Any]] = Field(default_factory=list)
-    message: Optional[str] = None
 
 
 class StructuredAgentOutput(BaseModel):
-    """
-    Main structured output used by context_builder.py and agent_service.py.
-    Kept permissive so older / newer payloads do not break execution.
-    """
     model_config = ConfigDict(extra="allow")
 
     summary: Optional[str] = None
@@ -136,7 +72,6 @@ class StructuredAgentOutput(BaseModel):
     reasoning_notes: List[str] = Field(default_factory=list)
     explanation_notes: List[str] = Field(default_factory=list)
 
-    # Richer planning / advisory fields
     decision_context: Optional[str] = None
     tradeoffs: List[str] = Field(default_factory=list)
     dependencies: List[str] = Field(default_factory=list)
@@ -144,16 +79,16 @@ class StructuredAgentOutput(BaseModel):
     success_metrics: List[str] = Field(default_factory=list)
     review_checkpoints: List[str] = Field(default_factory=list)
 
-    # Methodology enforcement fields
-    delivery_mode: Optional[DeliveryMode] = None
+    delivery_mode: Optional[str] = None
+    recommended_methodology: Optional[str] = None
     methodology_rationale: Optional[str] = None
-    governance_model: List[str] = Field(default_factory=list)
-    cadence_model: List[str] = Field(default_factory=list)
+    governance_model: Optional[str] = None
+    cadence_model: Optional[str] = None
     workstreams: List[str] = Field(default_factory=list)
     risks: List[str] = Field(default_factory=list)
     next_7_days: List[str] = Field(default_factory=list)
+    plan_display_mode: Optional[str] = None
 
-    # Legacy / compatibility fields
     response: Optional[str] = None
     message: Optional[str] = None
     content: Optional[str] = None
@@ -173,9 +108,6 @@ class ChainOutputs(BaseModel):
 
 
 class CompanyProfile(BaseModel):
-    """
-    Matches what context_builder.py expects to read.
-    """
     model_config = ConfigDict(extra="allow")
 
     company_name: Optional[str] = None
@@ -193,72 +125,9 @@ class CompanyProfile(BaseModel):
     recommendation_style: Optional[str] = None
     notes: Optional[str] = None
 
-    # Backward compatibility fields from earlier versions
     market_focus: List[str] = Field(default_factory=list)
     recommendation_posture: Optional[str] = None
     profile_json: Dict[str, Any] = Field(default_factory=dict)
-
-
-class CompanyProfileSaveRequest(BaseModel):
-    """
-    Backward-compatibility request model for older profile save routes.
-    """
-    model_config = ConfigDict(extra="allow")
-
-    company_id: Optional[str] = None
-    company_name: Optional[str] = None
-    profile: Dict[str, Any] = Field(default_factory=dict)
-
-
-class CompanyProfileFetchResponse(BaseModel):
-    """
-    Backward-compatibility response model for older profile routes.
-    """
-    model_config = ConfigDict(extra="allow")
-
-    success: bool = True
-    profile: Optional[Dict[str, Any]] = None
-    company_id: Optional[str] = None
-    company_name: Optional[str] = None
-    message: Optional[str] = None
-
-
-class CompanyProfileSaveResponse(BaseModel):
-    """
-    Backward-compatibility response model for older profile save routes.
-    """
-    model_config = ConfigDict(extra="allow")
-
-    success: bool = True
-    profile: Optional[Dict[str, Any]] = None
-    company_id: Optional[str] = None
-    company_name: Optional[str] = None
-    saved: bool = True
-    message: Optional[str] = None
-
-
-class AgentRunRecord(BaseModel):
-    """
-    Backward-compatibility model for older router/service imports.
-    Keep permissive so older code paths do not break.
-    """
-    model_config = ConfigDict(extra="allow")
-
-    id: Optional[str] = None
-    stage: Optional[str] = None
-    status: Optional[str] = None
-
-    input: Optional[str] = None
-    output: Optional[Any] = None
-
-    company_id: Optional[str] = None
-    company_name: Optional[str] = None
-
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
-    duration_ms: Optional[int] = None
-
-    metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
 class AgentEngageRequest(BaseModel):
@@ -377,13 +246,13 @@ class AgentEngageResponse(BaseModel):
     outputs: Optional[Dict[str, Any]] = None
     chain_outputs: Optional[Any] = None
 
-    analyst_views: Optional[List[Dict[str, Any]]] = None
-    analysis_selection: Optional[Dict[str, Any]] = None
-    strategic_paths: Optional[List[Dict[str, Any]]] = None
-    strategy_decision: Optional[Dict[str, Any]] = None
-    execution_plan: Optional[Dict[str, Any]] = None
-    interaction_hooks: Optional[Dict[str, Any]] = None
+    analyst_views: Optional[List[MultiAnalystView]] = None
+    analysis_selection: Optional[AnalysisSelection] = None
+    strategic_paths: Optional[List[StrategicPath]] = None
+    strategy_decision: Optional[StrategyDecision] = None
+    execution_plan: Optional[ExecutionPlan] = None
+    interaction_hooks: Optional[InteractionHooks] = None
 
-    multi_path_output: Optional[MultiPathOutput] = None
+    multi_path_output: Optional[MultiPathOutput | Dict[str, Any]] = None
     context_summary: Optional[Dict[str, Any]] = None
     meta: Optional[Dict[str, Any]] = None

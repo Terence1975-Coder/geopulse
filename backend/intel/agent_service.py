@@ -85,7 +85,7 @@ class AgentService:
         context_summary = {
             "chain_executed": True,
             "stages": ["analyse", "advise", "plan"],
-            "phase": "v8_3_methodology_enforced",
+            "phase": "v8_4_synced_backend",
             "multi_analyst_generated": True,
             "strategic_paths_generated": len(strategic_paths),
             "selected_analyst_id": analysis_selection.recommended_analyst_id,
@@ -108,21 +108,21 @@ class AgentService:
 
         return AgentEngageResponse(
             output=None,
-            outputs={key: value.model_dump() for key, value in outputs.items()},
-            chain_outputs=chain_outputs.model_dump() if chain_outputs else None,
-            analyst_views=[item.model_dump() for item in analyst_views],
-            analysis_selection=analysis_selection.model_dump(),
-            strategic_paths=[item.model_dump() for item in strategic_paths],
-            strategy_decision=strategy_decision.model_dump(),
-            execution_plan=execution_plan.model_dump(),
-            interaction_hooks=interaction_hooks.model_dump(),
+            outputs=outputs,
+            chain_outputs=chain_outputs,
+            analyst_views=analyst_views,
+            analysis_selection=analysis_selection,
+            strategic_paths=strategic_paths,
+            strategy_decision=strategy_decision,
+            execution_plan=execution_plan,
+            interaction_hooks=interaction_hooks,
             multi_path_output=multi_path_output,
             context_summary=context_summary,
             meta={
                 "mode": "full_chain",
                 "legacy_chain_preserved": True,
                 "supporting_signals": supporting_signals,
-                "contract_version": "v8.3",
+                "contract_version": "v8.4",
             },
         )
 
@@ -132,12 +132,15 @@ class AgentService:
             for item in (req.conversation_history or [])
         ]
 
+        supporting_signals = select_supporting_signals_for_text(req.input, limit=4)
+
         context = build_context_block(
             user_input=req.input,
             stage=req.stage,
             profile=req.company_profile,
             chain_outputs=req.chain_outputs,
             conversation_history=conversation_history,
+            supporting_signals=supporting_signals,
         )
 
         output = self.llm.generate_structured_json(
@@ -166,7 +169,6 @@ class AgentService:
         if not output.based_on_stages:
             output.based_on_stages = prior_stages
 
-        supporting_signals = select_supporting_signals_for_text(req.input, limit=3)
         derived_confidence = self._derive_confidence(output, supporting_signals)
         time_relevance = self._derive_time_relevance(supporting_signals)
 
@@ -177,10 +179,19 @@ class AgentService:
             {
                 "id": signal.get("id", ""),
                 "headline": signal.get("headline", ""),
+                "summary": signal.get("summary", ""),
                 "source": signal.get("source", ""),
-                "confidence_score": float(signal.get("confidence_score", 0.0)),
-                "relative_time": signal.get("relative_time", ""),
+                "source_type": signal.get("source_type", ""),
+                "region": signal.get("region", ""),
+                "cluster_tag": signal.get("cluster_tag", ""),
+                "kind": signal.get("kind", ""),
+                "severity": signal.get("severity", ""),
                 "lifecycle": signal.get("lifecycle", ""),
+                "confidence_score": float(signal.get("confidence_score", 0.0)),
+                "signal_strength": float(signal.get("signal_strength", 0.0)),
+                "freshness_minutes": int(signal.get("freshness_minutes", 0)),
+                "relative_time": signal.get("relative_time", ""),
+                "timestamp": signal.get("timestamp", ""),
             }
             for signal in supporting_signals
         ]
@@ -188,7 +199,7 @@ class AgentService:
         if req.stage == "plan":
             output = self._enforce_planner_methodology(req, output, supporting_signals)
         else:
-            output = self._repair_generic_output(req, output)
+            output = self._repair_generic_output(req, output, supporting_signals)
 
         updated_chain = update_chain_outputs(
             chain_outputs=req.chain_outputs,
@@ -205,8 +216,8 @@ class AgentService:
                 "profile_references": output.profile_references,
                 "missing_profile_data": output.missing_profile_data,
                 "based_on_stages": output.based_on_stages,
-                "based_on_signals": getattr(output, "based_on_signals", []),
-                "time_relevance": getattr(output, "time_relevance", None),
+                "based_on_signals": output.based_on_signals,
+                "time_relevance": output.time_relevance,
                 "company_id": req.company_id,
                 "delivery_mode": getattr(output, "delivery_mode", None),
             },
@@ -214,7 +225,7 @@ class AgentService:
                 "stage": req.stage,
                 "supporting_signals": supporting_signals,
                 "credibility_layer": True,
-                "contract_version": "v8.3",
+                "contract_version": "v8.4",
             },
         )
 
@@ -222,37 +233,177 @@ class AgentService:
         self,
         req: AgentEngageRequest,
         output: StructuredAgentOutput,
+        supporting_signals: List[Dict[str, Any]],
     ) -> StructuredAgentOutput:
-        if not output.headline:
-            output.headline = f"{req.stage.title()} response"
+        if not output.headline or output.headline.strip().lower() in {
+            "analyse response",
+            "advise response",
+            "plan response",
+            "response",
+            "not available",
+            "unknown",
+            "n/a",
+        }:
+            if req.stage == "analyse":
+                output.headline = self._derive_analysis_headline(supporting_signals)
+            elif req.stage == "advise":
+                output.headline = "Executive decision path should be prioritised"
+            else:
+                output.headline = f"{req.stage.title()} response"
 
-        if not output.key_insight:
-            output.key_insight = (
-                "GeoPulse generated a structured response, but the model returned limited narrative detail."
-            )
+        if not output.key_insight or "limited narrative detail" in output.key_insight.lower():
+            if req.stage == "analyse":
+                output.key_insight = self._derive_analysis_insight(
+                    supporting_signals, req
+                )
+            elif req.stage == "advise":
+                output.key_insight = (
+                    "Management should prioritise the response path that best balances timing, evidence strength, and company fit."
+                )
+            else:
+                output.key_insight = (
+                    "GeoPulse generated a structured response with limited narrative detail."
+                )
 
-        if req.stage in {"advise", "analyse"} and len(output.recommended_actions) < 2:
-            output.recommended_actions = self._merge_unique(
-                output.recommended_actions,
-                [
-                    "Review the strongest evidence and confirm the next management decision.",
-                    "Validate company exposure and timing before scaling response.",
-                ],
-                limit=4,
-            )
+        if req.stage == "analyse":
+            if len(output.drivers) < 2:
+                output.drivers = self._derive_analysis_drivers(supporting_signals, req)
+            if len(output.second_order_effects) < 2:
+                output.second_order_effects = self._derive_second_order_effects(
+                    supporting_signals
+                )
+            if len(output.implications) < 2:
+                output.implications = self._derive_analysis_implications(
+                    supporting_signals, req
+                )
+            if len(output.recommended_actions) < 2:
+                output.recommended_actions = [
+                    "Validate which signal cluster is most commercially material to the company.",
+                    "Prioritise the strongest evidence pattern before moving into response design.",
+                ]
 
-        if req.stage == "advise" and not getattr(output, "decision_context", None):
-            output.decision_context = (
-                "Management should decide how aggressively to respond given evidence strength, timing, and company priorities."
-            )
+        if req.stage == "advise":
+            if len(output.recommended_actions) < 2:
+                output.recommended_actions = self._merge_unique(
+                    output.recommended_actions,
+                    [
+                        "Confirm the next executive decision and owner.",
+                        "Test the response path against company exposure, priorities, and timing.",
+                    ],
+                    limit=5,
+                )
 
-        if req.stage == "advise" and len(getattr(output, "tradeoffs", []) or []) < 2:
-            output.tradeoffs = [
-                "Moving early may capture upside faster but increase execution risk.",
-                "Waiting for more confirmation may reduce false moves but narrow the timing window.",
-            ]
+            if not output.decision_context:
+                output.decision_context = (
+                    "Management should decide how aggressively to respond given the signal pattern, timing, and company priorities."
+                )
+
+            if len(output.tradeoffs) < 2:
+                output.tradeoffs = [
+                    "Moving early may capture upside faster but raises execution risk.",
+                    "Waiting for more confirmation may reduce false moves but narrow the timing window.",
+                ]
 
         return output
+
+    def _derive_analysis_headline(self, supporting_signals: List[Dict[str, Any]]) -> str:
+        if not supporting_signals:
+            return "Signal pattern requires closer executive review"
+
+        cluster_counts: Dict[str, int] = {}
+        for signal in supporting_signals:
+            cluster = str(signal.get("cluster_tag") or "General").strip()
+            cluster_counts[cluster] = cluster_counts.get(cluster, 0) + 1
+
+        dominant_cluster = max(cluster_counts, key=cluster_counts.get)
+        return f"{dominant_cluster} signal pattern is shaping executive attention"
+
+    def _derive_analysis_insight(
+        self,
+        supporting_signals: List[Dict[str, Any]],
+        req: AgentEngageRequest,
+    ) -> str:
+        if not supporting_signals:
+            return (
+                "Evidence depth is limited, so the current read should be treated as directional rather than conclusive."
+            )
+
+        company_name = (
+            req.company_profile.company_name
+            if req.company_profile and req.company_profile.company_name
+            else "the company"
+        )
+
+        strongest = max(
+            supporting_signals,
+            key=lambda signal: float(signal.get("signal_strength", 0.0) or 0.0),
+        )
+        headline = strongest.get("headline") or "current live evidence"
+
+        return (
+            f"Supporting signals indicate that {company_name} should pay attention to the pattern around '{headline}', because it is likely to influence timing, prioritisation, and commercial response choices."
+        )
+
+    def _derive_analysis_drivers(
+        self,
+        supporting_signals: List[Dict[str, Any]],
+        req: AgentEngageRequest,
+    ) -> List[str]:
+        drivers: List[str] = []
+
+        for signal in supporting_signals[:3]:
+            headline = str(signal.get("headline") or "").strip()
+            cluster = str(signal.get("cluster_tag") or "General").strip()
+            if headline:
+                drivers.append(f"{cluster}: {headline}")
+
+        if req.company_profile and req.company_profile.strategic_priorities:
+            drivers.append(
+                f"Company priorities increase the importance of decisions linked to {', '.join(req.company_profile.strategic_priorities[:3])}."
+            )
+
+        return self._merge_unique([], drivers, limit=4)
+
+    def _derive_second_order_effects(
+        self,
+        supporting_signals: List[Dict[str, Any]],
+    ) -> List[str]:
+        if not supporting_signals:
+            return [
+                "Limited evidence may delay confident prioritisation.",
+                "Weak evidence depth can increase the risk of generic response planning.",
+            ]
+
+        return self._merge_unique(
+            [],
+            [
+                "A concentrated signal cluster may shift executive attention toward a narrower set of priorities.",
+                "Timing pressure may increase demand for faster decision-making and clearer ownership.",
+                "If the pattern persists, commercial or operating responses may need to be packaged more explicitly.",
+            ],
+            limit=3,
+        )
+
+    def _derive_analysis_implications(
+        self,
+        supporting_signals: List[Dict[str, Any]],
+        req: AgentEngageRequest,
+    ) -> List[str]:
+        implications: List[str] = []
+
+        if req.company_profile and req.company_profile.markets:
+            implications.append(
+                f"Implications should be judged against exposure across {', '.join(req.company_profile.markets[:3])}."
+            )
+
+        implications.extend(
+            [
+                "The current evidence suggests management should narrow focus onto the most material signal-driven decision.",
+                "A stronger evidence pattern may justify moving from observation into response design or pilot execution.",
+            ]
+        )
+
+        return self._merge_unique([], implications, limit=4)
 
     def _enforce_planner_methodology(
         self,
@@ -271,6 +422,7 @@ class AgentService:
             "not available",
             "unknown",
             "n/a",
+            "plan response",
         }:
             if mode == "prince2":
                 output.headline = f"PRINCE2-governed execution plan for {company_name}"
@@ -297,15 +449,17 @@ class AgentService:
                     "The plan should combine executive control with iterative delivery so governance and speed reinforce each other."
                 )
 
-        setattr(output, "delivery_mode", mode)
-        setattr(output, "recommended_methodology", mode.upper() if mode != "hybrid" else "HYBRID")
-        setattr(output, "methodology_rationale", self._methodology_rationale(mode, req))
-        setattr(output, "governance_model", self._governance_model(mode))
-        setattr(output, "cadence_model", self._cadence_model(mode))
-        setattr(output, "workstreams", self._build_workstreams(mode, req))
-        setattr(output, "risks", self._build_plan_risks(mode, req, supporting_signals))
-        setattr(output, "next_7_days", self._build_next_7_days(mode, req))
-        setattr(output, "plan_display_mode", mode)
+        output.delivery_mode = mode
+        output.recommended_methodology = (
+            mode.upper() if mode != "hybrid" else "HYBRID"
+        )
+        output.methodology_rationale = self._methodology_rationale(mode, req)
+        output.governance_model = self._governance_model(mode)
+        output.cadence_model = self._cadence_model(mode)
+        output.workstreams = self._build_workstreams(mode, req)
+        output.risks = self._build_plan_risks(mode, req, supporting_signals)
+        output.next_7_days = self._build_next_7_days(mode, req)
+        output.plan_display_mode = mode
 
         output.recommended_actions = self._merge_unique(
             output.recommended_actions,
@@ -313,32 +467,32 @@ class AgentService:
             limit=8,
         )
         output.dependencies = self._merge_unique(
-            getattr(output, "dependencies", []) or [],
+            output.dependencies,
             self._dependencies_by_mode(mode),
             limit=8,
         )
         output.milestones = self._merge_unique(
-            getattr(output, "milestones", []) or [],
+            output.milestones,
             self._milestones_by_mode(mode),
             limit=8,
         )
         output.success_metrics = self._merge_unique(
-            getattr(output, "success_metrics", []) or [],
+            output.success_metrics,
             self._success_metrics_by_mode(mode),
             limit=8,
         )
         output.review_checkpoints = self._merge_unique(
-            getattr(output, "review_checkpoints", []) or [],
+            output.review_checkpoints,
             self._review_checkpoints_by_mode(mode),
             limit=8,
         )
         output.reasoning_notes = self._merge_unique(
-            getattr(output, "reasoning_notes", []) or [],
+            output.reasoning_notes,
             self._reasoning_notes_by_mode(mode, req),
             limit=8,
         )
         output.explanation_notes = self._merge_unique(
-            getattr(output, "explanation_notes", []) or [],
+            output.explanation_notes,
             [
                 "Planner mode was explicitly enforced from the execution handoff request.",
                 "Plan detail is grounded in analyse and advise outputs plus current evidence context.",
@@ -445,7 +599,9 @@ class AgentService:
         for signal in supporting_signals[:2]:
             headline = str(signal.get("headline", "")).strip()
             if headline:
-                signal_risks.append(f"Execution assumptions may be invalidated if the signal pattern around '{headline}' shifts materially.")
+                signal_risks.append(
+                    f"Execution assumptions may be invalidated if the signal pattern around '{headline}' shifts materially."
+                )
 
         mode_risks = {
             "prince2": [
@@ -623,7 +779,10 @@ class AgentService:
         supporting_signals: List[Dict[str, Any]],
     ) -> float:
         signal_confidence = (
-            sum(float(signal.get("confidence_score", 0.0)) for signal in supporting_signals)
+            sum(
+                float(signal.get("confidence_score", 0.0))
+                for signal in supporting_signals
+            )
             / max(1, len(supporting_signals))
         )
 
@@ -646,7 +805,8 @@ class AgentService:
             return "Short-term"
 
         freshest = min(
-            int(signal.get("freshness_minutes", 999999)) for signal in supporting_signals
+            int(signal.get("freshness_minutes", 999999))
+            for signal in supporting_signals
         )
 
         if freshest < 60:
@@ -700,7 +860,8 @@ class AgentService:
                 "Execution risk rises if capability, delivery capacity, or target-sector fit are unclear."
             ).strip(),
             drivers=base_drivers,
-            second_order_effects=base_effects + (base_actions[:2] if base_actions else []),
+            second_order_effects=base_effects
+            + (base_actions[:2] if base_actions else []),
             opportunity_signal="Operationally realistic offers can establish early credibility and create repeatable service lines.",
             risk_signal="Over-committing before delivery readiness is proven can damage trust and reduce future expansion options.",
             confidence=max(0.0, float(analyse_output.confidence) - 0.05),
@@ -708,8 +869,12 @@ class AgentService:
 
         return [systemic_view, commercial_view, operational_view]
 
-    def _select_best_analyst(self, analyst_views: List[MultiAnalystView]) -> AnalysisSelection:
-        selected = next((view for view in analyst_views if view.id == "A2"), analyst_views[0])
+    def _select_best_analyst(
+        self, analyst_views: List[MultiAnalystView]
+    ) -> AnalysisSelection:
+        selected = next(
+            (view for view in analyst_views if view.id == "A2"), analyst_views[0]
+        )
         return AnalysisSelection(
             recommended_analyst_id=selected.id,
             reason="This view is the most commercially actionable because it balances demand signal strength, monetisation potential, and speed-to-offer.",
@@ -762,8 +927,12 @@ class AgentService:
                     "Capability alignment to specific client needs",
                 ],
                 time_horizon="medium",
-                confidence=max(0.0, min(1.0, float(advise_output.confidence) - 0.05)),
-                recommended_actions=base_actions[1:4] if len(base_actions) > 1 else base_actions,
+                confidence=max(
+                    0.0, min(1.0, float(advise_output.confidence) - 0.05)
+                ),
+                recommended_actions=base_actions[1:4]
+                if len(base_actions) > 1
+                else base_actions,
                 selected_from_analyst=analysis_selection.recommended_analyst_id,
             ),
             StrategicPath(
@@ -781,14 +950,20 @@ class AgentService:
                     "Delivery capability mapping",
                 ],
                 time_horizon="medium",
-                confidence=max(0.0, min(1.0, float(advise_output.confidence) - 0.1)),
+                confidence=max(
+                    0.0, min(1.0, float(advise_output.confidence) - 0.1)
+                ),
                 recommended_actions=base_actions[-3:] if base_actions else [],
                 selected_from_analyst=analysis_selection.recommended_analyst_id,
             ),
         ]
 
-    def _select_strategy_path(self, strategic_paths: List[StrategicPath]) -> StrategyDecision:
-        selected = next((path for path in strategic_paths if path.id == "S1"), strategic_paths[0])
+    def _select_strategy_path(
+        self, strategic_paths: List[StrategicPath]
+    ) -> StrategyDecision:
+        selected = next(
+            (path for path in strategic_paths if path.id == "S1"), strategic_paths[0]
+        )
         return StrategyDecision(
             selected_path_id=selected.id,
             reason="Rapid Pilot Launch is the strongest first move because it maximises speed of learning, limits downside exposure, and creates real market evidence.",
@@ -882,7 +1057,9 @@ class AgentService:
             ],
         )
 
-    def _build_interaction_hooks(self, strategy_decision: StrategyDecision) -> InteractionHooks:
+    def _build_interaction_hooks(
+        self, strategy_decision: StrategyDecision
+    ) -> InteractionHooks:
         return InteractionHooks(
             primary_recommendation=strategy_decision.selected_path_id,
             alternatives_available=True,
