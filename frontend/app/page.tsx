@@ -25,6 +25,7 @@ import {
   ConfigState,
   DashboardSummary,
   GovernanceSettings,
+  OpportunityItem,
   SignalItem,
   WorkspaceKey,
 } from "../types/geopulse";
@@ -567,9 +568,12 @@ export default function HomePage() {
   const [chainNotice, setChainNotice] = useState<string | null>(null);
 
   const [signals, setSignals] = useState<SignalItem[]>([]);
+  const [liveOpportunities, setLiveOpportunities] =
+	useState<OpportunityItem[]>(demoOpportunities);
   const [rawDashboardSummary, setRawDashboardSummary] =
-    useState<DashboardSummary | null>(null);
+	useState<DashboardSummary | null>(null);
   const [loadingSignals, setLoadingSignals] = useState(false);
+  const [loadingOpportunities, setLoadingOpportunities] = useState(false);
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -609,9 +613,15 @@ export default function HomePage() {
         }
 
         const data = await response.json();
-        if (!cancelled) {
-          setSignals(Array.isArray(data) ? data.map(normaliseSignal) : []);
-        }
+		if (!cancelled) {
+		  const nextSignals = Array.isArray(data)
+			? data
+			: Array.isArray(data?.signals)
+			? data.signals
+			: [];
+		  setSignals(nextSignals.map(normaliseSignal));
+		}
+		
       } catch (error) {
         console.error("Failed to load signals", error);
         if (!cancelled) {
@@ -702,18 +712,57 @@ export default function HomePage() {
         }
       }
     }
+	
+	async function loadOpportunities() {
+	  try {
+		setLoadingOpportunities(true);
 
+		const response = await fetch(`${API_BASE}/intel/opportunities`, {
+		  cache: "no-store",
+		});
+
+		if (!response.ok) {
+		  throw new Error(`Failed to load opportunities: ${response.status}`);
+		}
+
+		const data = await response.json();
+
+		if (!cancelled) {
+		  const nextOpportunities = Array.isArray(data)
+			? data
+			: Array.isArray(data?.opportunities)
+			? data.opportunities
+			: [];
+
+		  setLiveOpportunities(
+			nextOpportunities.length > 0 ? nextOpportunities : demoOpportunities
+		  );
+		}
+	  } catch (error) {
+		console.error("Failed to load opportunities", error);
+
+		if (!cancelled) {
+		  setLiveOpportunities(demoOpportunities);
+	    }
+      } finally {
+		if (!cancelled) {
+		  setLoadingOpportunities(false);
+		}
+	  }
+	}
+	
     async function loadAll() {
 	  await Promise.all([
 		loadSignals(),
+		loadOpportunities(),
 		loadSummary(),
 		loadSavedCompanyProfile(),
 	  ]);
 
 	  if (!cancelled) {
-        setLastUpdated(new Date());
-      }
-    }
+		setLastUpdated(new Date());
+	  }
+	}
 
 	void loadAll();
 
@@ -724,11 +773,7 @@ export default function HomePage() {
 	return () => {
 	  cancelled = true;
 	  clearInterval(interval);
-	};
-
-    return () => {
-      cancelled = true;
-    };
+	};    
   }, []);
 
   const dashboardSummary = useMemo(() => {
@@ -795,55 +840,25 @@ export default function HomePage() {
     setFocusOpen(true);
   };
 
-  const handleChainExecute = () => {
-    if (!chainOutputs?.plan) {
-      setChainNotice("Execute is available once a plan has been generated.");
-      return;
-    }
-
-    setChainNotice("Planner opened with the latest chain execution.");
-    setActiveWorkspace("planner");
-  };
-
-  const handleChainSave = () => {
-    if (!chainResult && !chainOutputs?.plan && !chainOutputs?.advise && !chainOutputs?.analyse) {
-      setChainNotice("Nothing to save yet. Run the chain first.");
-      return;
-    }
-
-    setChainNotice("Current chain output retained in shared state.");
-  };
-
-  const handleChainReject = () => {
-    setChainResult(null);
-    setChainOutputs({
-      analyse: null,
-      advise: null,
-      plan: null,
-      profile: null,
-    });
-    setChainNotice("Current chain output cleared.");
-  };
-
   const renderWorkspace = () => {
     switch (activeWorkspace) {
       case "executive":
         return (
           <div className="space-y-4">
-            {(loadingSignals || loadingSummary || loadingProfile) && (
-              <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-100">
-                Loading live GeoPulse intelligence...
-              </div>
-            )}
+            {(loadingSignals || loadingOpportunities || loadingSummary || loadingProfile) && (
+			  <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-100">
+				Loading live GeoPulse intelligence...
+			  </div>
+			)}
 
             <ExecutiveDashboardView
-              summary={dashboardSummary}
-              signals={signals}
-              opportunities={demoOpportunities}
-              profile={profile}
-              onExpandPanel={openPanel}
-              onNavigate={(target) => setActiveWorkspace(target)}
-            />
+			  summary={dashboardSummary}
+			  signals={signals}
+			  opportunities={liveOpportunities}
+			  profile={profile}
+			  onExpandPanel={openPanel}
+			  onNavigate={(target) => setActiveWorkspace(target)}
+			/>
           </div>
         );
 
@@ -866,9 +881,9 @@ export default function HomePage() {
       case "opportunities":
         return (
           <OpportunityWorkspace
-            opportunities={demoOpportunities}
-            signals={signals}
-          />
+			opportunities={liveOpportunities}
+			signals={signals}
+		  />
         );
 
       case "company":
