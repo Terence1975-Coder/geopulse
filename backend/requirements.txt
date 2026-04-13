@@ -4,3 +4,4 @@ pydantic
 python-dotenv
 openai
 sqlalchemy
+feedparser==6.0.12
