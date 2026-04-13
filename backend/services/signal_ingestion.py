@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 import uuid
+import feedparser
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
@@ -71,6 +72,27 @@ HIGH_STRENGTH_KEYWORDS = {
     "significant",
 }
 
+RSS_FEEDS: List[Tuple[str, str, str]] = [
+    ("Financial Times", "https://www.ft.com/rss/home/uk", "UK"),
+    ("BBC Business", "https://feeds.bbci.co.uk/news/business/rss.xml", "UK"),
+    ("OECD", "https://www.oecd.org/newsroom/rss.xml", "Global"),
+]
+
+RSS_CLUSTER_HINTS = {
+    "supply": "Supply Chain",
+    "shipping": "Energy / Shipping",
+    "freight": "Supply Chain",
+    "logistics": "Supply Chain",
+    "regulation": "Regulatory Pressure",
+    "regulatory": "Regulatory Pressure",
+    "compliance": "Regulatory Pressure",
+    "energy": "Energy / Shipping",
+    "resilience": "Resilience Demand",
+    "demand": "Resilience Demand",
+    "investment": "Market Timing",
+    "competitor": "Market Timing",
+    "market": "Market Timing",
+}
 
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)
@@ -203,6 +225,96 @@ def serialise_signal(signal: Signal) -> Dict[str, Any]:
         "metadata": signal.metadata_json or {},
     }
 
+def infer_cluster_tag(headline: str, summary: str) -> str:
+    text = f"{headline} {summary}".lower()
+    for keyword, cluster in RSS_CLUSTER_HINTS.items():
+        if keyword in text:
+            return cluster
+    return "Market News"
+
+
+def infer_kind(headline: str, summary: str) -> str:
+    text = f"{headline} {summary}".lower()
+    positive_hits = sum(1 for word in POSITIVE_KEYWORDS if word in text)
+    negative_hits = sum(1 for word in NEGATIVE_KEYWORDS if word in text)
+    return "opportunity" if positive_hits >= negative_hits else "risk"
+
+
+def infer_severity(headline: str, summary: str) -> str:
+    text = f"{headline} {summary}".lower()
+    if any(word in text for word in {"critical", "urgent", "major", "severe"}):
+        return "high"
+    if any(word in text for word in {"delay", "volatility", "pressure", "risk"}):
+        return "medium"
+    return "medium"
+
+
+def dedupe_signal_items(items: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    seen: set[str] = set()
+    deduped: List[Dict[str, Any]] = []
+
+    for item in items:
+        key = (item.get("headline") or "").strip().lower()
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        deduped.append(item)
+
+    return deduped
+
+def fetch_rss_signals(max_items_per_feed: int = 8) -> List[Dict[str, Any]]:
+    collected: List[Dict[str, Any]] = []
+    now = utc_now()
+
+    for source_name, url, region in RSS_FEEDS:
+        try:
+            parsed = feedparser.parse(url)
+        except Exception:
+            continue
+
+        entries = getattr(parsed, "entries", []) or []
+
+        for entry in entries[:max_items_per_feed]:
+            headline = str(entry.get("title", "")).strip()
+            summary = str(
+                entry.get("summary", "") or entry.get("description", "")
+            ).strip()
+
+            if not headline:
+                continue
+
+            published_struct = entry.get("published_parsed") or entry.get("updated_parsed")
+            if published_struct:
+                try:
+                    timestamp = datetime(*published_struct[:6], tzinfo=timezone.utc)
+                except Exception:
+                    timestamp = now
+            else:
+                timestamp = now
+
+            collected.append(
+                {
+                    "id": f"rss_{uuid.uuid4().hex[:12]}",
+                    "headline": headline,
+                    "summary": summary[:700],
+                    "region": region,
+                    "cluster_tag": infer_cluster_tag(headline, summary),
+                    "kind": infer_kind(headline, summary),
+                    "severity": infer_severity(headline, summary),
+                    "source": source_name,
+                    "source_type": "rss",
+                    "timestamp": timestamp.isoformat(),
+                    "supporting_facts": {
+                        "ingestion_type": "rss",
+                        "feed_url": url,
+                    },
+                    "metadata": {
+                        "feed_url": url,
+                    },
+                }
+            )
+
+    return dedupe_signal_items(collected)
 
 def _default_seed_signals() -> List[Dict[str, Any]]:
     now = utc_now()
@@ -312,6 +424,7 @@ def upsert_signals(items: Iterable[Dict[str, Any]]) -> int:
             )
 
             existing = session.get(Signal, signal_id)
+
             payload = {
                 "headline": item.get("headline", "Untitled signal"),
                 "summary": item.get("summary", ""),
@@ -371,7 +484,17 @@ def get_latest_signals(limit: int = 50, auto_refresh: bool = True) -> Tuple[List
             LAST_REFRESH is None
             or (now - LAST_REFRESH).total_seconds() > REFRESH_INTERVAL_MINUTES * 60
         ):
-            upsert_signals(_default_seed_signals())
+            rss_signals = fetch_rss_signals(max_items_per_feed=8)
+
+            print(f"[GeoPulse] RSS signals fetched: {len(rss_signals)}")
+
+            if rss_signals:
+                upsert_signals(rss_signals)
+                print("[GeoPulse] Using RSS signals")
+            else:
+                upsert_signals(_default_seed_signals())
+                print("[GeoPulse] Falling back to seed signals")
+
             LAST_REFRESH = now
             refreshed = True
 
@@ -408,7 +531,6 @@ def refresh_default_signals() -> Dict[str, Any]:
         "updated": updated,
         "message": "Default pilot signals refreshed.",
     }
-
 
 def select_supporting_signals_for_text(text: str, limit: int = 3) -> List[Dict[str, Any]]:
     signals, _ = get_latest_signals(limit=50, auto_refresh=True)
