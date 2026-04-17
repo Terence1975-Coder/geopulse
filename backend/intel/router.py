@@ -112,8 +112,20 @@ def _normalise_signal(raw: dict[str, Any], index: int) -> dict[str, Any]:
             else "mid-term"
         ),
         "tags": raw.get("tags") or [],
-    }
+        "source_url": (
+            raw.get("source_url")
+            or (raw.get("metadata") or {}).get("article_url")
+            or (raw.get("supporting_facts") or {}).get("article_url")
+            or ""
+        ),
 
+        # 🔥 ADD THIS
+        "source_url": (
+            raw.get("source_url")
+            or (raw.get("metadata") or {}).get("article_url")
+            or ""
+        ),
+    }
 
 def _load_live_signals(query: str, limit: int) -> list[dict[str, Any]]:
     raw_signals = select_supporting_signals_for_text(query, limit=limit) or []

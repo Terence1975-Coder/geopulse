@@ -27,6 +27,7 @@ export interface SignalItem {
   freshness_minutes?: number;
   signal_strength?: number;
   timestamp?: string;
+  source_url?: string;
   detected_at?: string;
   updated_at?: string;
   lifecycle?: string;

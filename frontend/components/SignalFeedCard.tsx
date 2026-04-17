@@ -16,6 +16,7 @@ type SignalItem = {
   timestamp?: string;
   lifecycle?: string;
   relative_time?: string;
+  source_url?: string;
 
   confidence?: number;
   detected_at?: string;
@@ -192,6 +193,16 @@ export default function SignalFeedCard({
           >
             View Supporting Signals
           </button>
+        ) : null}
+		        {signal.source_url ? (
+          <a
+            href={signal.source_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-200 transition hover:bg-emerald-500/20"
+          >
+            View Source
+          </a>
         ) : null}
       </div>
     </article>
