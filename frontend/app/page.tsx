@@ -156,7 +156,7 @@ function normaliseSignal(signal: any): SignalItem {
     detected_at: signal?.detected_at || timestamp,
     lifecycle: signal?.lifecycle || "Unknown",
     relative_time: signal?.relative_time || "unknown",
-    source_url: signal?.source_url || signal?.metadata?.article_url || "",
+	source_url: signal?.source_url || signal?.metadata?.article_url || "",
   } as SignalItem;
 }
 

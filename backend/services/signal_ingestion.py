@@ -822,6 +822,7 @@ def _to_signal_dict(entry: Dict[str, Any], now: Optional[datetime] = None) -> Op
         "source": source_name,
         "source_type": entry.get("source_type") or "rss",
         "url": link or None,
+        "source_url": link or None,
         "region": region,
         "cluster_tag": cluster_tag,
         "kind": kind,
@@ -979,6 +980,10 @@ def refresh_live_signals(
             collected_entries.append(entry)
 
     incoming_signals = _feed_entries_to_signals(collected_entries, now=now)
+
+    if not incoming_signals:
+        return get_live_signals(path=path)
+
     return upsert_signals(incoming_signals, path=path)
 
 
@@ -1077,6 +1082,9 @@ def select_supporting_signals_for_text(
     limit: int = 3,
 ) -> List[Dict[str, Any]]:
     signals = get_live_signals(limit=None)
+
+    if not signals:
+        signals = refresh_live_signals()
 
     if not isinstance(signals, list) or not signals:
         return []
