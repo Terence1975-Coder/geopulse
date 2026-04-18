@@ -8,3 +8,7 @@ feedparser==6.0.12
 python-multipart
 from fastapi.middleware.cors import CORSMiddleware
 requests
+anyio
+httpx
+python-dateutil
+loguru
