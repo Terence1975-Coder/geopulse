@@ -1,11 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
 .env
-.env.local
+.venv/
+venv/
 node_modules/
-frontend/node_modules/
 .next/
-frontend/.next/
+# Python cache files
 __pycache__/
 *.pyc
+
+# Local database files
 *.db
-__pycache__/
-*.pyc
