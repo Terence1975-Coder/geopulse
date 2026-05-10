@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import NextImage from "next/image";
 import {
   Activity,
   ArrowRight,
@@ -15,7 +16,6 @@ import {
   Wrench,
 } from "lucide-react";
 import type { WorkspaceKey } from "../types/geopulse";
-import GeoPulseLogo from "./GeoPulseLogo";
 
 type Props = {
   active: WorkspaceKey;
@@ -27,7 +27,6 @@ type NavItem = {
   label: string;
   description: string;
   icon: React.ComponentType<{ className?: string }>;
-  tone?: "hero" | "neutral" | "execution" | "company";
 };
 
 function NavButton({
@@ -40,61 +39,62 @@ function NavButton({
   onClick: () => void;
 }) {
   const Icon = item.icon;
-
-  const toneClasses =
-    item.tone === "hero"
-      ? active
-        ? "border-cyan-400/30 bg-cyan-500/14 shadow-[0_18px_44px_rgba(8,145,178,0.18)]"
-        : "border-cyan-400/15 bg-cyan-500/[0.07] hover:bg-cyan-500/[0.11]"
-      : item.tone === "execution"
-      ? active
-        ? "border-emerald-400/30 bg-emerald-500/14 shadow-[0_18px_44px_rgba(16,185,129,0.18)]"
-        : "border-emerald-400/15 bg-emerald-500/[0.06] hover:bg-emerald-500/[0.10]"
-      : item.tone === "company"
-      ? active
-        ? "border-indigo-400/30 bg-indigo-500/14 shadow-[0_18px_44px_rgba(99,102,241,0.18)]"
-        : "border-indigo-400/15 bg-indigo-500/[0.06] hover:bg-indigo-500/[0.10]"
-      : active
-      ? "border-white/20 bg-white/[0.10]"
-      : "border-white/10 bg-white/[0.04] hover:bg-white/[0.07]";
+  const [hovered, setHovered] = useState(false);
 
   return (
     <button
       type="button"
       onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setHovered(true)}
+      onBlur={() => setHovered(false)}
       className={[
-        "group w-full rounded-[24px] border p-4 text-left transition duration-200",
-        toneClasses,
-      ].join(" ")}
+	    "w-full border px-3 py-3 text-left transition-all duration-200",
+	    "rounded-lg",
+	    "shadow-[0_10px_18px_rgba(0,0,0,0.28),inset_0_1px_0_rgba(255,255,255,0.05),inset_0_-1px_0_rgba(0,0,0,0.35)]",
+	    active
+		  ? "border-geopulse-borderStrong bg-[linear-gradient(180deg,#334155_0%,#1e293b_45%,#172033_100%)] text-white translate-y-[1px] shadow-[0_6px_12px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.06),inset_0_-1px_0_rgba(0,0,0,0.45)]"
+		  : "border-geopulse-borderStrong bg-[linear-gradient(180deg,#1f2937_0%,#172033_45%,#0f172a_100%)] text-white hover:border-geopulse-borderStrong hover:bg-[linear-gradient(180deg,#273449_0%,#1e293b_45%,#111827_100%)] hover:-translate-y-[1px]",
+	  ].join(" ")}
     >
       <div className="flex items-start gap-3">
         <div
           className={[
-            "mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border",
-            active
-              ? "border-white/15 bg-white/10 text-white"
-              : "border-white/10 bg-black/20 text-slate-300",
-          ].join(" ")}
+		    "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center border transition",
+		    "rounded-md shadow-[inset_0_1px_0_rgba(255,255,255,0.05),inset_0_-1px_0_rgba(0,0,0,0.35)]",
+		    active
+			  ? "border-geopulse-borderStrong bg-[linear-gradient(180deg,#334155_0%,#1e293b_100%)] text-white"
+			  : "border-geopulse-borderStrong bg-[linear-gradient(180deg,#1e293b_0%,#111827_100%)] text-white/90",
+		  ].join(" ")}
         >
-          <Icon className="h-5 w-5" />
+          <Icon className="h-4 w-4" />
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-sm font-semibold text-white">{item.label}</div>
+          <div className="flex items-center justify-between gap-2">
+            <div className="truncate text-sm font-semibold text-white">
+			  {item.label}
+			</div>
+
             <ArrowRight
               className={[
                 "h-4 w-4 shrink-0 transition",
                 active
-                  ? "translate-x-0 text-white"
-                  : "text-slate-500 group-hover:translate-x-0.5 group-hover:text-slate-300",
+                  ? "translate-x-0 text-geopulse-textSoft"
+                  : "text-geopulse-textMuted",
               ].join(" ")}
             />
           </div>
 
-          <p className="mt-1.5 text-xs leading-6 text-slate-400">
+          <div
+            className={[
+			  "overflow-hidden text-xs leading-5 text-slate-300 transition-all duration-200",
+			  hovered || active ? "mt-2 max-h-20 opacity-100" : "max-h-0 opacity-0",
+			].join(" ")}
+          >
             {item.description}
-          </p>
+          </div>
         </div>
       </div>
     </button>
@@ -104,22 +104,14 @@ function NavButton({
 export default function WorkspaceNavigation({ active, onChange }: Props) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
-  const heroItems = useMemo<NavItem[]>(
+  const primaryItems = useMemo<NavItem[]>(
     () => [
-      {
-        key: "command-center",
-        label: "Command Centre",
-        description:
-          "Primary operating surface for live signals, executive posture, opportunities, agents, and action readiness.",
-        icon: Activity,
-      },
       {
         key: "agent-chain",
         label: "Agent Chain",
         description:
           "Primary executive workflow. Analyse, advise, plan, and move into execution.",
         icon: Workflow,
-        tone: "hero",
       },
       {
         key: "planner",
@@ -127,17 +119,10 @@ export default function WorkspaceNavigation({ active, onChange }: Props) {
         description:
           "Execution destination for chain outputs, milestones, and next actions.",
         icon: Sparkles,
-        tone: "execution",
       },
-    ],
-    []
-  );
-
-  const intelligenceItems = useMemo<NavItem[]>(
-    () => [
       {
         key: "executive",
-        label: "Executive Dashboard",
+        label: "Dashboard",
         description: "Top-level risk, opportunity, and executive overview.",
         icon: Activity,
       },
@@ -156,18 +141,11 @@ export default function WorkspaceNavigation({ active, onChange }: Props) {
       },
       {
         key: "company",
-        label: "Company Intelligence",
+        label: "Company Intel",
         description:
-          "Calibrate GeoPulse to the company profile, priorities, and sensitivities.",
+          "Calibrate GeoPulse to company profile, priorities, and sensitivities.",
         icon: Building2,
-        tone: "company",
       },
-    ],
-    []
-  );
-
-  const governanceItems = useMemo<NavItem[]>(
-    () => [
       {
         key: "profile-agent",
         label: "Profile Agent",
@@ -203,8 +181,7 @@ export default function WorkspaceNavigation({ active, onChange }: Props) {
       {
         key: "advisor",
         label: "Advisor",
-        description:
-          "Standalone recommendation workspace for advanced users.",
+        description: "Standalone recommendation workspace for advanced users.",
         icon: Wrench,
       },
     ],
@@ -212,110 +189,65 @@ export default function WorkspaceNavigation({ active, onChange }: Props) {
   );
 
   return (
-    <aside className="h-fit rounded-[32px] border border-white/10 bg-slate-950/72 p-4 shadow-[0_28px_90px_rgba(0,0,0,0.36)] backdrop-blur-xl">
-      <div className="rounded-[28px] border border-cyan-400/15 bg-gradient-to-br from-cyan-500/[0.10] via-slate-950 to-slate-950 p-5">
-        <div className="mb-6">
-          <GeoPulseLogo size="lg" showWordmark={false} />
+    <aside className="h-fit border-r border-geopulse-border bg-geopulse-surface p-3">
+      <div className="overflow-hidden rounded-xl border border-geopulse-border bg-geopulse-surfaceAlt">
+        <div className="relative h-[132px] w-full">
+          <NextImage
+            src="/geopulse-logo.png"
+            alt="GeoPulse"
+            fill
+            priority
+            className="object-contain scale-[1.12]"
+          />
         </div>
-
-        <div className="text-[11px] uppercase tracking-[0.32em] text-cyan-300/80">
-          GeoPulse AI
-        </div>
-        <div className="mt-3 text-2xl font-semibold text-white">
-          Executive Navigation
-        </div>
-        <p className="mt-3 text-sm leading-7 text-slate-300">
-          Agent Chain is now the primary operating flow. Move from signal to
-          decision to execution with one connected executive workflow.
-        </p>
       </div>
 
-      <div className="mt-5 space-y-5">
-        <section>
-          <div className="mb-3 px-1 text-[11px] uppercase tracking-[0.22em] text-slate-500">
-            Hero Workflow
-          </div>
-          <div className="space-y-3">
-            {heroItems.map((item) => (
-              <NavButton
-                key={item.key}
-                item={item}
-                active={active === item.key}
-                onClick={() => onChange(item.key)}
-              />
-            ))}
-          </div>
-        </section>
+      <div className="mt-3 grid grid-cols-1 gap-2">
+        {primaryItems.map((item) => (
+          <NavButton
+            key={item.key}
+            item={item}
+            active={active === item.key}
+            onClick={() => onChange(item.key)}
+          />
+        ))}
+      </div>
 
-        <section>
-          <div className="mb-3 px-1 text-[11px] uppercase tracking-[0.22em] text-slate-500">
-            Intelligence Surfaces
-          </div>
-          <div className="space-y-3">
-            {intelligenceItems.map((item) => (
-              <NavButton
-                key={item.key}
-                item={item}
-                active={active === item.key}
-                onClick={() => onChange(item.key)}
-              />
-            ))}
-          </div>
-        </section>
-
-        <section>
-          <div className="mb-3 px-1 text-[11px] uppercase tracking-[0.22em] text-slate-500">
-            Governance & Setup
-          </div>
-          <div className="space-y-3">
-            {governanceItems.map((item) => (
-              <NavButton
-                key={item.key}
-                item={item}
-                active={active === item.key}
-                onClick={() => onChange(item.key)}
-              />
-            ))}
-          </div>
-        </section>
-
-        <section className="rounded-[24px] border border-white/10 bg-white/[0.03] p-3">
-          <button
-            type="button"
-            onClick={() => setAdvancedOpen((prev) => !prev)}
-            className="flex w-full items-center justify-between gap-3 rounded-2xl px-2 py-2 text-left transition hover:bg-white/[0.04]"
-          >
-            <div>
-              <div className="text-sm font-semibold text-white">
-                Advanced Tools
-              </div>
-              <div className="mt-1 text-xs leading-6 text-slate-400">
-                Standalone Analyst and Advisor remain available, but are no
-                longer front-and-centre.
-              </div>
+      <section className="mt-3 rounded-xl border border-geopulse-border bg-geopulse-surfaceAlt p-2">
+        <button
+          type="button"
+          onClick={() => setAdvancedOpen((prev) => !prev)}
+          className="flex w-full items-center justify-between gap-3 rounded-lg px-2 py-2 text-left transition hover:bg-geopulse-surfaceActive"
+        >
+          <div>
+            <div className="text-sm font-semibold text-geopulse-text">
+              Advanced Tools
             </div>
-
-            {advancedOpen ? (
-              <ChevronDown className="h-4 w-4 text-slate-400" />
-            ) : (
-              <ChevronRight className="h-4 w-4 text-slate-400" />
-            )}
-          </button>
+            <div className="mt-1 text-xs leading-5 text-geopulse-textMuted">
+              Optional standalone workspaces.
+            </div>
+          </div>
 
           {advancedOpen ? (
-            <div className="mt-3 space-y-3">
-              {advancedItems.map((item) => (
-                <NavButton
-                  key={item.key}
-                  item={item}
-                  active={active === item.key}
-                  onClick={() => onChange(item.key)}
-                />
-              ))}
-            </div>
-          ) : null}
-        </section>
-      </div>
+            <ChevronDown className="h-4 w-4 text-geopulse-textMuted" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-geopulse-textMuted" />
+          )}
+        </button>
+
+        {advancedOpen ? (
+          <div className="mt-2 grid grid-cols-1 gap-2">
+            {advancedItems.map((item) => (
+              <NavButton
+                key={item.key}
+                item={item}
+                active={active === item.key}
+                onClick={() => onChange(item.key)}
+              />
+            ))}
+          </div>
+        ) : null}
+      </section>
     </aside>
   );
 }

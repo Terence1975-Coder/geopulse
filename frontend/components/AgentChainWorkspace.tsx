@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import { engageAgent } from "../lib/engageAgent";
@@ -7,6 +7,12 @@ import type {
   CompanyProfile,
   EngageAgentResponse,
 } from "../types/intelligence";
+import {
+  createDecisionCandidate,
+  createExecutionFromDecision,
+  type V9DecisionRecord,
+  type V9ExecutionRecord,
+} from "../lib/v9Intelligence";
 
 type ExecutePayload = {
   prompt: string;
@@ -76,12 +82,12 @@ function MetaBar({
   return (
     <div className="mt-4 flex flex-wrap gap-2">
       {typeof confidence === "number" ? (
-        <span className="rounded-full border border-cyan-300 bg-cyan-50 px-3 py-1 text-xs font-medium text-cyan-700">
+        <span className="rounded-full border border-cyan-400/30 bg-cyan-500/15 px-3 py-1 text-xs font-medium text-white">
           Confidence {pct(confidence)}
         </span>
       ) : null}
       {horizon ? (
-        <span className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-600">
+        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
           Horizon {horizon}
         </span>
       ) : null}
@@ -97,7 +103,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-slate-50 p-5 shadow-[0_6px_18px_rgba(15,23,42,0.07)]">
+    <section className="rounded-xl border border-slate-300 bg-slate-50 p-5 shadow-[0_4px_14px_rgba(15,23,42,0.06)]">
       <div className="text-xs uppercase tracking-[0.18em] text-slate-400">
         {title}
       </div>
@@ -114,7 +120,7 @@ function StageShell({
   children: React.ReactNode;
 }) {
   return (
-    <article className="rounded-2xl border border-slate-300 bg-white p-6 shadow-[0_16px_38px_rgba(15,23,42,0.14)]">
+    <article className="rounded-2xl border border-slate-300 bg-white p-6 shadow-[0_12px_32px_rgba(15,23,42,0.10)]">
       <div className="text-xs uppercase tracking-[0.18em] text-cyan-700">
         {title}
       </div>
@@ -136,10 +142,10 @@ function MethodologyButton({
     <button
       onClick={onClick}
       className={[
-        "rounded-xl border px-4 py-2 text-sm font-medium transition",
+        "rounded-2xl border px-4 py-2 text-sm transition",
         active
-          ? "border-cyan-400/40 bg-cyan-500 text-white shadow-[0_6px_16px_rgba(6,182,212,0.18)]"
-          : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50",
+          ? "border-cyan-400/40 bg-cyan-500/20 text-white shadow-[0_6px_16px_rgba(6,182,212,0.18)]"
+          : "border-white/10 bg-white text-slate-700 border-slate-300 hover:bg-slate-50 text-slate-300 hover:bg-white/10",
       ].join(" ")}
     >
       {label}
@@ -370,7 +376,7 @@ function MultiPathCard({ value }: { value: AnyRecord | null | undefined }) {
               executionPhases.map((phase, index) => (
                 <div
                   key={phase.phase ?? phase.phase_name ?? `phase-${index}`}
-                  className="rounded-xl border border-slate-200 bg-slate-50 p-5 shadow-[0_6px_18px_rgba(15,23,42,0.07)]"
+                  className="rounded-xl border border-slate-300 bg-slate-50 p-5 shadow-[0_4px_14px_rgba(15,23,42,0.06)]"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="text-lg font-semibold text-slate-900">
@@ -380,7 +386,7 @@ function MultiPathCard({ value }: { value: AnyRecord | null | undefined }) {
                       )}
                     </div>
                     {(phase.owner || phase.timing) && (
-                      <span className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-600">
+                      <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
                         {phase.owner ?? phase.timing}
                       </span>
                     )}
@@ -448,6 +454,250 @@ function PlanCard({ value }: { value: AnyRecord | null | undefined }) {
   );
 }
 
+function extractSupportingSignalIds(data: AnyRecord | null): string[] {
+  const fromContext = safeArray<string>(data?.context_summary?.supporting_signals);
+
+  const fromMeta = safeArray<AnyRecord>(data?.meta?.supporting_signals)
+    .map((signal) => signal?.id)
+    .filter((id): id is string => typeof id === "string" && id.trim().length > 0);
+
+  const fromAnalyse = safeArray<string>(
+    data?.chain_outputs?.analyse?.based_on_signals
+  );
+
+  return Array.from(new Set([...fromContext, ...fromMeta, ...fromAnalyse]));
+}
+
+function buildDecisionAgentOutput(data: AnyRecord | null): AnyRecord | null {
+  if (!data) return null;
+
+  if (data.multi_path_output && typeof data.multi_path_output === "object") {
+    return data.multi_path_output as AnyRecord;
+  }
+
+  const candidate = {
+    analyst_views: data.analyst_views,
+    analysis_selection: data.analysis_selection,
+    strategic_paths: data.strategic_paths,
+    strategy_decision: data.strategy_decision,
+    execution_plan: data.execution_plan,
+    interaction_hooks: data.interaction_hooks,
+  };
+
+  if (
+    candidate.analyst_views ||
+    candidate.analysis_selection ||
+    candidate.strategic_paths ||
+    candidate.strategy_decision ||
+    candidate.execution_plan
+  ) {
+    return candidate;
+  }
+
+  if (data.output && typeof data.output === "object") {
+    return data.output as AnyRecord;
+  }
+
+  return null;
+}
+
+function V9DecisionBridge({
+  data,
+  companyProfile,
+}: {
+  data: AnyRecord | null;
+  companyProfile?: CompanyProfile | null;
+}) {
+  const [saving, setSaving] = useState(false);
+  const [creatingExecution, setCreatingExecution] = useState(false);
+  const [decision, setDecision] = useState<V9DecisionRecord | null>(null);
+  const [execution, setExecution] = useState<V9ExecutionRecord | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const agentOutput = useMemo(() => buildDecisionAgentOutput(data), [data]);
+  const signalIds = useMemo(() => extractSupportingSignalIds(data), [data]);
+
+  async function handleSaveDecision() {
+    if (!agentOutput || saving) return;
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      const saved = await createDecisionCandidate({
+        companyId: companyProfile?.company_id as string | undefined,
+        agentOutput,
+        originatingSignalIds: signalIds,
+        priority: "medium",
+      });
+
+      setDecision(saved);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Could not save decision candidate."
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleCreateExecution() {
+    if (!decision?.decision_id || creatingExecution) return;
+
+    setCreatingExecution(true);
+    setError(null);
+
+    try {
+      const created = await createExecutionFromDecision(decision.decision_id);
+      setExecution(created);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Could not create execution record."
+      );
+    } finally {
+      setCreatingExecution(false);
+    }
+  }
+
+  if (!agentOutput) return null;
+
+  return (
+    <section className="rounded-2xl border border-emerald-300/40 bg-emerald-50/80 p-4 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="min-w-0">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-500">
+            V9 Decision Bridge
+          </div>
+
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <h3 className="text-lg font-semibold text-slate-950">
+              Decision memory
+            </h3>
+
+            <span className="rounded-full border border-emerald-200 bg-white/70 px-2.5 py-1 text-xs font-medium text-emerald-700">
+              Evidence {signalIds.length}
+            </span>
+
+            <span className="rounded-full border border-slate-200 bg-white/70 px-2.5 py-1 text-xs font-medium text-slate-600">
+              Decision {decision?.status ?? "not saved"}
+            </span>
+
+            <span className="rounded-full border border-slate-200 bg-white/70 px-2.5 py-1 text-xs font-medium text-slate-600">
+              Execution {execution?.status ?? "not created"}
+            </span>
+          </div>
+
+          <p className="mt-1 text-sm leading-6 text-slate-600">
+            Save the chain result as a decision candidate, then create execution
+            tracking when ready.
+          </p>
+        </div>
+
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => void handleSaveDecision()}
+            disabled={saving || Boolean(decision)}
+            className="rounded-xl border border-emerald-300 bg-emerald-100 px-3.5 py-2 text-sm font-medium text-emerald-800 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {saving ? "Saving..." : decision ? "Decision Saved" : "Save Decision"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => void handleCreateExecution()}
+            disabled={creatingExecution || !decision || Boolean(execution)}
+            className="rounded-xl border border-cyan-300 bg-cyan-100 px-3.5 py-2 text-sm font-medium text-cyan-800 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {creatingExecution
+              ? "Creating..."
+              : execution
+              ? "Execution Created"
+              : "Create Execution"}
+          </button>
+        </div>
+      </div>
+
+      {(decision || execution) && (
+        <div className="mt-4 grid gap-3 xl:grid-cols-[1.1fr_0.9fr]">
+          {decision ? (
+            <div className="rounded-xl border border-emerald-200 bg-white/80 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    Saved Decision
+                  </div>
+                  <div className="mt-1 truncate text-sm font-semibold text-slate-950">
+                    {decision.title}
+                  </div>
+                </div>
+
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-600">
+                  {decision.decision_id}
+                </span>
+              </div>
+
+              <p className="mt-2 line-clamp-2 text-sm leading-6 text-slate-600">
+                {decision.recommendation_summary}
+              </p>
+            </div>
+          ) : null}
+
+          {execution ? (
+            <div className="rounded-xl border border-cyan-200 bg-white/80 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+                    Execution Record
+                  </div>
+                  <div className="mt-1 text-sm font-semibold text-slate-950">
+                    {execution.phases.length} phases ·{" "}
+                    {execution.phases.reduce(
+                      (total, phase) => total + phase.tasks.length,
+                      0
+                    )}{" "}
+                    tasks
+                  </div>
+                </div>
+
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs text-slate-600">
+                  {execution.execution_id}
+                </span>
+              </div>
+
+              <div className="mt-3 grid gap-2 md:grid-cols-3">
+                {execution.phases.map((phase) => (
+                  <div
+                    key={phase.phase_id}
+                    className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
+                  >
+                    <div className="truncate text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-700">
+                      {phase.title}
+                    </div>
+                    <div className="mt-1 text-xs text-slate-600">
+                      {phase.tasks.length} tasks
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      )}
+
+      {error ? (
+        <div className="mt-3 rounded-xl border border-red-300 bg-red-50 p-3 text-sm leading-6 text-red-800">
+          {error}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 export default function AgentChainWorkspace({
   input,
   setInput,
@@ -491,28 +741,28 @@ export default function AgentChainWorkspace({
 
       const responseRecord = data as AnyRecord;
 
-      setChainOutputs((prev) => ({
-        ...((prev ?? {}) as AnyRecord),
-        ...((responseRecord?.chain_outputs ?? {}) as AnyRecord),
-        ...(responseRecord?.execution_plan
-          ? { execution_plan: responseRecord.execution_plan }
-          : {}),
-        ...(responseRecord?.strategic_paths
-          ? { strategic_paths: responseRecord.strategic_paths }
-          : {}),
-        ...(responseRecord?.strategy_decision
-          ? { strategy_decision: responseRecord.strategy_decision }
-          : {}),
-        ...(responseRecord?.analysis_selection
-          ? { analysis_selection: responseRecord.analysis_selection }
-          : {}),
-        ...(responseRecord?.interaction_hooks
-          ? { interaction_hooks: responseRecord.interaction_hooks }
-          : {}),
-        ...(responseRecord?.multi_path_output
-          ? { multi_path_output: responseRecord.multi_path_output }
-          : {}),
-      }));
+setChainOutputs((prev) => ({
+  ...((prev ?? {}) as AnyRecord),
+  ...((responseRecord?.chain_outputs ?? {}) as AnyRecord),
+  ...(responseRecord?.execution_plan
+    ? { execution_plan: responseRecord.execution_plan }
+    : {}),
+  ...(responseRecord?.strategic_paths
+    ? { strategic_paths: responseRecord.strategic_paths }
+    : {}),
+  ...(responseRecord?.strategy_decision
+    ? { strategy_decision: responseRecord.strategy_decision }
+    : {}),
+  ...(responseRecord?.analysis_selection
+    ? { analysis_selection: responseRecord.analysis_selection }
+    : {}),
+  ...(responseRecord?.interaction_hooks
+    ? { interaction_hooks: responseRecord.interaction_hooks }
+    : {}),
+  ...(responseRecord?.multi_path_output
+    ? { multi_path_output: responseRecord.multi_path_output }
+    : {}),
+}));
     } catch (error) {
       setResult({
         output: {
@@ -620,25 +870,25 @@ Be concrete, structured, and executive-grade.
     null;
 
   const multiPathValue =
-    data?.multi_path_output ??
-    (data?.analyst_views ||
+  data?.multi_path_output ??
+  ((data?.analyst_views ||
     data?.analysis_selection ||
     data?.strategic_paths ||
     data?.strategy_decision ||
-    data?.execution_plan
-      ? {
-          analyst_views: data?.analyst_views,
-          analysis_selection: data?.analysis_selection,
-          strategic_paths: data?.strategic_paths,
-          strategy_decision: data?.strategy_decision,
-          execution_plan: data?.execution_plan,
-          interaction_hooks: data?.interaction_hooks,
-        }
-      : null);
+    data?.execution_plan)
+    ? {
+        analyst_views: data?.analyst_views,
+        analysis_selection: data?.analysis_selection,
+        strategic_paths: data?.strategic_paths,
+        strategy_decision: data?.strategy_decision,
+        execution_plan: data?.execution_plan,
+        interaction_hooks: data?.interaction_hooks,
+      }
+    : null);
 
   return (
     <div className="space-y-5">
-      <section className="rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-900/95 via-slate-950/95 to-cyan-950/25 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.38)]">
+      <section className="rounded-[32px] border border-slate-700 bg-gradient-to-br from-slate-900/95 via-slate-950/95 to-cyan-950/25 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.38)]">
         <div className="text-xs uppercase tracking-[0.28em] text-cyan-300/70">
           Agent Chain
         </div>
@@ -656,7 +906,7 @@ Be concrete, structured, and executive-grade.
             Profile calibration{" "}
             {companyProfile?.company_name ? "active" : "limited"}
           </span>
-          <span className="rounded-full border border-cyan-300 bg-cyan-50 px-3 py-1 text-xs font-medium text-cyan-700 shadow-[0_4px_12px_rgba(6,182,212,0.18)]">
+          <span className="rounded-full border border-cyan-400/30 bg-cyan-500/15 px-3 py-1 text-xs font-medium text-white shadow-[0_4px_12px_rgba(6,182,212,0.18)]">
             Shared chain state active
           </span>
         </div>
@@ -706,7 +956,7 @@ Be concrete, structured, and executive-grade.
             {onExecute ? (
               <button
                 onClick={handleExecute}
-                className="rounded-xl border border-emerald-400/30 bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-[0_6px_16px_rgba(16,185,129,0.18)] transition hover:bg-emerald-500/25"
+                className="rounded-2xl border border-emerald-400/30 bg-emerald-500/15 px-4 py-2 text-sm font-medium text-white shadow-[0_6px_16px_rgba(16,185,129,0.18)] transition hover:bg-emerald-500/25"
               >
                 Execute with {methodologyLabel}
               </button>
@@ -715,7 +965,7 @@ Be concrete, structured, and executive-grade.
             {onSave ? (
               <button
                 onClick={onSave}
-                className="rounded-xl border border-cyan-400/30 bg-white px-4 py-2 text-sm font-medium text-cyan-700 transition hover:bg-cyan-50"
+                className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-200 transition hover:bg-cyan-500/20"
               >
                 Save for later
               </button>
@@ -724,7 +974,7 @@ Be concrete, structured, and executive-grade.
             {onReject ? (
               <button
                 onClick={onReject}
-                className="rounded-xl border border-rose-300 bg-white px-4 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-50"
+                className="rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 py-2 text-sm text-rose-200 transition hover:bg-rose-500/20"
               >
                 Reject
               </button>
@@ -733,12 +983,13 @@ Be concrete, structured, and executive-grade.
         ) : null}
       </section>
 
-      {!result ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600 shadow-[0_4px_14px_rgba(15,23,42,0.05)]">
+            {!result ? (
+        <div className="rounded-2xl border border-dashed border-slate-400 bg-slate-50 p-6 text-sm text-slate-600 shadow-[0_4px_14px_rgba(15,23,42,0.05)]">
           No chain result yet.
         </div>
       ) : (
         <div className="space-y-5">
+		 <V9DecisionBridge data={data} companyProfile={companyProfile} />
          <AnalyseCard value={analyseValue} />
           {multiPathValue ? (
             <MultiPathCard value={multiPathValue} />

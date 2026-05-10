@@ -13,13 +13,15 @@ type SignalItem = {
   confidence_score?: number;
   freshness_minutes?: number;
   signal_strength?: number;
+  business_impact_score?: number;
+  business_impact?: number;
   timestamp?: string;
   lifecycle?: string;
   relative_time?: string;
-  source_url?: string;
-
   confidence?: number;
   detected_at?: string;
+  source_url?: string;
+  url?: string;
 };
 
 interface Props {
@@ -34,20 +36,38 @@ function toPercent(value?: number): number {
 }
 
 function resolveConfidence(signal: SignalItem): number {
-  return typeof signal.confidence_score === "number"
-    ? toPercent(signal.confidence_score)
-    : typeof signal.confidence === "number"
-    ? toPercent(signal.confidence)
-    : 0;
+  if (typeof signal.confidence_score === "number") {
+    return toPercent(signal.confidence_score);
+  }
+
+  if (typeof signal.confidence === "number") {
+    return toPercent(signal.confidence);
+  }
+
+  return 0;
 }
 
-function resolveStrength(signal: SignalItem): number {
-  return typeof signal.signal_strength === "number"
-    ? toPercent(signal.signal_strength)
-    : 0;
+function resolveImpact(signal: SignalItem): number {
+  if (typeof signal.business_impact_score === "number") {
+    return toPercent(signal.business_impact_score);
+  }
+
+  if (typeof signal.business_impact === "number") {
+    return toPercent(signal.business_impact);
+  }
+
+  if (typeof signal.signal_strength === "number") {
+    return toPercent(signal.signal_strength);
+  }
+
+  return 0;
 }
 
 function resolveRelativeTime(signal: SignalItem): string {
+  if (typeof signal.relative_time === "string" && signal.relative_time.trim()) {
+    return signal.relative_time;
+  }
+
   const rawDate = signal.detected_at || signal.timestamp;
   if (!rawDate) return "unknown";
 
@@ -56,13 +76,12 @@ function resolveRelativeTime(signal: SignalItem): string {
 
   const diffMinutes = Math.max(0, Math.round((Date.now() - parsed) / 60000));
 
-  if (diffMinutes < 1) return "Just now";
-  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  if (diffMinutes < 60) return `${diffMinutes} mins ago`;
 
-  const hours = Math.floor(diffMinutes / 60);
+  const hours = Math.round(diffMinutes / 60);
   if (hours < 24) return `${hours}h ago`;
 
-  const days = Math.floor(hours / 24);
+  const days = Math.round(hours / 24);
   return `${days}d ago`;
 }
 
@@ -80,24 +99,46 @@ function resolveLifecycle(signal: SignalItem): string {
   return "Unknown";
 }
 
-function Pill({
+function StatusPill({
   children,
   tone = "neutral",
 }: {
   children: React.ReactNode;
-  tone?: "neutral" | "good" | "info";
+  tone?: "neutral" | "risk" | "opportunity" | "info" | "good";
 }) {
-  const classes =
-    tone === "good"
-      ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-200"
-      : tone === "info"
-      ? "border-cyan-400/20 bg-cyan-500/10 text-cyan-200"
-      : "border-white/10 bg-white/5 text-slate-200";
+  const toneMap = {
+    neutral: "border-slate-200 bg-white text-slate-600",
+    risk: "border-amber-200 bg-amber-50 text-amber-700",
+    opportunity: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    info: "border-cyan-200 bg-cyan-50 text-cyan-700",
+    good: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  };
 
   return (
-    <span className={`rounded-full border px-4 py-2 text-sm ${classes}`}>
+    <span
+      className={`rounded-full border px-2.5 py-1 text-xs font-medium ${toneMap[tone]}`}
+    >
       {children}
     </span>
+  );
+}
+
+function ReadoutItem({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | number;
+}) {
+  return (
+    <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-center">
+      <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+        {label}
+      </div>
+      <div className="mt-1 truncate text-sm font-semibold text-slate-950">
+        {value}
+      </div>
+    </div>
   );
 }
 
@@ -106,104 +147,106 @@ export default function SignalFeedCard({
   onOpen,
   onViewSupportingSignals,
 }: Props) {
-  const kindTone =
-    signal.kind === "opportunity"
-      ? "border-emerald-400/20 bg-emerald-500/10"
-      : "border-amber-400/20 bg-amber-500/10";
+  const isOpportunity = signal.kind === "opportunity";
+  const confidence = resolveConfidence(signal);
+  const impact = resolveImpact(signal);
+  const relativeTime = resolveRelativeTime(signal);
+  const lifecycle = resolveLifecycle(signal);
+  const sourceUrl = signal.source_url || signal.url;
+
+  const borderTone = isOpportunity
+    ? "border-emerald-200"
+    : signal.severity === "high"
+    ? "border-red-200"
+    : "border-slate-200";
+
+  const cardTone = isOpportunity
+    ? "bg-emerald-50/60"
+    : signal.severity === "high"
+    ? "bg-red-50/40"
+    : "bg-white";
 
   const severityTone =
     signal.severity === "high"
-      ? "text-red-200"
+      ? "text-red-700"
       : signal.severity === "medium"
-      ? "text-amber-200"
-      : "text-emerald-200";
-
-  const confidence = resolveConfidence(signal);
-  const strength = resolveStrength(signal);
-  const relativeTime = resolveRelativeTime(signal);
-  const lifecycle = resolveLifecycle(signal);
+      ? "text-amber-700"
+      : "text-emerald-700";
 
   return (
-    <article className={`rounded-2xl border p-5 shadow-xl ${kindTone}`}>
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.18em] text-slate-400">
-            <span>{signal.kind}</span>
-            <span>•</span>
-            <span className={severityTone}>{signal.severity}</span>
-            <span>•</span>
-            <span>{signal.cluster_tag}</span>
+    <article
+      className={`overflow-hidden rounded-2xl border ${borderTone} ${cardTone} shadow-[0_14px_34px_rgba(15,23,42,0.08)]`}
+    >
+      <div className="p-4">
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <StatusPill tone={isOpportunity ? "opportunity" : "risk"}>
+                {signal.kind}
+              </StatusPill>
+
+              <StatusPill tone="neutral">
+                <span className={severityTone}>{signal.severity}</span>
+              </StatusPill>
+
+              <StatusPill tone="info">{signal.cluster_tag}</StatusPill>
+            </div>
+
+            <StatusPill tone={lifecycle === "Fresh" ? "good" : "neutral"}>
+              {lifecycle}
+            </StatusPill>
           </div>
 
-          <h3 className="mt-3 text-xl font-semibold text-white">
-            {signal.headline}
-          </h3>
+          <div>
+            <h3 className="text-lg font-semibold leading-snug text-slate-950">
+              {signal.headline}
+            </h3>
 
-          <p className="mt-3 text-sm leading-7 text-slate-300">
-            {signal.summary}
-          </p>
+            <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">
+              {signal.summary}
+            </p>
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+            <ReadoutItem label="Time" value={relativeTime} />
+            <ReadoutItem label="Source" value={signal.source || "unknown"} />
+            <ReadoutItem label="Region" value={signal.region || "Global"} />
+            <ReadoutItem label="Type" value={signal.source_type ?? "unknown"} />
+            <ReadoutItem label="Confidence" value={`${confidence}%`} />
+            <ReadoutItem label="Impact" value={`${impact}%`} />
+          </div>
+
+          <div className="flex flex-wrap gap-2 pt-1">
+            {onOpen ? (
+              <button
+                onClick={onOpen}
+                className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              >
+                Open Signal
+              </button>
+            ) : null}
+
+            {onViewSupportingSignals ? (
+              <button
+                onClick={() => onViewSupportingSignals(signal)}
+                className="rounded-xl border border-cyan-300 bg-cyan-50 px-3.5 py-2 text-sm font-medium text-cyan-800 transition hover:bg-cyan-100"
+              >
+                View Supporting Signals
+              </button>
+            ) : null}
+
+            {sourceUrl ? (
+              <a
+                href={sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              >
+                Source
+              </a>
+            ) : null}
+          </div>
         </div>
-
-        <div className="min-w-[240px] rounded-xl border border-white/10 bg-slate-950/40 p-4">
-          <div className="text-xs uppercase tracking-[0.18em] text-slate-400">
-            Trust View
-          </div>
-
-          <div className="mt-3 flex flex-wrap gap-3">
-            <Pill tone="good">{lifecycle}</Pill>
-            <Pill>Confidence {confidence}%</Pill>
-            <Pill tone="info">Strength {strength}%</Pill>
-          </div>
-
-          <div className="mt-4 space-y-2 text-sm text-slate-300">
-            <div className="flex items-center justify-between gap-4">
-              <span>Time</span>
-              <span>{relativeTime}</span>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <span>Source</span>
-              <span>{signal.source}</span>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <span>Type</span>
-              <span>{signal.source_type ?? "unknown"}</span>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <span>Region</span>
-              <span>{signal.region}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-5 flex flex-wrap gap-3">
-        {onOpen ? (
-          <button
-            onClick={onOpen}
-            className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10"
-          >
-            Open Signal
-          </button>
-        ) : null}
-
-        {onViewSupportingSignals ? (
-          <button
-            onClick={() => onViewSupportingSignals(signal)}
-            className="rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-200 transition hover:bg-cyan-500/20"
-          >
-            View Supporting Signals
-          </button>
-        ) : null}
-		        {signal.source_url ? (
-          <a
-            href={signal.source_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-200 transition hover:bg-emerald-500/20"
-          >
-            View Source
-          </a>
-        ) : null}
       </div>
     </article>
   );

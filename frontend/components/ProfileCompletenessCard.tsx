@@ -31,31 +31,34 @@ export default function ProfileCompletenessCard({
   const pct = calculateProfileCompleteness(profile);
 
   return (
-    <div className="rounded-xl border border-cyan-400/20 bg-cyan-500/10 p-4 shadow-[0_12px_28px_rgba(0,0,0,0.14)]">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <div className="text-sm font-medium text-cyan-200">
+    <div className="rounded-xl border border-cyan-300 bg-cyan-50 px-5 py-4 shadow-[0_12px_24px_rgba(15,23,42,0.10)]">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="min-w-0">
+          <div className="text-sm font-semibold uppercase tracking-[0.14em] text-cyan-700">
             Profile Completeness
           </div>
-          <div className="mt-1 text-2xl font-semibold text-white">{pct}%</div>
+          <div className="mt-2 text-4xl font-semibold leading-none text-slate-950">
+            {pct}%
+          </div>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-700">
+            Higher completeness improves alert relevance, scenario calibration,
+            opportunity targeting, and advisor recommendation quality.
+          </p>
         </div>
 
-        <div className="h-12 w-12 rounded-full border border-cyan-300/30 bg-slate-950/40 p-1">
-          <div
-            className="flex h-full w-full items-center justify-center rounded-full border border-cyan-300/10 text-[11px] font-semibold text-cyan-200"
-            style={{
-              background: `conic-gradient(rgba(34,211,238,0.7) ${pct * 3.6}deg, rgba(255,255,255,0.08) 0deg)`,
-            }}
-          >
-            <div className="rounded-full bg-slate-950 px-1.5 py-1">{pct}%</div>
+        <div className="flex shrink-0 items-center justify-center">
+          <div className="h-20 w-20 rounded-full border-4 border-cyan-300 bg-slate-900 p-1 shadow-[0_8px_18px_rgba(15,23,42,0.18)]">
+            <div
+              className="flex h-full w-full items-center justify-center rounded-full text-sm font-semibold text-white"
+              style={{
+                background: `conic-gradient(rgba(8,145,178,0.95) ${pct * 3.6}deg, rgba(148,163,184,0.25) 0deg)`,
+              }}
+            >
+              <div className="rounded-full bg-slate-950 px-2 py-1">{pct}%</div>
+            </div>
           </div>
         </div>
       </div>
-
-      <p className="mt-3 text-sm leading-6 text-slate-300">
-        Higher completeness improves alert relevance, scenario calibration,
-        opportunity targeting, and advisor recommendation quality.
-      </p>
     </div>
   );
 }

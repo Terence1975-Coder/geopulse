@@ -1,7 +1,6 @@
 export type AgentStage = "analyse" | "advise" | "plan" | "profile";
 
 export type WorkspaceKey =
-  | "command-center"
   | "executive"
   | "signals"
   | "opportunities"
