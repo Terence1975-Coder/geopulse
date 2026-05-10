@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
+import os
 from typing import Any, Dict, List, Optional
+
+import httpx
+from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel, Field
 
 from backend.db import SessionLocal
 from backend.services.company_document_service import process_document
@@ -14,6 +17,8 @@ from backend.services.company_profile_service import (
 )
 
 router = APIRouter(prefix="/company", tags=["company"])
+
+COMPANIES_HOUSE_BASE_URL = "https://api.company-information.service.gov.uk"
 
 
 class CompanyProfilePayload(BaseModel):
@@ -40,6 +45,113 @@ class CompanyProfilePayload(BaseModel):
     known_risk_areas: List[str] = Field(default_factory=list)
     known_opportunity_areas: List[str] = Field(default_factory=list)
     notes: str = ""
+
+
+def _get_companies_house_api_key() -> str:
+    api_key = os.getenv("COMPANIES_HOUSE_API_KEY", "").strip()
+
+    if not api_key:
+        raise HTTPException(
+            status_code=500,
+            detail="COMPANIES_HOUSE_API_KEY is not configured.",
+        )
+
+    return api_key
+
+
+async def _companies_house_get(
+    path: str,
+    params: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    api_key = _get_companies_house_api_key()
+    url = f"{COMPANIES_HOUSE_BASE_URL}{path}"
+
+    try:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            response = await client.get(
+                url,
+                params=params or {},
+                auth=(api_key, ""),
+            )
+    except httpx.HTTPError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Companies House request failed: {str(exc)}",
+        ) from exc
+
+    if response.status_code == 404:
+        raise HTTPException(status_code=404, detail="Company not found.")
+
+    if response.status_code >= 400:
+        raise HTTPException(
+            status_code=response.status_code,
+            detail=response.text or "Companies House API request failed.",
+        )
+
+    return response.json()
+
+
+@router.get("/companies/search")
+async def search_companies(
+    q: str = Query(..., min_length=2),
+) -> Dict[str, List[Dict[str, Any]]]:
+    data = await _companies_house_get(
+        "/search/companies",
+        params={
+            "q": q,
+            "items_per_page": 10,
+        },
+    )
+
+    results: List[Dict[str, Any]] = []
+
+    for item in data.get("items", []):
+        results.append(
+            {
+                "title": item.get("title", ""),
+                "company_number": item.get("company_number", ""),
+                "description": item.get("description", ""),
+                "company_status": item.get("company_status", ""),
+                "address_snippet": item.get("address_snippet", ""),
+                "company_type": item.get("company_type", ""),
+                "date_of_creation": item.get("date_of_creation", ""),
+            }
+        )
+
+    return {"results": results}
+
+
+@router.get("/companies/{company_number}")
+async def get_company_from_companies_house(company_number: str) -> Dict[str, Any]:
+    data = await _companies_house_get(f"/company/{company_number}")
+
+    registered_office_address = data.get("registered_office_address", {}) or {}
+
+    return {
+        "company_name": data.get("company_name"),
+        "company_number": data.get("company_number"),
+        "company_status": data.get("company_status"),
+        "company_type": data.get("type"),
+        "date_of_creation": data.get("date_of_creation"),
+        "incorporation_date": data.get("date_of_creation"),
+        "sic_codes": data.get("sic_codes", []),
+        "registered_office_address": registered_office_address,
+        "jurisdiction": data.get("jurisdiction"),
+        "accounts": data.get("accounts", {}),
+        "confirmation_statement": data.get("confirmation_statement", {}),
+        "registered_address_text": ", ".join(
+            str(part)
+            for part in [
+                registered_office_address.get("address_line_1"),
+                registered_office_address.get("address_line_2"),
+                registered_office_address.get("locality"),
+                registered_office_address.get("region"),
+                registered_office_address.get("postal_code"),
+                registered_office_address.get("country"),
+            ]
+            if part
+        ),
+    }
 
 
 @router.get("/profile/latest")
@@ -79,6 +191,6 @@ async def upload_document(payload: Dict[str, Any]):
     result = process_document(
         text=payload.get("text", ""),
         name=payload.get("name", "doc"),
-        doc_type=payload.get("type", "text")
+        doc_type=payload.get("type", "text"),
     )
     return result
