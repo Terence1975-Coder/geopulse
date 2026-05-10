@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 import { engageAgent } from "../lib/engageAgent";
@@ -55,7 +55,7 @@ function BulletList({ items }: { items?: string[] }) {
   }
 
   return (
-    <ul className="space-y-2 text-sm leading-7 text-slate-200">
+    <ul className="space-y-2 text-sm leading-7 text-slate-700">
       {safeItems.map((item, index) => (
         <li key={`${item}-${index}`} className="flex gap-2">
           <span className="text-cyan-300">•</span>
@@ -76,12 +76,12 @@ function MetaBar({
   return (
     <div className="mt-4 flex flex-wrap gap-2">
       {typeof confidence === "number" ? (
-        <span className="rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-200">
+        <span className="rounded-full border border-cyan-300 bg-cyan-50 px-3 py-1 text-xs font-medium text-cyan-700">
           Confidence {pct(confidence)}
         </span>
       ) : null}
       {horizon ? (
-        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
+        <span className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-600">
           Horizon {horizon}
         </span>
       ) : null}
@@ -97,7 +97,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+    <section className="rounded-xl border border-slate-200 bg-slate-50 p-5 shadow-[0_6px_18px_rgba(15,23,42,0.07)]">
       <div className="text-xs uppercase tracking-[0.18em] text-slate-400">
         {title}
       </div>
@@ -114,8 +114,8 @@ function StageShell({
   children: React.ReactNode;
 }) {
   return (
-    <article className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
-      <div className="text-xs uppercase tracking-[0.18em] text-cyan-300/75">
+    <article className="rounded-2xl border border-slate-300 bg-white p-6 shadow-[0_16px_38px_rgba(15,23,42,0.14)]">
+      <div className="text-xs uppercase tracking-[0.18em] text-cyan-700">
         {title}
       </div>
       <div className="mt-4 space-y-4">{children}</div>
@@ -136,10 +136,10 @@ function MethodologyButton({
     <button
       onClick={onClick}
       className={[
-        "rounded-2xl border px-4 py-2 text-sm transition",
+        "rounded-xl border px-4 py-2 text-sm font-medium transition",
         active
-          ? "border-cyan-400/30 bg-cyan-500/15 text-cyan-100"
-          : "border-white/10 bg-white/5 text-slate-300 hover:bg-white/10",
+          ? "border-cyan-400/40 bg-cyan-500 text-white shadow-[0_6px_16px_rgba(6,182,212,0.18)]"
+          : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50",
       ].join(" ")}
     >
       {label}
@@ -151,7 +151,7 @@ function AnalyseCard({ value }: { value: AnyRecord | null | undefined }) {
   if (!value) {
     return (
       <StageShell title="Analyse">
-        <div className="text-sm text-slate-400">No Analyse output returned.</div>
+        <div className="text-sm text-slate-900">No Analyse output returned.</div>
       </StageShell>
     );
   }
@@ -159,18 +159,18 @@ function AnalyseCard({ value }: { value: AnyRecord | null | undefined }) {
   return (
     <StageShell title="Analyse">
       <Section title="Headline">
-        <div className="text-lg font-semibold text-white">
+        <div className="text-[1.95rem] font-semibold leading-tight text-slate-900">
           {safeText(value.headline)}
         </div>
       </Section>
 
       <Section title="Key Insight">
-        <p className="text-sm leading-7 text-slate-200">
+        <p className="text-sm leading-7 text-slate-700">
           {safeText(value.key_insight)}
         </p>
       </Section>
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-5 xl:grid-cols-2">
         <Section title="Drivers">
           <BulletList items={safeArray<string>(value.drivers)} />
         </Section>
@@ -205,13 +205,13 @@ function AdviseCard({ value }: { value: AnyRecord | null | undefined }) {
   return (
     <StageShell title="Advise">
       <Section title="Headline">
-        <div className="text-lg font-semibold text-white">
-          {safeText(value.headline)}
-        </div>
-      </Section>
+	    <div className="text-lg font-semibold text-slate-900">
+		  {safeText(value.headline)}
+	    </div>
+  </Section>
 
       <Section title="Decision Context">
-        <p className="text-sm leading-7 text-slate-200">
+        <p className="text-base leading-8 text-slate-700">
           {safeText(value.decision_context || value.key_insight)}
         </p>
       </Section>
@@ -231,9 +231,7 @@ function AdviseCard({ value }: { value: AnyRecord | null | undefined }) {
 }
 
 function MultiPathCard({ value }: { value: AnyRecord | null | undefined }) {
-  if (!value) {
-    return null;
-  }
+  if (!value) return null;
 
   const analystViews = safeArray<AnyRecord>(value.analyst_views);
   const strategicPaths = safeArray<AnyRecord>(
@@ -258,10 +256,10 @@ function MultiPathCard({ value }: { value: AnyRecord | null | undefined }) {
                 <div className="text-xs uppercase tracking-[0.16em] text-cyan-200/80">
                   {safeText(view.lens, `Lens ${index + 1}`)}
                 </div>
-                <div className="mt-2 text-base font-semibold text-white">
+                <div className="mt-2 text-base font-semibold text-slate-900">
                   {safeText(view.headline)}
                 </div>
-                <p className="mt-3 text-sm leading-7 text-slate-200">
+                <p className="mt-3 text-base leading-7 text-slate-700">
                   {safeText(view.key_insight)}
                 </p>
                 <MetaBar confidence={view.confidence} />
@@ -274,13 +272,13 @@ function MultiPathCard({ value }: { value: AnyRecord | null | undefined }) {
       {value.analysis_selection ? (
         <div className="grid gap-4 xl:grid-cols-2">
           <Section title="Analysis Selection">
-            <div className="text-sm font-medium text-white">
+            <div className="text-sm font-semibold text-slate-900">
               Recommended analyst:{" "}
-              <span className="text-cyan-200">
+              <span className="text-cyan-700">
                 {safeText(value.analysis_selection.recommended_analyst_id)}
               </span>
             </div>
-            <p className="mt-3 text-sm leading-7 text-slate-200">
+            <p className="mt-3 text-base leading-7 text-slate-700">
               {safeText(value.analysis_selection.reason)}
             </p>
           </Section>
@@ -312,22 +310,22 @@ function MultiPathCard({ value }: { value: AnyRecord | null | undefined }) {
                   className={[
                     "rounded-2xl border p-4",
                     recommended
-                      ? "border-emerald-400/25 bg-emerald-500/10"
-                      : "border-white/10 bg-white/[0.03]",
+                      ? "border-emerald-300 bg-emerald-50 shadow-[0_6px_18px_rgba(16,185,129,0.10)]"
+                      : "border-slate-300 bg-white shadow-[0_6px_18px_rgba(15,23,42,0.06)]",
                   ].join(" ")}
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <div className="text-base font-semibold text-white">
+                    <div className="text-lg font-semibold text-slate-900">
                       {optionName}
                     </div>
                     {recommended ? (
-                      <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">
+                      <span className="rounded-full border border-emerald-300 bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-800">
                         Recommended
                       </span>
                     ) : null}
                   </div>
 
-                  <p className="mt-3 text-sm leading-7 text-slate-200">
+                  <p className="mt-3 text-base leading-7 text-slate-700">
                     {safeText(option.approach ?? option.summary)}
                   </p>
 
@@ -362,7 +360,7 @@ function MultiPathCard({ value }: { value: AnyRecord | null | undefined }) {
       {value.execution_plan ? (
         <Section title="Execution Plan">
           {value.execution_plan.objective ? (
-            <p className="mb-4 text-sm leading-7 text-slate-200">
+            <p className="mb-4 text-base leading-7 text-slate-700">
               {safeText(value.execution_plan.objective)}
             </p>
           ) : null}
@@ -372,17 +370,17 @@ function MultiPathCard({ value }: { value: AnyRecord | null | undefined }) {
               executionPhases.map((phase, index) => (
                 <div
                   key={phase.phase ?? phase.phase_name ?? `phase-${index}`}
-                  className="rounded-2xl border border-indigo-400/15 bg-indigo-500/10 p-4"
+                  className="rounded-xl border border-slate-200 bg-slate-50 p-5 shadow-[0_6px_18px_rgba(15,23,42,0.07)]"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="text-base font-semibold text-white">
+                    <div className="text-lg font-semibold text-slate-900">
                       {safeText(
                         phase.phase ?? phase.phase_name,
                         `Phase ${index + 1}`
                       )}
                     </div>
                     {(phase.owner || phase.timing) && (
-                      <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
+                      <span className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-600">
                         {phase.owner ?? phase.timing}
                       </span>
                     )}
@@ -417,11 +415,11 @@ function PlanCard({ value }: { value: AnyRecord | null | undefined }) {
   return (
     <StageShell title="Plan">
       <Section title="Objective">
-        <div className="text-lg font-semibold text-white">
+        <div className="text-[1.7rem] font-semibold leading-tight text-slate-900">
           {safeText(value.headline || value.objective)}
         </div>
         {value.objective ? (
-          <p className="mt-3 text-sm leading-7 text-slate-200">
+          <p className="mt-3 text-base leading-7 text-slate-700">
             {safeText(value.objective)}
           </p>
         ) : null}
@@ -491,9 +489,30 @@ export default function AgentChainWorkspace({
 
       setResult(data as EngageAgentResponse);
 
-      if ((data as AnyRecord)?.chain_outputs) {
-        setChainOutputs((data as AnyRecord).chain_outputs);
-      }
+      const responseRecord = data as AnyRecord;
+
+      setChainOutputs((prev) => ({
+        ...((prev ?? {}) as AnyRecord),
+        ...((responseRecord?.chain_outputs ?? {}) as AnyRecord),
+        ...(responseRecord?.execution_plan
+          ? { execution_plan: responseRecord.execution_plan }
+          : {}),
+        ...(responseRecord?.strategic_paths
+          ? { strategic_paths: responseRecord.strategic_paths }
+          : {}),
+        ...(responseRecord?.strategy_decision
+          ? { strategy_decision: responseRecord.strategy_decision }
+          : {}),
+        ...(responseRecord?.analysis_selection
+          ? { analysis_selection: responseRecord.analysis_selection }
+          : {}),
+        ...(responseRecord?.interaction_hooks
+          ? { interaction_hooks: responseRecord.interaction_hooks }
+          : {}),
+        ...(responseRecord?.multi_path_output
+          ? { multi_path_output: responseRecord.multi_path_output }
+          : {}),
+      }));
     } catch (error) {
       setResult({
         output: {
@@ -520,8 +539,8 @@ export default function AgentChainWorkspace({
     if (!chainOutputs?.analyse || !chainOutputs?.advise) return;
 
     const objectiveHint =
-      chainOutputs.advise?.headline ||
-      chainOutputs.analyse?.headline ||
+      (chainOutputs.advise as AnyRecord)?.headline ||
+      (chainOutputs.analyse as AnyRecord)?.headline ||
       "Execution plan requested";
 
     const executionPrompt = `
@@ -583,22 +602,22 @@ Be concrete, structured, and executive-grade.
   const data = (result ?? null) as AnyRecord | null;
 
   const analyseValue =
-	chainOutputs?.analyse ??
-	data?.chain_outputs?.analyse ??
-	data?.outputs?.analyse ??
-	null;
+    chainOutputs?.analyse ??
+    data?.chain_outputs?.analyse ??
+    data?.outputs?.analyse ??
+    null;
 
   const adviseValue =
-	chainOutputs?.advise ??
-	data?.chain_outputs?.advise ??
-	data?.outputs?.advise ??
-	null;
+    chainOutputs?.advise ??
+    data?.chain_outputs?.advise ??
+    data?.outputs?.advise ??
+    null;
 
   const planValue =
-	chainOutputs?.plan ??
-	data?.chain_outputs?.plan ??
-	data?.outputs?.plan ??
-	null;
+    chainOutputs?.plan ??
+    data?.chain_outputs?.plan ??
+    data?.outputs?.plan ??
+    null;
 
   const multiPathValue =
     data?.multi_path_output ??
@@ -618,26 +637,26 @@ Be concrete, structured, and executive-grade.
       : null);
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-[32px] border border-white/10 bg-gradient-to-br from-slate-900/90 via-slate-950/90 to-cyan-950/20 p-6 shadow-2xl">
+    <div className="space-y-5">
+      <section className="rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-900/95 via-slate-950/95 to-cyan-950/25 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.38)]">
         <div className="text-xs uppercase tracking-[0.28em] text-cyan-300/70">
           Agent Chain
         </div>
         <h2 className="mt-2 text-3xl font-semibold text-white">
           Full Chain Workspace
         </h2>
-        <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-300">
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-400">
           Run GeoPulse through analyse, advise, and plan as one connected chain.
           This upgraded chain now supports both the classic structured chain and
           the newer multi-path strategic response layer.
         </p>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
+          <span className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-600">
             Profile calibration{" "}
             {companyProfile?.company_name ? "active" : "limited"}
           </span>
-          <span className="rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-200">
+          <span className="rounded-full border border-cyan-300 bg-cyan-50 px-3 py-1 text-xs font-medium text-cyan-700 shadow-[0_4px_12px_rgba(6,182,212,0.18)]">
             Shared chain state active
           </span>
         </div>
@@ -665,18 +684,18 @@ Be concrete, structured, and executive-grade.
           </div>
         </div>
 
-        <div className="mt-6 flex gap-3">
+        <div className="mt-5 flex items-center gap-3">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Describe the market signal, company challenge, or opportunity..."
-            className="min-h-[110px] flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/35"
+            className="min-h-[80px] flex-1 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none placeholder:text-slate-400"
             disabled={loading}
           />
           <button
             onClick={() => void runChain()}
             disabled={loading || !input.trim()}
-            className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-3 text-sm font-medium text-cyan-100 transition hover:bg-cyan-400/20 disabled:opacity-50"
+            className="rounded-xl border border-cyan-400/30 bg-cyan-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-cyan-400 disabled:opacity-50"
           >
             {loading ? "Running..." : "Run Full Chain"}
           </button>
@@ -687,7 +706,7 @@ Be concrete, structured, and executive-grade.
             {onExecute ? (
               <button
                 onClick={handleExecute}
-                className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-200 transition hover:bg-emerald-500/20"
+                className="rounded-xl border border-emerald-400/30 bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-[0_6px_16px_rgba(16,185,129,0.18)] transition hover:bg-emerald-500/25"
               >
                 Execute with {methodologyLabel}
               </button>
@@ -696,7 +715,7 @@ Be concrete, structured, and executive-grade.
             {onSave ? (
               <button
                 onClick={onSave}
-                className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-200 transition hover:bg-cyan-500/20"
+                className="rounded-xl border border-cyan-400/30 bg-white px-4 py-2 text-sm font-medium text-cyan-700 transition hover:bg-cyan-50"
               >
                 Save for later
               </button>
@@ -705,7 +724,7 @@ Be concrete, structured, and executive-grade.
             {onReject ? (
               <button
                 onClick={onReject}
-                className="rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 py-2 text-sm text-rose-200 transition hover:bg-rose-500/20"
+                className="rounded-xl border border-rose-300 bg-white px-4 py-2 text-sm font-medium text-rose-700 transition hover:bg-rose-50"
               >
                 Reject
               </button>
@@ -715,12 +734,12 @@ Be concrete, structured, and executive-grade.
       </section>
 
       {!result ? (
-        <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] p-6 text-sm text-slate-400">
+        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600 shadow-[0_4px_14px_rgba(15,23,42,0.05)]">
           No chain result yet.
         </div>
       ) : (
-        <div className="space-y-6">
-          <AnalyseCard value={analyseValue} />
+        <div className="space-y-5">
+         <AnalyseCard value={analyseValue} />
           {multiPathValue ? (
             <MultiPathCard value={multiPathValue} />
           ) : (
