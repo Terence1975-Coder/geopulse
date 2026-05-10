@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 import { ArrowRight, Lock, PlayCircle, User } from "lucide-react";
+import { useState } from "react";
 
 export default function GeoPulseLoginPage() {
   const [username, setUsername] = useState("Beta1");
@@ -83,8 +83,8 @@ export default function GeoPulseLoginPage() {
           </section>
 
           <aside className="mx-auto w-full max-w-[420px]">
-            <div className="card-enter rounded-[28px] border border-white/10 bg-white/[0.05] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] transition duration-300 hover:-translate-y-1 hover:border-cyan-400/20 hover:bg-white/[0.06] hover:shadow-[0_28px_90px_rgba(0,0,0,0.42)]">
-              <div className="text-xs uppercase tracking-[0.25em] text-slate-400">
+            <div className="card-enter rounded-lg border border-white/10 bg-white/[0.05] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] transition duration-300 hover:-translate-y-1 hover:border-cyan-400/20 hover:bg-white/[0.06] hover:shadow-[0_28px_90px_rgba(0,0,0,0.42)]">
+              <div className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">
                 Beta Access
               </div>
 
@@ -95,25 +95,26 @@ export default function GeoPulseLoginPage() {
               <div className="mt-5 space-y-4">
                 <div>
                   <div className="mb-2 text-sm text-white/90">Username</div>
-                  <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 transition focus-within:border-cyan-400/30 focus-within:bg-slate-950/90">
+                  <div className="flex items-center gap-3 rounded-md border border-white/10 bg-slate-950/70 px-4 py-3 transition focus-within:border-cyan-400/30 focus-within:bg-slate-950/90">
                     <User className="h-4 w-4 text-slate-400" />
                     <input
                       value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      className="w-full bg-transparent text-sm text-white outline-none"
+                      onChange={(event) => setUsername(event.target.value)}
+                      className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/35"
+                      placeholder="Beta username"
                     />
                   </div>
                 </div>
 
                 <div>
                   <div className="mb-2 text-sm text-white/90">Password</div>
-                  <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 transition focus-within:border-cyan-400/30 focus-within:bg-slate-950/90">
+                  <div className="flex items-center gap-3 rounded-md border border-white/10 bg-slate-950/70 px-4 py-3 transition focus-within:border-cyan-400/30 focus-within:bg-slate-950/90">
                     <Lock className="h-4 w-4 text-slate-400" />
                     <input
                       type="password"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-transparent text-sm text-white outline-none"
+                      onChange={(event) => setPassword(event.target.value)}
+                      className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/35"
                       placeholder="Optional"
                     />
                   </div>
@@ -122,8 +123,8 @@ export default function GeoPulseLoginPage() {
 
               <div className="mt-6 space-y-3">
                 <Link
-                  href="/demo"
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-5 py-3 text-sm font-medium text-cyan-100 transition hover:scale-[1.01] hover:bg-cyan-500/20"
+                  href="/dashboard"
+                  className="flex w-full items-center justify-center gap-2 rounded-md border border-cyan-400/30 bg-cyan-500/10 px-5 py-3 text-sm font-medium text-cyan-100 shadow-[0_10px_22px_rgba(0,0,0,0.24)] transition hover:-translate-y-[1px] hover:bg-cyan-500/20"
                 >
                   Login
                   <ArrowRight className="h-4 w-4" />
@@ -131,15 +132,15 @@ export default function GeoPulseLoginPage() {
 
                 <Link
                   href="/demo"
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-5 py-3 text-sm font-medium text-emerald-100 transition hover:scale-[1.01] hover:bg-emerald-500/20"
+                  className="flex w-full items-center justify-center gap-2 rounded-md border border-emerald-400/30 bg-emerald-500/10 px-5 py-3 text-sm font-medium text-emerald-100 shadow-[0_10px_22px_rgba(0,0,0,0.24)] transition hover:-translate-y-[1px] hover:bg-emerald-500/20"
                 >
                   <PlayCircle className="h-4 w-4" />
                   Open Demo
                 </Link>
 
                 <Link
-                  href="/"
-                  className="flex w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm text-slate-200 transition hover:scale-[1.01] hover:bg-white/10"
+                  href="/dashboard"
+                  className="flex w-full items-center justify-center rounded-md border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-slate-200 shadow-[0_10px_22px_rgba(0,0,0,0.20)] transition hover:-translate-y-[1px] hover:bg-white/10"
                 >
                   Enter Live Platform
                 </Link>
