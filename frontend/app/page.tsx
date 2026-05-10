@@ -14,6 +14,7 @@ import CompanyProfileAgentWorkspace from "../workspaces/CompanyProfileAgentWorks
 import DataGovernanceWorkspace from "../workspaces/DataGovernanceWorkspace";
 import ConfigurationWorkspace from "../workspaces/ConfigurationWorkspace";
 import AgentChainWorkspace from "../components/AgentChainWorkspace";
+import CommandCenterWorkspace from "../workspaces/CommandCenterWorkspace";
 
 import {
   demoConfig,
@@ -525,7 +526,7 @@ function buildPanelContent(args: {
 
 export default function HomePage() {
   const [activeWorkspace, setActiveWorkspace] =
-    useState<WorkspaceKey>("agent-chain");
+    useState<WorkspaceKey>("command-center");
 
   const [profile, setProfile] = useState<any>({
     company_name: "GeoPulse Intelligence Ltd",
@@ -843,7 +844,31 @@ export default function HomePage() {
 
   const renderWorkspace = () => {
     switch (activeWorkspace) {
-      case "executive":
+      case "command-center":
+		  return (
+			<CommandCenterWorkspace
+			  summary={dashboardSummary}
+			  signals={signals}
+			  opportunities={liveOpportunities}
+			  chainOutputs={chainOutputs}
+			  profile={companyProfile}
+			  onOpenSignal={openSignal}
+			  onNavigate={(target) => setActiveWorkspace(target)}
+			/>
+		  );
+      case "command-center":
+      return (
+      <CommandCenterWorkspace
+        summary={dashboardSummary}
+        signals={signals}
+        opportunities={liveOpportunities}
+        chainOutputs={chainOutputs}
+        profile={companyProfile}
+        onOpenSignal={openSignal}
+        onNavigate={(target) => setActiveWorkspace(target)}
+      />
+      );
+	  case "executive":
         return (
           <div className="space-y-4">
             {(loadingSignals || loadingOpportunities || loadingSummary || loadingProfile) && (

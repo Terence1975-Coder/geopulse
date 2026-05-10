@@ -107,6 +107,13 @@ export default function WorkspaceNavigation({ active, onChange }: Props) {
   const heroItems = useMemo<NavItem[]>(
     () => [
       {
+        key: "command-center",
+        label: "Command Centre",
+        description:
+          "Primary operating surface for live signals, executive posture, opportunities, agents, and action readiness.",
+        icon: Activity,
+      },
+      {
         key: "agent-chain",
         label: "Agent Chain",
         description:
