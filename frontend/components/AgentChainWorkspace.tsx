@@ -1184,7 +1184,7 @@ Be concrete, structured, and executive-grade.
         </div>
         
 		        <div className="mt-6 grid gap-4 xl:grid-cols-3">
-          <div className="rounded-2xl border border-red-400/15 bg-red-500/10 p-4">
+          <div className="rounded-lg border border-red-400/15 bg-red-500/10 p-4">
             <div className="text-xs uppercase tracking-[0.18em] text-red-200/80">
               Risk candidates
             </div>
@@ -1198,7 +1198,7 @@ Be concrete, structured, and executive-grade.
                 topRiskSignals.map((signal, index) => (
                   <div
                     key={signal.id ?? `risk-${index}`}
-                    className="rounded-xl border border-white/10 bg-slate-950/45 p-3"
+                    className="rounded-md border border-white/10 bg-slate-950/45 p-3"
                   >
                     <div className="text-sm font-medium text-white">
                       {signal.headline ?? "Untitled risk"}
@@ -1211,7 +1211,7 @@ Be concrete, structured, and executive-grade.
                     <button
                       type="button"
                       onClick={() => setInput(buildChainInputFromSignal(signal))}
-                      className="mt-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-slate-200 transition hover:bg-white/10"
+                      className="mt-3 rounded-md border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-slate-200 transition hover:bg-white/10"
                     >
                       Use in Chain
                     </button>
@@ -1221,7 +1221,7 @@ Be concrete, structured, and executive-grade.
             </div>
           </div>
 
-          <div className="rounded-2xl border border-emerald-400/15 bg-emerald-500/10 p-4">
+          <div className="rounded-lg border border-emerald-400/15 bg-emerald-500/10 p-4">
             <div className="text-xs uppercase tracking-[0.18em] text-emerald-200/80">
               Opportunity signals
             </div>
@@ -1235,7 +1235,7 @@ Be concrete, structured, and executive-grade.
                 topOpportunitySignals.map((signal, index) => (
                   <div
                     key={signal.id ?? `opp-signal-${index}`}
-                    className="rounded-xl border border-white/10 bg-slate-950/45 p-3"
+                    className="rounded-md border border-white/10 bg-slate-950/45 p-3"
                   >
                     <div className="text-sm font-medium text-white">
                       {signal.headline ?? "Untitled opportunity signal"}
@@ -1248,7 +1248,7 @@ Be concrete, structured, and executive-grade.
                     <button
                       type="button"
                       onClick={() => setInput(buildChainInputFromSignal(signal))}
-                      className="mt-3 rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-200 transition hover:bg-emerald-500/20"
+                      className="mt-3 rounded-md border border-emerald-400/20 bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-200 transition hover:bg-emerald-500/20"
                     >
                       Use in Chain
                     </button>
@@ -1258,7 +1258,7 @@ Be concrete, structured, and executive-grade.
             </div>
           </div>
 
-          <div className="rounded-2xl border border-cyan-400/15 bg-cyan-500/10 p-4">
+          <div className="rounded-lg border border-cyan-400/15 bg-cyan-500/10 p-4">
             <div className="text-xs uppercase tracking-[0.18em] text-cyan-200/80">
               Identified opportunities
             </div>
@@ -1272,7 +1272,7 @@ Be concrete, structured, and executive-grade.
                 topOpportunities.map((opportunity, index) => (
                   <div
                     key={opportunity.id ?? `opportunity-${index}`}
-                    className="rounded-xl border border-white/10 bg-slate-950/45 p-3"
+                    className="rounded-md border border-white/10 bg-slate-950/45 p-3"
                   >
                     <div className="text-sm font-medium text-white">
                       {opportunity.title ?? "Untitled opportunity"}
@@ -1287,7 +1287,7 @@ Be concrete, structured, and executive-grade.
                       onClick={() =>
                         setInput(buildChainInputFromOpportunity(opportunity))
                       }
-                      className="mt-3 rounded-xl border border-cyan-400/20 bg-cyan-500/10 px-3 py-2 text-xs font-medium text-cyan-200 transition hover:bg-cyan-500/20"
+                      className="mt-3 rounded-md border border-cyan-400/20 bg-cyan-500/10 px-3 py-2 text-xs font-medium text-cyan-200 transition hover:bg-cyan-500/20"
                     >
                       Use in Chain
                     </button>
