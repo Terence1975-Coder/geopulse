@@ -591,8 +591,8 @@ export default function HomePage() {
   const [plannerExecutionRequest, setPlannerExecutionRequest] = useState<{
     id: string;
     prompt: string;
-    methodology: "auto" | "prince2" | "agile";
-    summary: {
+    methodology: "auto" | "prince2" | "agile" | "hybrid";
+    summary?: {
       methodologyLabel: string;
       objectiveHint: string;
     };
@@ -960,7 +960,7 @@ export default function HomePage() {
             ) : null}
 
             <AgentChainWorkspace
-              input={chainInput}
+			  input={chainInput}
 			  setInput={setChainInput}
 			  result={chainResult}
 			  setResult={setChainResult}
@@ -969,6 +969,8 @@ export default function HomePage() {
 			  companyProfile={companyProfile}
 			  chainOutputs={chainOutputs}
 			  setChainOutputs={setChainOutputs}
+			  signals={signals}
+			  opportunities={liveOpportunities}
 			  onExecute={({ prompt, methodology }) => {
 			    const methodologyLabel =
 			  	  methodology === "prince2"
@@ -983,7 +985,7 @@ export default function HomePage() {
 				  methodology,
 				  summary: {
 				    methodologyLabel,
-				    objectiveHint: prompt,
+				    objectiveHint: "Convert the selected intelligence into an execution-grade plan.",
 				  },
 			    });
 

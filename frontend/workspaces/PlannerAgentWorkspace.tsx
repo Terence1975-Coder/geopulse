@@ -16,10 +16,10 @@ import type {
 type PlannerExecutionRequest = {
   id: string;
   prompt: string;
-  methodology: "auto" | "prince2" | "agile";
+  methodology?: "auto" | "prince2" | "agile" | "hybrid" | string;
   summary?: {
-    methodologyLabel: string;
-    objectiveHint: string;
+    methodologyLabel?: string;
+    objectiveHint?: string;
   };
 };
 
@@ -501,45 +501,113 @@ function ExecutionHandoffCard({
         ? "agile"
         : "hybrid";
 
+  const prompt = executionRequest.prompt ?? "";
+
+  const companyMatch = prompt.match(/"company_name"\s*:\s*"([^"]+)"/i);
+
+  const headlineMatch =
+    prompt.match(/"headline"\s*:\s*"([^"]+)"/i) ||
+    prompt.match(/"objective"\s*:\s*"([^"]+)"/i);
+
+  const companyName = companyMatch?.[1] ?? "Current company profile";
+
+    const rawObjectiveHint = executionRequest.summary?.objectiveHint ?? "";
+
+  const objectiveHintLooksTechnical =
+    rawObjectiveHint.length > 240 ||
+    rawObjectiveHint.toLowerCase().includes("you are geopulse planner") ||
+    rawObjectiveHint.toLowerCase().includes("company profile:") ||
+    rawObjectiveHint.toLowerCase().includes("analyse output:") ||
+    rawObjectiveHint.toLowerCase().includes("advise output:") ||
+    rawObjectiveHint.toLowerCase().includes("output must include:");
+
+  const executionFocus =
+    !objectiveHintLooksTechnical && rawObjectiveHint.trim()
+      ? rawObjectiveHint
+      : headlineMatch?.[1] ||
+        "Convert the current intelligence chain into a boardroom-ready execution plan.";
+
   return (
-    <section className="rounded-[2rem] border border-slate-700 bg-gradient-to-br from-slate-950 via-[#020617] to-slate-900 shadow-[0_18px_42px_rgba(0,0,0,0.30)]">
-      <div className="px-6 py-6 md:px-8 md:py-7">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-          <div className="min-w-0">
-            <div className="text-[11px] font-medium uppercase tracking-[0.38em] text-cyan-300">
-              Planner Handoff
-            </div>
-
-            <h2 className="mt-4 text-3xl font-semibold leading-[1.08] text-white md:text-4xl">
-              {executionRequest.summary?.objectiveHint ||
-                "Execution request received"}
-            </h2>
-
-            <p className="mt-4 max-w-4xl text-base leading-8 text-slate-300">
-              GeoPulse has passed a structured execution brief into Planner. The
-              planner workspace will turn that into clear sequencing, ownership,
-              checkpoints, and delivery flow.
-            </p>
-
-            <div className="mt-5 flex flex-wrap gap-2">
-              <MethodologyBadge mode={mode} />
-              <MetaPill label="Status" value="Ready for execution shaping" />
-            </div>
+    <section className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-5 shadow-[0_18px_54px_rgba(0,0,0,0.24)]">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <div className="text-xs uppercase tracking-[0.22em] text-cyan-200/80">
+            Planner Handoff
           </div>
 
-          <div className="flex shrink-0 gap-3">
-            <ActionButton onClick={() => setExpanded((prev) => !prev)}>
-              {expanded ? "Hide brief" : "Show brief"}
-            </ActionButton>
-          </div>
+          <h2 className="mt-2 text-2xl font-semibold text-white">
+            Structured execution brief received
+          </h2>
+
+          <p className="mt-3 max-w-4xl text-sm leading-7 text-slate-200">
+            GeoPulse has passed the Analyst and Advisor outputs into Planner.
+            The planner workspace will now turn that intelligence into clear
+            sequencing, ownership, dependencies, milestones, risks, review
+            checkpoints, and delivery flow.
+          </p>
         </div>
 
-        {expanded ? (
-          <div className="mt-6 rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5">
-            <pre className="whitespace-pre-wrap text-sm leading-7 text-slate-300">
-              {executionRequest.prompt}
-            </pre>
+        <div className="flex flex-wrap gap-2">
+          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-200">
+            {companyName}
+          </span>
+
+          <MethodologyBadge mode={mode} />
+
+          <span className="rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-200">
+            Ready for execution shaping
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-xl border border-white/10 bg-slate-950/45 p-4">
+        <div className="text-xs uppercase tracking-[0.18em] text-slate-400">
+          Execution focus
+        </div>
+
+        <p className="mt-2 text-sm leading-7 text-slate-200">
+          {executionFocus}
+        </p>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+            <div className="text-xs text-slate-400">Source</div>
+            <div className="mt-1 text-sm font-medium text-white">
+              Analyse + Advise chain
+            </div>
           </div>
+
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+            <div className="text-xs text-slate-400">Planner output</div>
+            <div className="mt-1 text-sm font-medium text-white">
+              Execution-grade plan
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+            <div className="text-xs text-slate-400">Includes</div>
+            <div className="mt-1 text-sm font-medium text-white">
+              Owners, phases, risks, metrics
+            </div>
+          </div>
+        </div>
+      </div>
+
+            <div className="mt-4 rounded-xl border border-white/10 bg-slate-950/45 p-4">
+        <button
+          type="button"
+          onClick={() => setExpanded((current) => !current)}
+          className="text-sm font-medium text-cyan-200 transition hover:text-cyan-100"
+        >
+          {expanded
+            ? "Hide technical planner prompt"
+            : "Show technical planner prompt"}
+        </button>
+
+        {expanded ? (
+          <pre className="mt-4 max-h-[320px] overflow-auto whitespace-pre-wrap rounded-xl border border-white/10 bg-black/30 p-4 text-xs leading-6 text-slate-300">
+            {executionRequest.prompt}
+          </pre>
         ) : null}
       </div>
     </section>
