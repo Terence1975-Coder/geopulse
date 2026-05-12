@@ -190,7 +190,7 @@ export default function WorkspaceNavigation({ active, onChange }: Props) {
 
   return (
     <aside className="h-fit border-r border-geopulse-border bg-geopulse-surface p-3">
-      <div className="overflow-hidden rounded-xl border border-geopulse-border bg-geopulse-surfaceAlt">
+      <div className="overflow-hidden rounded-lg border border-geopulse-border bg-geopulse-surfaceAlt">
         <div className="relative h-[132px] w-full">
           <NextImage
             src="/geopulse-logo.png"
@@ -213,7 +213,7 @@ export default function WorkspaceNavigation({ active, onChange }: Props) {
         ))}
       </div>
 
-      <section className="mt-3 rounded-xl border border-geopulse-border bg-geopulse-surfaceAlt p-2">
+      <section className="mt-3 rounded-lg border border-geopulse-border bg-geopulse-surfaceAlt p-2">
         <button
           type="button"
           onClick={() => setAdvancedOpen((prev) => !prev)}

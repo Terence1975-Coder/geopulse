@@ -31,109 +31,126 @@ export default function ExecutiveDashboardView({
   const topRiskSignals = signals.filter((s) => s.kind === "risk").slice(0, 2);
 
   return (
-    <div className="relative space-y-5">
-      <section className="overflow-hidden rounded-[2rem] border border-slate-700 bg-gradient-to-br from-slate-950 via-[#020617] to-slate-900 shadow-[0_22px_52px_rgba(0,0,0,0.34)]">
+    <div className="relative space-y-6">
+      <section className="overflow-hidden rounded-lg border border-white/10 bg-gradient-to-br from-slate-950 via-[#020617] to-slate-900 shadow-[0_0_60px_rgba(0,0,0,0.6)]">
         <div className="px-6 py-7 md:px-8 md:py-8 xl:px-10 xl:py-9">
-          <div className="grid gap-8 xl:grid-cols-[minmax(0,1.45fr)_minmax(380px,0.95fr)] xl:items-start">
+          <div className="grid gap-8 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.95fr)] xl:items-start">
             <div className="min-w-0">
               <div className="text-[11px] font-medium uppercase tracking-[0.38em] text-cyan-300">
                 GeoPulse Command Surface
               </div>
 
-              <h1 className="mt-4 max-w-5xl text-4xl font-semibold leading-[1.02] text-white md:text-5xl xl:text-6xl">
-                Executive Intelligence
-                <br />
-                Dashboard
+              <h1 className="mt-4 max-w-5xl text-4xl font-semibold leading-[1.05] text-white md:text-5xl xl:text-6xl">
+                Executive Intelligence Dashboard
               </h1>
 
-              <p className="mt-5 max-w-4xl text-base leading-8 text-slate-200 md:text-lg">
+              <p className="mt-5 max-w-4xl text-base leading-8 text-slate-300 md:text-lg">
                 A boardroom-grade overview of current risk posture, opportunity
                 windows, agent interpretations, live signal flow, and
                 company-aware intelligence calibration.
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
-                <ActionButton onClick={() => onNavigate("agent-chain")}>
+                <button
+                  onClick={() => onNavigate("agent-chain")}
+                  className="rounded-lg border border-slate-600 bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-[0_10px_22px_rgba(0,0,0,0.25)] transition hover:-translate-y-[1px] hover:bg-slate-800"
+                >
                   Open Agent Chain
-                </ActionButton>
+                </button>
 
-                <ActionButton onClick={() => onNavigate("planner")}>
+                <button
+                  onClick={() => onNavigate("planner")}
+                  className="rounded-lg border border-slate-600 bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-[0_10px_22px_rgba(0,0,0,0.25)] transition hover:-translate-y-[1px] hover:bg-slate-800"
+                >
                   Open Planner
-                </ActionButton>
+                </button>
 
-                <ActionButton onClick={() => onNavigate("signals")}>
+                <button
+                  onClick={() => onNavigate("signals")}
+                  className="rounded-lg border border-cyan-400/30 bg-cyan-500/10 px-4 py-2.5 text-sm font-medium text-cyan-100 shadow-[0_10px_22px_rgba(0,0,0,0.24)] transition hover:-translate-y-[1px] hover:bg-cyan-500/20"
+                >
                   Open Live Signals
-                </ActionButton>
+                </button>
 
-                <ActionButton onClick={() => onNavigate("company")}>
+                <button
+                  onClick={() => onNavigate("company")}
+                  className="rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-slate-100 shadow-[0_10px_22px_rgba(0,0,0,0.22)] transition hover:-translate-y-[1px] hover:bg-white/10"
+                >
                   Open Company Intelligence
-                </ActionButton>
+                </button>
               </div>
             </div>
 
-            <div className="min-w-0 rounded-[2rem] border border-slate-600 bg-[linear-gradient(180deg,rgba(71,85,105,0.95)_0%,rgba(55,65,81,0.95)_100%)] p-5 shadow-[0_18px_36px_rgba(0,0,0,0.30)]">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div className="text-xs uppercase tracking-[0.22em] text-slate-100">
-                  Executive Metrics
+            <div className="min-w-0">
+              <div className="rounded-lg border border-white/10 bg-slate-800/90 p-5 shadow-[0_18px_42px_rgba(0,0,0,0.28)]">
+                <div className="mb-5 flex items-center justify-between gap-4">
+                  <div className="text-xs font-semibold uppercase tracking-[0.22em] text-white">
+                    Executive Metrics
+                  </div>
+                  <div className="rounded-full border border-slate-500 bg-slate-950 px-3 py-1 text-[11px] font-medium text-white">
+                    Horizon {summary.horizon}
+                  </div>
                 </div>
 
-                <div className="rounded-full border border-slate-500 bg-slate-800 px-3 py-1 text-[11px] text-white">
-                  Horizon {summary.horizon}
+                <div className="grid grid-cols-2 gap-4">
+                  <StatCard
+                    label="Risk"
+                    value={summary.overall_risk_score}
+                    tone="risk"
+                  />
+                  <StatCard
+                    label="Opportunity"
+                    value={summary.opportunity_score}
+                    tone="opportunity"
+                  />
+                  <StatCard
+                    label="Live Signals"
+                    value={summary.live_signal_count}
+                    tone="signals"
+                  />
+                  <StatCard
+                    label="Confidence"
+                    value={summary.confidence}
+                    tone="confidence"
+                  />
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <StatCard
-                  label="Risk"
-                  value={summary.overall_risk_score}
-                  tone="risk"
-                />
-                <StatCard
-                  label="Opportunity"
-                  value={summary.opportunity_score}
-                  tone="opportunity"
-                />
-                <StatCard
-                  label="Live Signals"
-                  value={summary.live_signal_count}
-                  tone="signals"
-                />
-                <StatCard
-                  label="Confidence"
-                  value={summary.confidence}
-                  tone="confidence"
-                />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[1fr_1fr]">
+      <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
         <DashboardPanel
           title="Risk Posture"
-          accent="neutral"
           onExpand={() => onExpandPanel("Risk Posture")}
         >
-          <div className="space-y-4">
-            <div className="text-3xl font-semibold text-slate-900">
-              {summary.posture}
-            </div>
+          <div className="space-y-5">
+            <div className="rounded-md border border-slate-200 bg-white p-5 shadow-[0_12px_28px_rgba(15,23,42,0.08)]">
+              <div className="text-3xl font-semibold text-slate-950">
+                {summary.posture}
+              </div>
 
-            <div className="flex flex-wrap gap-2">
-              <Badge tone="risk-soft">Urgency: {summary.urgency}</Badge>
-              <Badge tone="neutral">Horizon: {summary.horizon}</Badge>
-              <Badge tone="neutral">Confidence: {summary.confidence}%</Badge>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Badge tone="risk-soft">Urgency: {summary.urgency}</Badge>
+                <Badge tone="neutral">Horizon: {summary.horizon}</Badge>
+                <Badge tone="neutral">Confidence: {summary.confidence}%</Badge>
+              </div>
             </div>
 
             {topRiskSignals.length > 0 ? (
-              <ul className="space-y-3 text-sm leading-8 text-slate-700">
+              <ul className="space-y-3 text-sm leading-7 text-slate-700">
                 {topRiskSignals.map((signal) => (
-                  <li key={signal.id}>— {signal.headline}</li>
+                  <li
+                    key={signal.id}
+                    className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800"
+                  >
+                    — {signal.headline}
+                  </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-sm leading-8 text-slate-700">
+              <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-7 text-slate-700">
                 GeoPulse has identified the current risk posture as the leading
                 executive condition requiring attention across your operating
                 environment.
@@ -141,37 +158,44 @@ export default function ExecutiveDashboardView({
             )}
 
             <div className="flex flex-wrap gap-3 pt-1">
-              <ActionButton onClick={() => onExpandPanel("Risk Analysis")}>
+              <button
+                onClick={() => onExpandPanel("Risk Analysis")}
+                className="rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_22px_rgba(15,23,42,0.25)] transition hover:-translate-y-[1px] hover:bg-slate-800"
+              >
                 Why this score
-              </ActionButton>
+              </button>
 
-              <ActionButton onClick={() => onNavigate("signals")}>
+              <button
+                onClick={() => onNavigate("signals")}
+                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-[0_8px_18px_rgba(15,23,42,0.12)] transition hover:-translate-y-[1px] hover:bg-slate-50"
+              >
                 View supporting signals
-              </ActionButton>
+              </button>
             </div>
           </div>
         </DashboardPanel>
 
         <DashboardPanel
           title="Opportunity Posture"
-          accent="neutral"
           onExpand={() => onExpandPanel("Opportunity Posture")}
         >
-          <div className="space-y-4">
-            <div className="text-3xl font-semibold text-slate-900">
-              {summary.opportunity_posture}
+          <div className="space-y-5">
+            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-[0_12px_28px_rgba(15,23,42,0.08)]">
+              <div className="text-3xl font-semibold text-slate-950">
+                {summary.opportunity_posture}
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Badge tone="opportunity-soft">
+                  Positive signals: {summary.positive_signal_count}
+                </Badge>
+                <Badge tone="neutral">
+                  Opportunity score: {summary.opportunity_score}
+                </Badge>
+              </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              <Badge tone="opportunity-soft">
-                Positive signals: {summary.positive_signal_count}
-              </Badge>
-              <Badge tone="neutral">
-                Opportunity score: {summary.opportunity_score}
-              </Badge>
-            </div>
-
-            <p className="text-sm leading-8 text-slate-700">
+            <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-7 text-slate-700">
               Current opportunity conditions reflect the most actionable windows
               emerging from resilience, timing, and cross-signal alignment.
             </p>
@@ -179,13 +203,22 @@ export default function ExecutiveDashboardView({
         </DashboardPanel>
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[1.25fr_0.75fr]">
-        <SurfaceCard title="Executive Summary">
-          <p className="text-lg leading-8 text-slate-300">{summary.summary}</p>
-        </SurfaceCard>
+      <section className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
+        <div className="rounded-lg border border-slate-300 bg-white p-6 shadow-[0_18px_36px_rgba(15,23,42,0.14)]">
+          <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+            Executive Summary
+          </div>
+          <p className="mt-4 text-lg leading-8 text-slate-800">
+            {summary.summary}
+          </p>
+        </div>
 
-        <SurfaceCard title="Agent Snapshots">
-          <div className="space-y-4">
+        <div className="rounded-xl border border-slate-300 bg-white p-6 shadow-[0_18px_36px_rgba(15,23,42,0.14)]">
+          <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+            Agent Snapshots
+          </div>
+
+          <div className="mt-4 space-y-4">
             <SnapshotBlock
               title="Analyst"
               text={summary.agent_snapshots?.analyst}
@@ -199,36 +232,46 @@ export default function ExecutiveDashboardView({
               text={summary.agent_snapshots?.profile_agent}
             />
           </div>
-        </SurfaceCard>
+        </div>
       </section>
 
-      <section className="space-y-4">
-        <ProfileCompletenessCard profile={profile} />
+      <section className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
+        <div className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <div className="text-xl font-semibold text-slate-950">
+                Live Intelligence Summary
+              </div>
+              <div className="mt-1 text-sm text-slate-600">
+                The most relevant active signals shaping current executive
+                posture.
+              </div>
+            </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="text-xl font-semibold text-white">
-              Live Intelligence Summary
-            </div>
-            <div className="mt-1 text-sm text-slate-400">
-              The most relevant active signals shaping current executive posture.
-            </div>
+            <button
+              onClick={() => onNavigate("signals")}
+              className="rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_22px_rgba(15,23,42,0.25)] transition hover:-translate-y-[1px] hover:bg-slate-800"
+            >
+              Open Workspace
+            </button>
           </div>
 
-          <ActionButton onClick={() => onNavigate("signals")}>
-            Open Workspace
-          </ActionButton>
+          <div className="space-y-4">
+            {signals.slice(0, 3).map((s) => (
+              <SignalFeedCard key={s.id} signal={s} />
+            ))}
+          </div>
         </div>
 
-        <div className="space-y-4">
-          {signals.slice(0, 3).map((s) => (
-            <SignalFeedCard key={s.id} signal={s} />
-          ))}
-        </div>
+        <ProfileCompletenessCard profile={profile} />
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[0.85fr_1.15fr]">
-        <SurfaceCard title="Command Summary">
+      <section className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
+        <div className="rounded-xl border border-slate-300 bg-white p-6 shadow-[0_18px_36px_rgba(15,23,42,0.14)]">
+          <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+            Command Summary
+          </div>
+
           <div className="mt-4 grid gap-3">
             <MiniMetric
               label="Risk Posture"
@@ -251,21 +294,29 @@ export default function ExecutiveDashboardView({
               tone="confidence"
             />
           </div>
-        </SurfaceCard>
+        </div>
 
-        <SurfaceCard title="Opportunity Preview">
+        <div className="rounded-xl border border-slate-300 bg-white p-6 shadow-[0_18px_36px_rgba(15,23,42,0.14)]">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-sm text-slate-400">
-              High-level preview of current positive windows.
+            <div>
+              <div className="text-xl font-semibold text-slate-950">
+                Opportunity Preview
+              </div>
+              <div className="mt-1 text-sm text-slate-600">
+                High-level preview of current positive windows.
+              </div>
             </div>
 
-            <ActionButton onClick={() => onNavigate("opportunities")}>
+            <button
+              onClick={() => onNavigate("opportunities")}
+              className="rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_22px_rgba(15,23,42,0.25)] transition hover:-translate-y-[1px] hover:bg-slate-800"
+            >
               Open Opportunities
-            </ActionButton>
+            </button>
           </div>
 
           {topOpportunities.length === 0 ? (
-            <div className="mt-5 rounded-xl border border-dashed border-slate-600 bg-slate-800/40 p-5 text-sm text-slate-400">
+            <div className="mt-5 rounded-lg border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">
               No opportunity preview items available yet.
             </div>
           ) : (
@@ -273,15 +324,15 @@ export default function ExecutiveDashboardView({
               {topOpportunities.map((opportunity, index) => (
                 <div
                   key={`${opportunity.title ?? "opportunity"}-${index}`}
-                  className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-4 shadow-[0_8px_18px_rgba(0,0,0,0.18)]"
+                  className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 shadow-[0_10px_24px_rgba(15,23,42,0.08)]"
                 >
-                  <div className="text-xs uppercase tracking-[0.18em] text-emerald-200/80">
+                  <div className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
                     Opportunity
                   </div>
-                  <div className="mt-2 text-lg font-semibold text-white">
+                  <div className="mt-2 text-lg font-semibold leading-7 text-slate-950">
                     {opportunity.title ?? "Untitled opportunity"}
                   </div>
-                  <p className="mt-3 text-sm leading-7 text-slate-200">
+                  <p className="mt-3 text-sm leading-7 text-slate-700">
                     {opportunity.summary ??
                       "No summary available for this opportunity yet."}
                   </p>
@@ -289,42 +340,8 @@ export default function ExecutiveDashboardView({
               ))}
             </div>
           )}
-        </SurfaceCard>
+        </div>
       </section>
-    </div>
-  );
-}
-
-function ActionButton({
-  children,
-  onClick,
-}: {
-  children: React.ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="rounded-2xl border border-slate-600 bg-[linear-gradient(180deg,#1f2937_0%,#172033_45%,#0f172a_100%)] px-4 py-2.5 text-sm font-medium text-white shadow-[0_8px_14px_rgba(0,0,0,0.26),inset_0_1px_0_rgba(255,255,255,0.05),inset_0_-1px_0_rgba(0,0,0,0.35)] transition hover:-translate-y-[1px] hover:bg-[linear-gradient(180deg,#273449_0%,#1e293b_45%,#111827_100%)]"
-    >
-      {children}
-    </button>
-  );
-}
-
-function SurfaceCard({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-xl border border-slate-700 bg-slate-900/80 p-5 shadow-[0_12px_24px_rgba(0,0,0,0.22)]">
-      <div className="text-xs uppercase tracking-[0.22em] text-slate-400">
-        {title}
-      </div>
-      <div className="mt-4">{children}</div>
     </div>
   );
 }
@@ -339,21 +356,17 @@ function StatCard({
   tone: "risk" | "opportunity" | "signals" | "confidence";
 }) {
   const toneMap = {
-    risk:
-      "border-red-300/35 bg-[linear-gradient(180deg,rgba(127,29,29,0.34)_0%,rgba(69,10,10,0.24)_100%)]",
-    opportunity:
-      "border-emerald-300/35 bg-[linear-gradient(180deg,rgba(6,95,70,0.34)_0%,rgba(2,44,34,0.24)_100%)]",
-    signals:
-      "border-cyan-300/35 bg-[linear-gradient(180deg,rgba(8,145,178,0.32)_0%,rgba(22,78,99,0.24)_100%)]",
-    confidence:
-      "border-indigo-300/35 bg-[linear-gradient(180deg,rgba(67,56,202,0.32)_0%,rgba(49,46,129,0.24)_100%)]",
+    risk: "border-red-300 bg-red-950/30 text-red-100",
+    opportunity: "border-emerald-300 bg-emerald-950/30 text-emerald-100",
+    signals: "border-cyan-300 bg-cyan-950/30 text-cyan-100",
+    confidence: "border-indigo-300 bg-indigo-950/30 text-indigo-100",
   };
 
   return (
     <div
-      className={`flex min-h-[116px] flex-col justify-between rounded-[2rem] border px-4 py-4 text-center shadow-[0_10px_26px_rgba(0,0,0,0.18)] ${toneMap[tone]}`}
+      className={`flex min-h-[116px] flex-col justify-between rounded-lg border p-4 text-center shadow-[0_12px_28px_rgba(0,0,0,0.22)] ${toneMap[tone]}`}
     >
-      <div className="text-[11px] font-medium uppercase tracking-[0.24em] leading-snug text-white/80">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.24em] leading-snug text-white/90">
         {label}
       </div>
       <div className="mt-3 text-5xl font-semibold leading-none text-white">
@@ -371,11 +384,11 @@ function SnapshotBlock({
   text?: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-700 bg-slate-800/70 p-4 shadow-[0_8px_18px_rgba(0,0,0,0.18)]">
-      <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+    <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
         {title}
       </div>
-      <p className="mt-2 text-sm leading-7 text-slate-300">
+      <p className="mt-2 text-sm leading-7 text-slate-700">
         {text ?? "No snapshot available yet."}
       </p>
     </div>
@@ -390,15 +403,14 @@ function Badge({
   tone: "risk-soft" | "opportunity-soft" | "neutral";
 }) {
   const toneMap = {
-    "risk-soft": "border-red-500/20 bg-red-500/10 text-red-200",
-    "opportunity-soft":
-      "border-emerald-400/20 bg-emerald-500/10 text-emerald-200",
-    neutral: "border-slate-600 bg-slate-800/70 text-slate-200",
+    "risk-soft": "border-red-200 bg-red-50 text-red-700",
+    "opportunity-soft": "border-emerald-200 bg-emerald-50 text-emerald-700",
+    neutral: "border-slate-300 bg-slate-100 text-slate-700",
   };
 
   return (
     <span
-      className={`rounded-lg border px-3 py-1 text-xs font-medium ${toneMap[tone]}`}
+      className={`rounded-full border px-3 py-1 text-xs font-medium ${toneMap[tone]}`}
     >
       {children}
     </span>
@@ -415,18 +427,18 @@ function MiniMetric({
   tone: "risk" | "opportunity" | "signals" | "confidence";
 }) {
   const toneMap = {
-    risk: "border-red-500/20 bg-red-500/10",
-    opportunity: "border-emerald-400/20 bg-emerald-500/10",
-    signals: "border-cyan-400/20 bg-cyan-500/10",
-    confidence: "border-indigo-400/20 bg-indigo-500/10",
+    risk: "border-red-200 bg-red-50",
+    opportunity: "border-emerald-200 bg-emerald-50",
+    signals: "border-cyan-200 bg-cyan-50",
+    confidence: "border-indigo-200 bg-indigo-50",
   };
 
   return (
     <div
-      className={`flex items-center justify-between rounded-xl border p-4 shadow-[0_8px_18px_rgba(0,0,0,0.16)] ${toneMap[tone]}`}
+      className={`flex items-center justify-between gap-4 rounded-md border p-4 ${toneMap[tone]}`}
     >
-      <div className="text-sm text-slate-300">{label}</div>
-      <div className="text-sm font-semibold text-white">{value}</div>
+      <div className="text-sm font-medium text-slate-700">{label}</div>
+      <div className="text-sm font-semibold text-slate-950">{value}</div>
     </div>
   );
 }

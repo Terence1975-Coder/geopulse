@@ -156,7 +156,7 @@ function AnalyseStageShell({
   children: React.ReactNode;
 }) {
   return (
-    <article className="rounded-lg border border-slate-300 bg-white p-6 text-slate-900 shadow-[0_18px_46px_rgba(15,23,42,0.24)] ring-1 ring-slate-200/80">
+    <article className="rounded-md border border-slate-300 bg-white p-6 text-slate-900 shadow-[0_18px_46px_rgba(15,23,42,0.24)] ring-1 ring-slate-200/80">
       <div className="flex items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <div className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-700">
@@ -189,7 +189,7 @@ function AnalyseSection({
   return (
     <section
       className={[
-        "rounded-lg border p-5 shadow-[0_8px_22px_rgba(15,23,42,0.10)]",
+        "rounded-md border p-5 shadow-[0_8px_22px_rgba(15,23,42,0.10)]",
         emphasis
           ? "border-cyan-700/30 bg-cyan-50"
           : "border-slate-300 bg-slate-50",
@@ -219,7 +219,7 @@ function MethodologyButton({
         "rounded-md border px-4 py-2 text-sm transition",
         active
           ? "border-cyan-400/40 bg-cyan-500/20 text-white shadow-[0_6px_16px_rgba(6,182,212,0.18)]"
-          : "border-white/10 bg-white text-slate-700 border-slate-300 hover:bg-slate-50 text-slate-300 hover:bg-white/10",
+          : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50",
       ].join(" ")}
     >
       {label}
@@ -231,7 +231,7 @@ function AnalyseCard({ value }: { value: AnyRecord | null | undefined }) {
   if (!value) {
     return (
       <AnalyseStageShell title="Analyse">
-        <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">
+        <div className="rounded-md border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">
           No Analyse output returned.
         </div>
       </AnalyseStageShell>
@@ -456,7 +456,7 @@ function MultiPathCard({ value }: { value: AnyRecord | null | undefined }) {
               executionPhases.map((phase, index) => (
                 <div
                   key={phase.phase ?? phase.phase_name ?? `phase-${index}`}
-                  className="rounded-lg border border-slate-300 bg-slate-50 p-5 shadow-[0_4px_14px_rgba(15,23,42,0.06)]"
+                  className="rounded-md border border-slate-300 bg-slate-50 p-5 shadow-[0_4px_14px_rgba(15,23,42,0.06)]"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="text-lg font-semibold text-slate-900">
@@ -682,7 +682,7 @@ function V9DecisionBridge({
             type="button"
             onClick={() => void handleSaveDecision()}
             disabled={saving || Boolean(decision)}
-            className="rounded-lg border border-emerald-300 bg-emerald-100 px-3.5 py-2 text-sm font-medium text-emerald-800 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-md border border-emerald-300 bg-emerald-100 px-3.5 py-2 text-sm font-medium text-emerald-800 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving ? "Saving..." : decision ? "Decision Saved" : "Save Decision"}
           </button>
@@ -691,7 +691,7 @@ function V9DecisionBridge({
             type="button"
             onClick={() => void handleCreateExecution()}
             disabled={creatingExecution || !decision || Boolean(execution)}
-            className="rounded-lg border border-cyan-300 bg-cyan-100 px-3.5 py-2 text-sm font-medium text-cyan-800 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-md border border-cyan-300 bg-cyan-100 px-3.5 py-2 text-sm font-medium text-cyan-800 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {creatingExecution
               ? "Creating..."
@@ -705,7 +705,7 @@ function V9DecisionBridge({
       {(decision || execution) && (
         <div className="mt-4 grid gap-3 xl:grid-cols-[1.1fr_0.9fr]">
           {decision ? (
-            <div className="rounded-lg border border-emerald-200 bg-white/80 p-3">
+            <div className="rounded-md border border-emerald-200 bg-white/80 p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="min-w-0">
                   <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
@@ -728,7 +728,7 @@ function V9DecisionBridge({
           ) : null}
 
           {execution ? (
-            <div className="rounded-lg border border-cyan-200 bg-white/80 p-3">
+            <div className="rounded-md border border-cyan-200 bg-white/80 p-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
@@ -753,7 +753,7 @@ function V9DecisionBridge({
                 {execution.phases.map((phase) => (
                   <div
                     key={phase.phase_id}
-                    className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
+                    className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2"
                   >
                     <div className="truncate text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-700">
                       {phase.title}
@@ -770,7 +770,7 @@ function V9DecisionBridge({
       )}
 
       {error ? (
-        <div className="mt-3 rounded-lg border border-red-300 bg-red-50 p-3 text-sm leading-6 text-red-800">
+        <div className="mt-3 rounded-md border border-red-300 bg-red-50 p-3 text-sm leading-6 text-red-800">
           {error}
         </div>
       ) : null}
@@ -791,7 +791,7 @@ function IntelligenceSelectionPanel({
 
   if (visibleCandidates.length === 0) {
     return (
-      <section className="rounded-lg border border-slate-300 bg-white p-5 text-slate-900 shadow-[0_18px_42px_rgba(15,23,42,0.18)] ring-1 ring-slate-200/80">
+      <section className="rounded-md border border-slate-300 bg-white p-5 text-slate-900 shadow-[0_18px_42px_rgba(15,23,42,0.18)] ring-1 ring-slate-200/80">
         <div className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-700">
           Analysed Intelligence Options
         </div>
@@ -805,7 +805,7 @@ function IntelligenceSelectionPanel({
   }
 
   return (
-    <section className="rounded-lg border border-slate-300 bg-white p-5 text-slate-900 shadow-[0_18px_42px_rgba(15,23,42,0.18)] ring-1 ring-slate-200/80">
+    <section className="rounded-md border border-slate-300 bg-white p-5 text-slate-900 shadow-[0_18px_42px_rgba(15,23,42,0.18)] ring-1 ring-slate-200/80">
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
           <div className="text-xs font-bold uppercase tracking-[0.2em] text-cyan-700">
@@ -829,7 +829,7 @@ function IntelligenceSelectionPanel({
           return (
             <article
               key={candidate.id}
-              className="rounded-lg border border-slate-300 bg-white p-5 text-slate-900 shadow-[0_18px_42px_rgba(15,23,42,0.24)] ring-1 ring-slate-200/80 transition hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-[0_22px_50px_rgba(15,23,42,0.30)]"
+              className="rounded-md border border-slate-300 bg-white p-5 text-slate-900 shadow-[0_18px_42px_rgba(15,23,42,0.24)] ring-1 ring-slate-200/80 transition hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-[0_22px_50px_rgba(15,23,42,0.30)]"
             >
               <div className="flex flex-wrap items-center gap-2">
                 <span
@@ -879,7 +879,7 @@ function IntelligenceSelectionPanel({
                   <button
                     type="button"
                     onClick={() => onUse(candidate)}
-                    className="rounded-lg border border-cyan-700 bg-cyan-500 px-4 py-2 text-xs font-semibold text-slate-950 shadow-[0_8px_18px_rgba(8,145,178,0.28)] transition hover:bg-cyan-400"
+                    className="rounded-md border border-cyan-700 bg-cyan-500 px-4 py-2 text-xs font-semibold text-slate-950 shadow-[0_8px_18px_rgba(8,145,178,0.28)] transition hover:bg-cyan-400"
                   >
                     Use in Full Chain
                   </button>
@@ -888,7 +888,7 @@ function IntelligenceSelectionPanel({
                     <button
                       type="button"
                       onClick={() => onSave(candidate)}
-                      className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                      className="rounded-md border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                     >
                       Save selection
                     </button>
@@ -1137,7 +1137,7 @@ Be concrete, structured, and executive-grade.
 
   return (
     <div className="space-y-5">
-      <section className="rounded-lg border border-slate-700 bg-gradient-to-br from-slate-900/95 via-slate-950/95 to-cyan-950/25 p-6 shadow-[0_18px_40px_rgba(15,23,42,0.38)]">
+      <section className="rounded-lg border border-white/10 bg-slate-950 p-6 text-white shadow-[0_18px_40px_rgba(15,23,42,0.38)]">
         <div className="text-xs uppercase tracking-[0.28em] text-cyan-300/70">
           Agent Chain
         </div>
@@ -1184,7 +1184,7 @@ Be concrete, structured, and executive-grade.
         </div>
         
 		        <div className="mt-6 grid gap-4 xl:grid-cols-3">
-          <div className="rounded-lg border border-red-400/15 bg-red-500/10 p-4">
+          <div className="rounded-md border border-red-400/15 bg-red-500/10 p-4">
             <div className="text-xs uppercase tracking-[0.18em] text-red-200/80">
               Risk candidates
             </div>
@@ -1221,7 +1221,7 @@ Be concrete, structured, and executive-grade.
             </div>
           </div>
 
-          <div className="rounded-lg border border-emerald-400/15 bg-emerald-500/10 p-4">
+          <div className="rounded-md border border-emerald-400/15 bg-emerald-500/10 p-4">
             <div className="text-xs uppercase tracking-[0.18em] text-emerald-200/80">
               Opportunity signals
             </div>
@@ -1258,7 +1258,7 @@ Be concrete, structured, and executive-grade.
             </div>
           </div>
 
-          <div className="rounded-lg border border-cyan-400/15 bg-cyan-500/10 p-4">
+          <div className="rounded-md border border-cyan-400/15 bg-cyan-500/10 p-4">
             <div className="text-xs uppercase tracking-[0.18em] text-cyan-200/80">
               Identified opportunities
             </div>
@@ -1303,13 +1303,13 @@ Be concrete, structured, and executive-grade.
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Describe the market signal, company challenge, or opportunity..."
-            className="min-h-[80px] flex-1 rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none placeholder:text-slate-400"
+            className="min-h-[80px] flex-1 rounded-md border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-[0_4px_14px_rgba(15,23,42,0.08)] outline-none placeholder:text-slate-400"
             disabled={loading}
           />
           <button
             onClick={() => void runChain()}
             disabled={loading || !input.trim()}
-            className="rounded-lg border border-cyan-400/30 bg-cyan-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-cyan-400 disabled:opacity-50"
+            className="rounded-md border border-cyan-400/30 bg-cyan-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-cyan-400 disabled:opacity-50"
           >
             {loading ? "Running..." : "Run Full Chain"}
           </button>
