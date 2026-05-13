@@ -270,7 +270,7 @@ export default function LiveSignalsWorkspace({ signals, onOpenSignal }: Props) {
 	    />
   </section>
 
-      <section className="rounded-2xl border border-slate-300 bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.08)]">
+      <section className="rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
         <div className="text-xs uppercase tracking-[0.2em] text-slate-500">
           Dominant Clusters
         </div>
@@ -279,7 +279,7 @@ export default function LiveSignalsWorkspace({ signals, onOpenSignal }: Props) {
             dominantClusters.map(([cluster, count]) => (
               <span
                 key={cluster}
-                className="rounded-full border border-indigo-300 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 shadow-[0_4px_12px_rgba(99,102,241,0.08)]"
+                className="rounded-full border border-cyan-300 bg-cyan-50 px-4 py-2 text-sm font-medium text-cyan-800"
               >
                 {cluster} • {count}
               </span>
@@ -331,7 +331,7 @@ export default function LiveSignalsWorkspace({ signals, onOpenSignal }: Props) {
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-[0_8px_20px_rgba(15,23,42,0.05)]">
+    <div className="rounded-lg border border-slate-300 bg-white px-4 py-3 shadow-sm">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <div className="truncate text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
@@ -342,7 +342,7 @@ function MetricCard({ label, value }: { label: string; value: string }) {
           </div>
         </div>
 
-        <div className="shrink-0 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-2xl font-semibold leading-none text-slate-950">
+        <div className="shrink-0 rounded-md border border-cyan-300 bg-cyan-50 px-3 py-2 text-2xl font-semibold leading-none text-cyan-900">
           {value}
         </div>
       </div>

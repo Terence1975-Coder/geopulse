@@ -131,7 +131,7 @@ function ReadoutItem({
   value: string | number;
 }) {
   return (
-    <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-center">
+    <div className="min-w-0 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-center">
       <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
         {label}
       </div>
@@ -154,17 +154,13 @@ export default function SignalFeedCard({
   const lifecycle = resolveLifecycle(signal);
   const sourceUrl = signal.source_url || signal.url;
 
-  const borderTone = isOpportunity
-    ? "border-emerald-200"
+    const borderTone = isOpportunity
+    ? "border-emerald-300"
     : signal.severity === "high"
-    ? "border-red-200"
-    : "border-slate-200";
+    ? "border-red-300"
+    : "border-slate-300";
 
-  const cardTone = isOpportunity
-    ? "bg-emerald-50/60"
-    : signal.severity === "high"
-    ? "bg-red-50/40"
-    : "bg-white";
+  const cardTone = "bg-white";
 
   const severityTone =
     signal.severity === "high"
@@ -175,7 +171,7 @@ export default function SignalFeedCard({
 
   return (
     <article
-      className={`overflow-hidden rounded-2xl border ${borderTone} ${cardTone} shadow-[0_14px_34px_rgba(15,23,42,0.08)]`}
+      className={`overflow-hidden rounded-lg border ${borderTone} ${cardTone} shadow-sm`}
     >
       <div className="p-4">
         <div className="flex flex-col gap-3">
@@ -220,7 +216,7 @@ export default function SignalFeedCard({
             {onOpen ? (
               <button
                 onClick={onOpen}
-                className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                className="rounded-md border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
               >
                 Open Signal
               </button>
@@ -229,7 +225,7 @@ export default function SignalFeedCard({
             {onViewSupportingSignals ? (
               <button
                 onClick={() => onViewSupportingSignals(signal)}
-                className="rounded-xl border border-cyan-300 bg-cyan-50 px-3.5 py-2 text-sm font-medium text-cyan-800 transition hover:bg-cyan-100"
+                className="rounded-md border border-cyan-300 bg-cyan-50 px-3.5 py-2 text-sm font-medium text-cyan-800 transition hover:bg-cyan-100"
               >
                 View Supporting Signals
               </button>
@@ -240,7 +236,7 @@ export default function SignalFeedCard({
                 href={sourceUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                className="rounded-md border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
               >
                 Source
               </a>
