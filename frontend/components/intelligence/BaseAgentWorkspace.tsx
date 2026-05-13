@@ -167,7 +167,7 @@ export default function BaseAgentWorkspace({
   }
 
   return (
-    <div className="flex h-full flex-col rounded-3xl border border-white/10 bg-slate-950/70">
+    <div className="flex h-full flex-col rounded-lg border border-white/10 bg-slate-950">
       <div className="border-b border-white/10 px-6 py-5">
         <div className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300/80">
           {stageLabel}
@@ -177,7 +177,7 @@ export default function BaseAgentWorkspace({
 
       <div className="flex-1 space-y-4 overflow-y-auto p-6">
         {safeMessages.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-6 text-sm text-white/60">
+          <div className="rounded-md border border-dashed border-white/10 bg-white/[0.02] p-6 text-sm text-white/60">
             No intelligence yet. Start by asking GeoPulse to analyse, advise, or
             deepen this stage.
           </div>
@@ -200,12 +200,12 @@ export default function BaseAgentWorkspace({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={loading || !setMessages}
-            className="min-h-[88px] flex-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/35 disabled:cursor-not-allowed disabled:opacity-60"
+            className="min-h-[88px] flex-1 rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-white/35 disabled:cursor-not-allowed disabled:opacity-60"
           />
           <button
             onClick={() => void handleSend()}
             disabled={loading || !input.trim() || !setMessages}
-            className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-3 text-sm font-medium text-cyan-100 transition hover:bg-cyan-400/20 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-md border border-cyan-400/20 bg-cyan-400/10 px-5 py-3 text-sm font-medium text-cyan-100 transition hover:bg-cyan-400/20 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? "Thinking..." : "Engage Agent"}
           </button>
