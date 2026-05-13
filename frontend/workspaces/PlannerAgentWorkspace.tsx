@@ -264,7 +264,7 @@ function ActionButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="rounded-2xl border border-slate-600 bg-[linear-gradient(180deg,#1f2937_0%,#172033_45%,#0f172a_100%)] px-4 py-2.5 text-sm font-medium text-white shadow-[0_8px_14px_rgba(0,0,0,0.26),inset_0_1px_0_rgba(255,255,255,0.05),inset_0_-1px_0_rgba(0,0,0,0.35)] transition hover:-translate-y-[1px] hover:bg-[linear-gradient(180deg,#273449_0%,#1e293b_45%,#111827_100%)] disabled:cursor-not-allowed disabled:opacity-50"
+      className="rounded-md border border-slate-600 bg-[linear-gradient(180deg,#1f2937_0%,#172033_45%,#0f172a_100%)] px-4 py-2.5 text-sm font-medium text-white shadow-[0_8px_14px_rgba(0,0,0,0.26),inset_0_1px_0_rgba(255,255,255,0.05),inset_0_-1px_0_rgba(0,0,0,0.35)] transition hover:-translate-y-[1px] hover:bg-[linear-gradient(180deg,#273449_0%,#1e293b_45%,#111827_100%)] disabled:cursor-not-allowed disabled:opacity-50"
     >
       {children}
     </button>
@@ -279,7 +279,7 @@ function MetricCard({
   value: string;
 }) {
   return (
-    <div className="flex min-h-[112px] flex-col items-center justify-center rounded-[1.6rem] border border-slate-500/70 bg-slate-800/60 px-4 py-4 text-center shadow-[0_10px_22px_rgba(0,0,0,0.18)]">
+    <div className="flex min-h-[112px] flex-col items-center justify-center rounded-lg border border-slate-500/70 bg-slate-800/60 px-4 py-4 text-center shadow-[0_10px_22px_rgba(0,0,0,0.18)]">
       <div className="text-[10px] font-medium uppercase tracking-[0.26em] text-slate-200">
         {label}
       </div>
@@ -302,7 +302,7 @@ function MetricsPod({
   measures: number;
 }) {
   return (
-    <div className="min-w-0 rounded-[2rem] border border-slate-600 bg-[linear-gradient(180deg,rgba(71,85,105,0.96)_0%,rgba(51,65,85,0.96)_100%)] p-4 shadow-[0_18px_36px_rgba(0,0,0,0.30)] md:p-5">
+    <div className="min-w-0 rounded-lg border border-slate-600 bg-[linear-gradient(180deg,rgba(71,85,105,0.96)_0%,rgba(51,65,85,0.96)_100%)] p-4 shadow-[0_18px_36px_rgba(0,0,0,0.30)] md:p-5">
       <div className="mb-4 text-xs uppercase tracking-[0.22em] text-slate-100">
         Delivery Metrics
       </div>
@@ -325,7 +325,7 @@ function LightPanel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-[1.6rem] border border-slate-300 bg-white p-4 shadow-[0_14px_28px_rgba(0,0,0,0.12)] md:p-5">
+    <section className="rounded-lg border border-slate-300 bg-white p-4 shadow-[0_14px_28px_rgba(0,0,0,0.12)] md:p-5">
       <div className="mb-4 text-lg font-semibold text-slate-950 md:text-xl">
         {title}
       </div>
@@ -342,7 +342,7 @@ function LightSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-[1.35rem] border border-slate-200 bg-slate-50 p-4">
+    <section className="rounded-md border border-slate-200 bg-slate-50 p-4">
       <div className="text-[10px] uppercase tracking-[0.22em] text-slate-500">
         {title}
       </div>
@@ -367,7 +367,7 @@ function BulletList({
       {items.map((item, index) => (
         <li
           key={`${item}-${index}`}
-          className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm leading-6 text-slate-700"
+          className="rounded-md border border-slate-200 bg-white px-4 py-2.5 text-sm leading-6 text-slate-700"
         >
           {item}
         </li>
@@ -383,7 +383,7 @@ function DeliveryFlowDiagram({
 }) {
   if (phases.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-500">
+      <div className="rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-500">
         No structured phases returned yet.
       </div>
     );
@@ -397,7 +397,7 @@ function DeliveryFlowDiagram({
             key={`${phase.phase}-${index}`}
             className="flex flex-col items-center xl:flex-row"
           >
-            <article className="w-full rounded-[1.4rem] border border-cyan-200 bg-cyan-50 px-4 py-4 shadow-sm xl:w-[280px]">
+            <article className="w-full rounded-md border border-cyan-200 bg-cyan-50 px-4 py-4 shadow-sm xl:w-[280px]">
               <div className="flex items-start gap-3">
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-cyan-300 bg-white text-sm font-semibold text-slate-700">
                   {index + 1}
@@ -443,7 +443,7 @@ function PhaseFlowText({
 }) {
   if (phases.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-500">
+      <div className="rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 py-4 text-sm text-slate-500">
         No structured phases returned yet.
       </div>
     );
@@ -454,7 +454,7 @@ function PhaseFlowText({
       {phases.map((phase, index) => (
         <article
           key={`${phase.phase}-${index}`}
-          className="rounded-[1.35rem] border border-slate-200 bg-slate-50 p-4"
+          className="rounded-md border border-slate-200 bg-slate-50 p-4"
         >
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="flex min-w-0 items-start gap-3">
@@ -528,7 +528,7 @@ function ExecutionHandoffCard({
         "Convert the current intelligence chain into a boardroom-ready execution plan.";
 
   return (
-    <section className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 p-5 shadow-[0_18px_54px_rgba(0,0,0,0.24)]">
+    <section className="rounded-md border border-cyan-400/20 bg-cyan-500/10 p-5 shadow-[0_18px_54px_rgba(0,0,0,0.24)]">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <div className="text-xs uppercase tracking-[0.22em] text-cyan-200/80">
@@ -560,7 +560,7 @@ function ExecutionHandoffCard({
         </div>
       </div>
 
-      <div className="mt-5 rounded-xl border border-white/10 bg-slate-950/45 p-4">
+      <div className="mt-5 rounded-md border border-white/10 bg-slate-950/45 p-4">
         <div className="text-xs uppercase tracking-[0.18em] text-slate-400">
           Execution focus
         </div>
@@ -570,21 +570,21 @@ function ExecutionHandoffCard({
         </p>
 
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+          <div className="rounded-md border border-white/10 bg-white/[0.03] p-3">
             <div className="text-xs text-slate-400">Source</div>
             <div className="mt-1 text-sm font-medium text-white">
               Analyse + Advise chain
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+          <div className="rounded-md border border-white/10 bg-white/[0.03] p-3">
             <div className="text-xs text-slate-400">Planner output</div>
             <div className="mt-1 text-sm font-medium text-white">
               Execution-grade plan
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3">
+          <div className="rounded-md border border-white/10 bg-white/[0.03] p-3">
             <div className="text-xs text-slate-400">Includes</div>
             <div className="mt-1 text-sm font-medium text-white">
               Owners, phases, risks, metrics
@@ -593,7 +593,7 @@ function ExecutionHandoffCard({
         </div>
       </div>
 
-            <div className="mt-4 rounded-xl border border-white/10 bg-slate-950/45 p-4">
+            <div className="mt-4 rounded-md border border-white/10 bg-slate-950/45 p-4">
         <button
           type="button"
           onClick={() => setExpanded((current) => !current)}
@@ -605,7 +605,7 @@ function ExecutionHandoffCard({
         </button>
 
         {expanded ? (
-          <pre className="mt-4 max-h-[320px] overflow-auto whitespace-pre-wrap rounded-xl border border-white/10 bg-black/30 p-4 text-xs leading-6 text-slate-300">
+          <pre className="mt-4 max-h-[320px] overflow-auto whitespace-pre-wrap rounded-md border border-white/10 bg-black/30 p-4 text-xs leading-6 text-slate-300">
             {executionRequest.prompt}
           </pre>
         ) : null}
@@ -666,7 +666,7 @@ function PlanOverview({
 
   return (
     <div className="space-y-5">
-      <section className="overflow-hidden rounded-[2rem] border border-slate-700 bg-gradient-to-br from-slate-950 via-[#020617] to-slate-900 shadow-[0_22px_52px_rgba(0,0,0,0.34)]">
+      <section className="overflow-hidden rounded-lg border border-slate-700 bg-gradient-to-br from-slate-950 via-[#020617] to-slate-900 shadow-[0_22px_52px_rgba(0,0,0,0.34)]">
         <div className="px-5 py-6 md:px-7 md:py-7 xl:px-8 xl:py-8">
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.9fr)] xl:items-start">
             <div className="min-w-0">
@@ -703,7 +703,7 @@ function PlanOverview({
 
       {!hasPlanContent ? (
         <LightPanel title="Planner Output">
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">
+          <div className="rounded-md border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">
             No structured plan has been generated yet. Run the Agent Chain first
             or use Planner to create a plan.
           </div>
@@ -819,7 +819,7 @@ function PlannerConversation({
 
         <div className="mt-4">
           {messages.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-5 text-sm text-slate-400">
+            <div className="rounded-md border border-dashed border-white/10 bg-white/[0.02] p-5 text-sm text-slate-400">
               No planner conversation yet. Start by asking GeoPulse to refine
               the plan, tighten sequencing, assign ownership, or pressure-test
               the delivery path.
@@ -829,7 +829,7 @@ function PlannerConversation({
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className="rounded-2xl border border-white/10 bg-white/[0.03] p-3"
+                  className="rounded-md border border-white/10 bg-white/[0.03] p-3"
                 >
                   <WorkspaceMessageRenderer
                     message={message}
@@ -849,7 +849,7 @@ function PlannerConversation({
           onKeyDown={handleKeyDown}
           placeholder="Send a planner request..."
           disabled={loading}
-          className="min-h-[104px] flex-1 rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/30 focus:ring-1 focus:ring-cyan-400/20"
+          className="min-h-[104px] flex-1 rounded-md border border-white/10 bg-slate-900/80 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/30 focus:ring-1 focus:ring-cyan-400/20"
         />
 
         <div className="flex shrink-0 flex-col gap-3 xl:w-[220px]">
@@ -860,7 +860,7 @@ function PlannerConversation({
             {loading ? "Thinking..." : "Engage Planner"}
           </ActionButton>
 
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs leading-6 text-slate-400">
+          <div className="rounded-md border border-white/10 bg-white/[0.03] px-4 py-3 text-xs leading-6 text-slate-400">
             Press Enter to send. Use Shift+Enter for a new line.
           </div>
         </div>
@@ -988,7 +988,7 @@ export default function PlannerAgentWorkspace(
   return (
     <div className="space-y-5">
       {autoRunning ? (
-        <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-200">
+        <div className="rounded-md border border-cyan-400/20 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-200">
           GeoPulse is converting the selected decision path into a structured
           execution plan.
         </div>
