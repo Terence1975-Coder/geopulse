@@ -190,7 +190,7 @@ export default function WorkspaceNavigation({ active, onChange }: Props) {
 
   return (
     <aside className="h-fit border-r border-geopulse-border bg-geopulse-surface p-3">
-      <div className="overflow-hidden rounded-lg border border-geopulse-border bg-geopulse-surfaceAlt">
+      <div className="overflow-hidden rounded-lg border border-slate-300 bg-white">
         <div className="relative h-[132px] w-full">
           <NextImage
             src="/geopulse-logo.png"
