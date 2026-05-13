@@ -36,9 +36,9 @@ function SliderField({
   onChange,
 }: SliderProps) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+    <div className="rounded-lg border border-slate-300 bg-white p-5">
       <div className="mb-4 flex items-center justify-between gap-4">
-        <div className="text-sm text-white/90">{label}</div>
+        <div className="text-sm text-slate-950">{label}</div>
         <div className="text-sm font-medium text-cyan-200">{value}</div>
       </div>
 
@@ -56,12 +56,12 @@ function SliderField({
 
 function SelectField({ label, value, options, onChange }: SelectProps) {
   return (
-    <label className="block rounded-3xl border border-white/10 bg-white/[0.03] p-5">
-      <div className="mb-3 text-sm text-white/90">{label}</div>
+    <label className="block rounded-lg border border-slate-300 bg-white p-5">
+      <div className="mb-3 text-sm text-slate-950">{label}</div>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white"
+        className="w-full rounded-md border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950"
       >
         {options.map((option) => (
           <option key={option} value={option}>
@@ -75,8 +75,8 @@ function SelectField({ label, value, options, onChange }: SelectProps) {
 
 function ToggleField({ label, checked, onChange }: ToggleProps) {
   return (
-    <div className="flex items-center justify-between rounded-3xl border border-white/10 bg-white/[0.03] p-5">
-      <div className="text-sm text-white/90">{label}</div>
+    <div className="flex items-center justify-between rounded-lg border border-slate-300 bg-white p-5">
+      <div className="text-sm text-slate-950">{label}</div>
       <button
         type="button"
         onClick={() => onChange(!checked)}
@@ -102,7 +102,7 @@ export default function ConfigurationWorkspace({ config, onChange }: Props) {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[32px] border border-white/10 bg-gradient-to-br from-slate-900/90 via-slate-950/90 to-cyan-950/20 p-6 shadow-2xl">
+      <section className="rounded-lg border border-white/10 bg-slate-950 p-6 shadow-sm">
         <div className="text-xs uppercase tracking-[0.28em] text-cyan-300/70">
           Configuration
         </div>
