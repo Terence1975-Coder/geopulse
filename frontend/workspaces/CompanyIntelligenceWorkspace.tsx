@@ -98,7 +98,7 @@ function InputField({ label, value, onChange, placeholder }: InputFieldProps) {
         value={String(value ?? "")}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-[0_8px_18px_rgba(15,23,42,0.04)] outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100"
+        className="w-full rounded-md border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-[0_8px_18px_rgba(15,23,42,0.04)] outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100"
       />
     </label>
   );
@@ -112,7 +112,7 @@ function SliderField({
   max = 100,
 }: SliderFieldProps) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_8px_20px_rgba(15,23,42,0.05)]">
+    <div className="rounded-md border border-slate-300 bg-white p-4 shadow-[0_8px_20px_rgba(15,23,42,0.05)]">
       <div className="mb-3 flex items-center justify-between gap-4">
         <div className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
           {label}
@@ -220,7 +220,7 @@ function SourceCoveragePanel({
   const failed = connectors.filter((item) => item.status !== "ok");
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
+    <section className="rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <div className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-700">
@@ -240,14 +240,14 @@ function SourceCoveragePanel({
           type="button"
           onClick={onRefresh}
           disabled={loading}
-          className="rounded-xl border border-cyan-300 bg-cyan-600 px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(8,145,178,0.20)] transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-md border border-cyan-300 bg-cyan-600 px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(8,145,178,0.20)] transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? "Checking..." : "Refresh Coverage"}
         </button>
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <div className="rounded-md border border-slate-300 bg-slate-50 p-4">
           <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
             Connectors Tried
           </div>
@@ -256,7 +256,7 @@ function SourceCoveragePanel({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+        <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4">
           <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
             Successful
           </div>
@@ -265,7 +265,7 @@ function SourceCoveragePanel({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-4">
+        <div className="rounded-md border border-cyan-200 bg-cyan-50 p-4">
           <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-cyan-700">
             Articles / Links
           </div>
@@ -274,7 +274,7 @@ function SourceCoveragePanel({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-indigo-200 bg-indigo-50 p-4">
+        <div className="rounded-md border border-indigo-200 bg-indigo-50 p-4">
           <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-indigo-700">
             Signals Surfaced
           </div>
@@ -285,7 +285,7 @@ function SourceCoveragePanel({
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border border-emerald-200 bg-white p-4">
+        <div className="rounded-md border border-emerald-200 bg-white p-4">
           <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
             Actionable
           </div>
@@ -294,7 +294,7 @@ function SourceCoveragePanel({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-amber-200 bg-white p-4">
+        <div className="rounded-md border border-amber-200 bg-white p-4">
           <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
             Watchlist
           </div>
@@ -303,7 +303,7 @@ function SourceCoveragePanel({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="rounded-md border border-slate-300 bg-white p-4">
           <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">
             Reference
           </div>
@@ -313,7 +313,7 @@ function SourceCoveragePanel({
         </div>
       </div>
 
-      <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+      <div className="mt-5 rounded-md border border-slate-300 bg-slate-50 p-4">
         <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
           Credibility Summary
         </div>
@@ -334,7 +334,7 @@ function SourceCoveragePanel({
             {connectors.slice(0, 8).map((connector, index) => (
               <div
                 key={`${connector.connector_id ?? "connector"}-${index}`}
-                className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-2 rounded-md border border-slate-300 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
                   <div className="text-sm font-semibold text-slate-950">
@@ -358,7 +358,7 @@ function SourceCoveragePanel({
                     {connector.status || "unknown"}
                   </span>
 
-                  <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">
+                  <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700">
                     {metric(connector.signals_returned)} signals
                   </span>
                 </div>
@@ -645,7 +645,7 @@ const handleRefreshSourceCoverage = async () => {
 
   return (
     <div className="space-y-5">
-      <section className="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-950 via-[#020617] to-slate-900 shadow-[0_0_60px_rgba(0,0,0,0.45)]">
+      <section className="overflow-hidden rounded-lg border border-white/10 bg-gradient-to-br from-slate-950 via-[#020617] to-slate-900 shadow-[0_0_60px_rgba(0,0,0,0.45)]">
         <div className="px-6 py-7 md:px-8 md:py-8 xl:px-10">
           <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="min-w-0">
@@ -664,7 +664,7 @@ const handleRefreshSourceCoverage = async () => {
               </p>
             </div>
 
-            <div className="shrink-0 rounded-[28px] border border-cyan-400/30 bg-cyan-400/10 px-7 py-5 text-right shadow-[0_18px_40px_rgba(6,182,212,0.14)]">
+            <div className="shrink-0 rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-7 py-5 text-right shadow-[0_18px_40px_rgba(6,182,212,0.14)]">
               <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-cyan-200">
                 Completeness
               </div>
@@ -683,7 +683,7 @@ const handleRefreshSourceCoverage = async () => {
 
       <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
         <section className="space-y-5">
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
+          <div className="rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
             <div className="text-lg font-semibold text-slate-950">
               Companies House Lookup
             </div>
@@ -697,19 +697,19 @@ const handleRefreshSourceCoverage = async () => {
                 value={companySearch}
                 onChange={(event) => setCompanySearch(event.target.value)}
                 placeholder="Search company name..."
-                className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100"
+                className="min-w-0 flex-1 rounded-md border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100"
               />
               <button
                 type="button"
                 onClick={() => void handleCompanySearch()}
                 disabled={loadingSearch}
-                className="rounded-xl border border-cyan-300 bg-cyan-50 px-5 py-3 text-sm font-semibold text-cyan-800 transition hover:bg-cyan-100 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-md border border-cyan-300 bg-cyan-50 px-5 py-3 text-sm font-semibold text-cyan-800 transition hover:bg-cyan-100 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {loadingSearch ? "Searching..." : "Search"}
               </button>
             </div>
 
-            <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <div className="mt-5 rounded-md border border-slate-300 bg-slate-50 p-4">
               <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                 Results Preview
               </div>
@@ -725,7 +725,7 @@ const handleRefreshSourceCoverage = async () => {
                       key={item.company_number}
                       type="button"
                       onClick={() => void handleSelectCompany(item)}
-                      className="w-full rounded-xl border border-slate-200 bg-white p-3 text-left transition hover:border-cyan-300 hover:bg-cyan-50"
+                      className="w-full rounded-md border border-slate-300 bg-white p-3 text-left transition hover:border-cyan-300 hover:bg-cyan-50"
                     >
                       <div className="font-semibold text-slate-950">
                         {item.title}
@@ -747,7 +747,7 @@ const handleRefreshSourceCoverage = async () => {
               )}
             </div>
 
-            <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+            <div className="mt-5 rounded-md border border-slate-300 bg-white p-4">
               <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
                 Saved Profile Status
               </div>
@@ -757,7 +757,7 @@ const handleRefreshSourceCoverage = async () => {
             </div>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
+          <div className="rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
             <div className="text-lg font-semibold text-slate-950">
               Intelligence Use Notice
             </div>
@@ -776,7 +776,7 @@ const handleRefreshSourceCoverage = async () => {
           />
         </section>
 
-        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
+        <section className="rounded-lg border border-slate-300 bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <div className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700">
@@ -795,7 +795,7 @@ const handleRefreshSourceCoverage = async () => {
               type="button"
               onClick={() => void handleSaveCalibration()}
               disabled={saving}
-              className="rounded-xl border border-cyan-300 bg-cyan-600 px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(8,145,178,0.22)] transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-md border border-cyan-300 bg-cyan-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {saving ? "Saving..." : "Save Calibration"}
             </button>
@@ -900,7 +900,7 @@ const handleRefreshSourceCoverage = async () => {
               />
             </div>
 
-            <div className="md:col-span-2 border-t border-slate-200 pt-5">
+            <div className="md:col-span-2 border-t border-slate-300 pt-5">
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">
                 Local / Regional Intelligence Context
               </div>
@@ -980,7 +980,7 @@ const handleRefreshSourceCoverage = async () => {
                   value={profile.notes ?? ""}
                   onChange={(event) => setField("notes", event.target.value)}
                   rows={4}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-[0_8px_18px_rgba(15,23,42,0.04)] outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100"
+                  className="w-full rounded-md border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 shadow-[0_8px_18px_rgba(15,23,42,0.04)] outline-none transition placeholder:text-slate-400 focus:border-cyan-400 focus:ring-4 focus:ring-cyan-100"
                 />
               </label>
             </div>
