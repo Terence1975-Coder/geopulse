@@ -20,12 +20,12 @@ export default function FocusModePanelShell({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/82 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 bg-slate-900/55 backdrop-blur-sm">
       <div className="absolute inset-0 p-3 md:p-4 lg:p-5">
-        <div className="mx-auto flex h-full max-w-[1660px] flex-col overflow-hidden rounded-xl border border-white/10 bg-slate-950/95 shadow-[0_22px_72px_rgba(0,0,0,0.42)]">
-          <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+        <div className="mx-auto flex max-h-[calc(100vh-2rem)] max-w-[1320px] flex-col overflow-hidden rounded-lg border border-slate-300 bg-slate-50 shadow-[0_22px_72px_rgba(15,23,42,0.28)]">
+          <div className="flex items-center justify-between border-b border-slate-300 bg-slate-950 px-5 py-4 text-white">
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-slate-400">
+              <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-slate-300">
                 {breadcrumb.map((item, idx) => (
                   <div key={`${item}-${idx}`} className="flex items-center gap-2">
                     <span>{item}</span>
@@ -33,14 +33,14 @@ export default function FocusModePanelShell({
                   </div>
                 ))}
               </div>
-              <h2 className="mt-1.5 text-[1.6rem] font-semibold text-white">
+              <h2 className="mt-1.5 text-2xl font-semibold text-white">
                 {title}
               </h2>
             </div>
 
             <button
               onClick={onClose}
-              className="rounded-lg border border-white/10 bg-white/5 px-3.5 py-2 text-sm text-slate-200 transition hover:bg-white/10"
+              className="rounded-md border border-white/10 bg-white/5 px-3.5 py-2 text-sm text-slate-200 transition hover:bg-white/10"
             >
               <span className="flex items-center gap-2">
                 <X size={16} />
@@ -49,7 +49,7 @@ export default function FocusModePanelShell({
             </button>
           </div>
 
-          <div className="flex-1 overflow-auto p-4">{children}</div>
+          <div className="flex-1 overflow-auto bg-slate-50 p-4">{children}</div>
         </div>
       </div>
     </div>
