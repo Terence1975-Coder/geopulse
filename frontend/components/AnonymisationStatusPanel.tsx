@@ -35,9 +35,34 @@ export default function AnonymisationStatusPanel({ settings, onChange }: Props) 
           </p>
         </div>
 
-        <div className="rounded-md border border-indigo-300/20 bg-slate-950/30 px-4 py-3 text-sm text-indigo-200">
-          Trust Indicator: {enabledCount >= 4 ? "Strong" : enabledCount >= 2 ? "Moderate" : "Low"}
-        </div>
+        <div
+		  className={[
+			"flex items-center gap-3 rounded-md border px-4 py-3 text-sm font-semibold shadow-sm",
+			enabledCount >= 4
+			  ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+			  : enabledCount >= 2
+			  ? "border-amber-300 bg-amber-50 text-amber-700"
+			  : "border-red-300 bg-red-50 text-red-700",
+		  ].join(" ")}
+		>
+		  <div className="flex h-9 w-9 items-center justify-center rounded-full border border-current/20 bg-white">
+			🛡️
+		  </div>
+
+		  <div className="flex flex-col">
+			<span className="text-[11px] uppercase tracking-[0.14em] opacity-70">
+			  Trust Indicator
+			</span>
+
+			<span>
+			  {enabledCount >= 4
+				? "Strong"
+				: enabledCount >= 2
+				? "Moderate"
+				: "Low"}
+			</span>
+		  </div>
+		</div>
       </div>
 
       <div className="mt-5 grid gap-3 md:grid-cols-2">
