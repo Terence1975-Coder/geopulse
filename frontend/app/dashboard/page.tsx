@@ -310,13 +310,13 @@ function buildPanelContent(args: {
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-6">
           <div className="rounded-3xl border border-amber-400/20 bg-amber-500/10 p-6">
-            <div className="text-xs uppercase tracking-[0.2em] text-amber-200/80">
+            <div className="text-xs uppercase tracking-[0.2em] text-amber-700">
               Risk Readout
             </div>
-            <h3 className="mt-3 text-3xl font-semibold text-white">
+            <h3 className="mt-3 text-3xl font-semibold text-slate-950">
               {summary.posture}
             </h3>
-            <p className="mt-4 text-sm leading-8 text-slate-200">
+            <p className="mt-4 text-sm leading-8 text-slate-700">
               GeoPulse is identifying the current risk posture as a live executive
               condition shaped by external signal strength, timing pressure, and
               concentration across the most material negative developments.
@@ -343,12 +343,12 @@ function buildPanelContent(args: {
                 riskSignals.slice(0, 4).map((signal) => (
                   <div
                     key={signal.id}
-                    className="rounded-2xl border border-white/10 bg-slate-950/40 p-4"
+                    className="rounded-md border border-slate-300 bg-slate-100 p-4"
                   >
-                    <div className="text-sm font-semibold text-white">
+                    <div className="text-sm font-semibold text-slate-950">
                       {signal.headline}
                     </div>
-                    <div className="mt-2 text-sm leading-7 text-slate-300">
+                    <div className="mt-2 text-sm leading-7 text-slate-700">
                       {signal.summary}
                     </div>
                   </div>
@@ -396,13 +396,13 @@ function buildPanelContent(args: {
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-6">
           <div className="rounded-3xl border border-emerald-400/20 bg-emerald-500/10 p-6">
-            <div className="text-xs uppercase tracking-[0.2em] text-emerald-200/80">
+            <div className="text-xs uppercase tracking-[0.2em] text-emerald-700">
               Opportunity Readout
             </div>
-            <h3 className="mt-3 text-3xl font-semibold text-white">
+            <h3 className="mt-3 text-3xl font-semibold text-slate-950">
               {summary.opportunity_posture}
             </h3>
-            <p className="mt-4 text-sm leading-8 text-slate-200">
+            <p className="mt-4 text-sm leading-8 text-slate-700">
               GeoPulse is identifying actionable upside conditions shaped by live
               resilience demand, timing-sensitive openings, and signal clustering
               around commercially relevant opportunity themes.
@@ -417,7 +417,7 @@ function buildPanelContent(args: {
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-6">
-            <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+            <div className="text-xs uppercase tracking-[0.2em] text-slate-500">
               Priority Opportunity Signals
             </div>
             <div className="mt-4 space-y-4">
@@ -434,7 +434,7 @@ function buildPanelContent(args: {
                     <div className="text-sm font-semibold text-white">
                       {signal.headline}
                     </div>
-                    <div className="mt-2 text-sm leading-7 text-slate-300">
+                    <div className="mt-2 text-sm leading-7 text-slate-700">
                       {signal.summary}
                     </div>
                   </div>
@@ -473,10 +473,10 @@ function buildPanelContent(args: {
             }%`}
           />
           <div className="rounded-3xl border border-cyan-400/20 bg-cyan-500/10 p-5">
-            <div className="text-xs uppercase tracking-[0.18em] text-cyan-200/80">
+            <div className="text-xs uppercase tracking-[0.18em] text-cyan-700">
               Company Calibration
             </div>
-            <p className="mt-3 text-sm leading-7 text-slate-100">
+            <p className="mt-3 text-sm leading-7 text-slate-700">
               Opportunity interpretation is being framed against{" "}
               {companyProfile.company_name || "the current company profile"} and
               its active priorities of{" "}
@@ -856,7 +856,7 @@ export default function HomePage() {
         return (
           <div className="space-y-4">
             {(loadingSignals || loadingOpportunities || loadingSummary || loadingProfile) && (
-			  <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-100">
+			  <div className="rounded-2xl border border-cyan-400/20 bg-cyan-50 px-4 py-3 text-sm text-cyan-100">
 				Loading live GeoPulse intelligence...
 			  </div>
 			)}
@@ -1140,18 +1140,30 @@ function PanelPill({
   tone?: "neutral" | "risk" | "opportunity";
 }) {
   const toneMap = {
-    neutral: "border-white/10 bg-white/5 text-slate-300",
-    risk: "border-amber-400/20 bg-amber-500/10 text-amber-200",
-    opportunity: "border-emerald-400/20 bg-emerald-500/10 text-emerald-200",
+    neutral:
+      "border-slate-300 bg-white text-slate-800 shadow-sm",
+    risk:
+      "border-amber-300 bg-amber-50 text-amber-800 shadow-sm",
+    opportunity:
+      "border-emerald-300 bg-emerald-50 text-emerald-800 shadow-sm",
+  };
+
+  const dotMap = {
+    neutral: "bg-slate-400",
+    risk: "bg-amber-500",
+    opportunity: "bg-emerald-500",
   };
 
   return (
-    <span className={`rounded-full border px-3 py-1 text-xs ${toneMap[tone]}`}>
-      {label}: {value}
+    <span
+      className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold ${toneMap[tone]}`}
+    >
+      <span className={`h-2.5 w-2.5 rounded-full ${dotMap[tone]}`} />
+      <span className="text-slate-500">{label}</span>
+      <span>{value}</span>
     </span>
   );
 }
-
 function PanelMetricCard({
   label,
   value,
@@ -1159,12 +1171,22 @@ function PanelMetricCard({
   label: string;
   value: string;
 }) {
+  const tone =
+    label.includes("Confidence")
+      ? "border-indigo-400 bg-indigo-950/95"
+      : label.includes("Strength")
+      ? "border-cyan-400 bg-cyan-950/95"
+      : "border-sky-400 bg-sky-950/95";
+
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
-      <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+    <div
+      className={`flex min-h-[108px] flex-col items-center justify-center rounded-lg border p-4 text-center shadow-[0_10px_24px_rgba(15,23,42,0.18)] ${tone}`}
+    >
+      <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white">
         {label}
       </div>
-      <div className="mt-3 text-3xl font-semibold text-white">
+
+      <div className="mt-3 text-4xl font-semibold leading-none text-white">
         {value}
       </div>
     </div>
