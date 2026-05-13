@@ -113,7 +113,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+    <section className="rounded-md border border-white/10 bg-white/[0.03] p-4">
       <div className="text-xs uppercase tracking-[0.18em] text-slate-400">
         {title}
       </div>
@@ -353,7 +353,7 @@ export default function WorkspaceMessageRenderer({
   return (
     <article
       className={[
-        "rounded-3xl border p-5",
+        "rounded-lg border p-5",
         isUser
           ? "border-white/10 bg-white/[0.03]"
           : message.tone === "warning"
@@ -377,7 +377,7 @@ export default function WorkspaceMessageRenderer({
       ) : isStructuredAgentOutput(message.content) ? (
         isHistoricalPlannerMessage ? (
           <div className="space-y-4">
-            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+            <div className="rounded-md border border-white/10 bg-white/[0.03] p-4">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <div className="text-sm font-semibold text-white">
@@ -393,7 +393,7 @@ export default function WorkspaceMessageRenderer({
 
                 <button
                   onClick={() => setExpanded((prev) => !prev)}
-                  className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10"
+                  className="rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200 transition hover:bg-white/10"
                 >
                   {expanded ? "Hide details" : "Show details"}
                 </button>

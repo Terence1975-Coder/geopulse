@@ -243,7 +243,7 @@ function MetaPill({
       className={
         light
           ? "rounded-full border border-slate-300 bg-slate-100 px-3 py-1 text-[11px] text-slate-700"
-          : "rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-slate-300"
+          : "rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-slate-600"
       }
     >
       {label}: {value}
@@ -528,10 +528,10 @@ function ExecutionHandoffCard({
         "Convert the current intelligence chain into a boardroom-ready execution plan.";
 
   return (
-    <section className="rounded-md border border-cyan-400/20 bg-cyan-500/10 p-5 shadow-[0_18px_54px_rgba(0,0,0,0.24)]">
+    <section className="rounded-lg border border-white/10 bg-slate-950 p-5 text-white shadow-[0_18px_42px_rgba(15,23,42,0.22)]">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <div className="text-xs uppercase tracking-[0.22em] text-cyan-200/80">
+          <div className="text-xs uppercase tracking-[0.22em] text-cyan-300">
             Planner Handoff
           </div>
 
@@ -560,7 +560,7 @@ function ExecutionHandoffCard({
         </div>
       </div>
 
-      <div className="mt-5 rounded-md border border-white/10 bg-slate-950/45 p-4">
+      <div className="mt-5 rounded-md border border-white/10 bg-slate-900/80 p-4">
         <div className="text-xs uppercase tracking-[0.18em] text-slate-400">
           Execution focus
         </div>
@@ -570,21 +570,21 @@ function ExecutionHandoffCard({
         </p>
 
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <div className="rounded-md border border-white/10 bg-white/[0.03] p-3">
+          <div className="rounded-md border border-white/10 bg-slate-800/70 p-3">
             <div className="text-xs text-slate-400">Source</div>
             <div className="mt-1 text-sm font-medium text-white">
               Analyse + Advise chain
             </div>
           </div>
 
-          <div className="rounded-md border border-white/10 bg-white/[0.03] p-3">
+          <div className="rounded-md border border-white/10 bg-slate-800/70 p-3">
             <div className="text-xs text-slate-400">Planner output</div>
             <div className="mt-1 text-sm font-medium text-white">
               Execution-grade plan
             </div>
           </div>
 
-          <div className="rounded-md border border-white/10 bg-white/[0.03] p-3">
+          <div className="rounded-md border border-white/10 bg-slate-800/70 p-3">
             <div className="text-xs text-slate-400">Includes</div>
             <div className="mt-1 text-sm font-medium text-white">
               Owners, phases, risks, metrics
@@ -593,7 +593,7 @@ function ExecutionHandoffCard({
         </div>
       </div>
 
-            <div className="mt-4 rounded-md border border-white/10 bg-slate-950/45 p-4">
+            <div className="mt-4 rounded-md border border-white/10 bg-slate-900/80 p-4">
         <button
           type="button"
           onClick={() => setExpanded((current) => !current)}
@@ -605,7 +605,7 @@ function ExecutionHandoffCard({
         </button>
 
         {expanded ? (
-          <pre className="mt-4 max-h-[320px] overflow-auto whitespace-pre-wrap rounded-md border border-white/10 bg-black/30 p-4 text-xs leading-6 text-slate-300">
+          <pre className="mt-4 max-h-[320px] overflow-auto whitespace-pre-wrap rounded-md border border-white/10 bg-black/30 p-4 text-xs leading-6 text-slate-600">
             {executionRequest.prompt}
           </pre>
         ) : null}
@@ -801,22 +801,18 @@ function PlannerConversation({
   }
 
   return (
-    <section className="rounded-[1.8rem] border border-slate-700 bg-[linear-gradient(180deg,rgba(71,85,105,0.96)_0%,rgba(51,65,85,0.96)_100%)] p-5 shadow-[0_18px_36px_rgba(0,0,0,0.20)]">
+    <section className="rounded-lg border border-slate-300 bg-white text-slate-950 p-5 shadow-[0_18px_36px_rgba(0,0,0,0.20)]">
       <div>
-        <div className="text-3xl font-semibold text-white">
+        <div className="text-2xl font-semibold text-slate-950">
           Planner Workspace
         </div>
-        <div className="mt-1 text-base text-slate-300">
+        <div className="mt-1 text-base text-slate-600">
           Refine sequencing, challenge execution assumptions, and deepen the
           delivery logic.
         </div>
       </div>
 
-      <div className="mt-5 rounded-[1.7rem] border border-white/10 bg-slate-900/55 p-4">
-        <div className="text-xs uppercase tracking-[0.24em] text-slate-300">
-          Planner Agent
-        </div>
-
+      <div className="mt-5 rounded-lg border border-slate-300 bg-slate-50 p-4">
         <div className="mt-4">
           {messages.length === 0 ? (
             <div className="rounded-md border border-dashed border-white/10 bg-white/[0.02] p-5 text-sm text-slate-400">
@@ -829,7 +825,7 @@ function PlannerConversation({
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className="rounded-md border border-white/10 bg-white/[0.03] p-3"
+                  className="rounded-md border border-white/10 bg-slate-800/70 p-3"
                 >
                   <WorkspaceMessageRenderer
                     message={message}
@@ -849,7 +845,7 @@ function PlannerConversation({
           onKeyDown={handleKeyDown}
           placeholder="Send a planner request..."
           disabled={loading}
-          className="min-h-[104px] flex-1 rounded-md border border-white/10 bg-slate-900/80 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/30 focus:ring-1 focus:ring-cyan-400/20"
+          className="min-h-[104px] flex-1 rounded-md border border-slate-300 bg-white px-4 py-3 text-sm text-slate-950 outline-none placeholder:text-slate-500 focus:border-cyan-400/30 focus:ring-1 focus:ring-cyan-400/20"
         />
 
         <div className="flex shrink-0 flex-col gap-3 xl:w-[220px]">
@@ -860,7 +856,7 @@ function PlannerConversation({
             {loading ? "Thinking..." : "Engage Planner"}
           </ActionButton>
 
-          <div className="rounded-md border border-white/10 bg-white/[0.03] px-4 py-3 text-xs leading-6 text-slate-400">
+          <div className="rounded-md border border-white/10 bg-slate-800/70 px-4 py-3 text-xs leading-6 text-slate-400">
             Press Enter to send. Use Shift+Enter for a new line.
           </div>
         </div>
