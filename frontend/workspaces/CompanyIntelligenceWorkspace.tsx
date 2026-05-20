@@ -3,8 +3,7 @@
 import { useMemo, useState } from "react";
 import type { CompanyProfile } from "../types/intelligence";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8000";
 
 type MutableProfile = Partial<CompanyProfile> & Record<string, any>;
 
@@ -141,7 +140,7 @@ function buildIntelProfile(profile: MutableProfile): MutableProfile {
       : arrayOrEmpty(profile.markets);
 
   const companyId = stringOrEmpty(
-    profile.registration_number || profile.company_number || profile.company_id
+    profile.registration_number || profile.company_number || profile.company_id,
   );
 
   return {
@@ -149,7 +148,7 @@ function buildIntelProfile(profile: MutableProfile): MutableProfile {
     company_id: companyId || "geopulse-demo",
     company_name: stringOrEmpty(profile.company_name),
     registration_number: stringOrEmpty(
-      profile.registration_number || profile.company_number
+      profile.registration_number || profile.company_number,
     ),
     sector: stringOrEmpty(profile.sector),
     sub_sector: stringOrEmpty(profile.sub_sector),
@@ -160,7 +159,7 @@ function buildIntelProfile(profile: MutableProfile): MutableProfile {
     growth_objectives: arrayOrEmpty(profile.growth_objectives),
     risk_tolerance: stringOrEmpty(profile.risk_tolerance || "balanced"),
     recommendation_style: stringOrEmpty(
-      profile.recommendation_style || "balanced"
+      profile.recommendation_style || "balanced",
     ),
     notes: stringOrEmpty(profile.notes),
     registered_address_line_1: stringOrEmpty(profile.registered_address_line_1),
@@ -185,17 +184,17 @@ function buildIntelProfile(profile: MutableProfile): MutableProfile {
         ? true
         : Boolean(profile.regional_monitoring_enabled),
     energy_dependency: numberOrZero(
-      profile.energy_dependency ?? profile.energy_dependency_level
+      profile.energy_dependency ?? profile.energy_dependency_level,
     ),
     import_export_exposure: numberOrZero(
-      profile.import_export_exposure ?? profile.import_export_exposure_level
+      profile.import_export_exposure ?? profile.import_export_exposure_level,
     ),
     consumer_sensitivity: numberOrZero(
-      profile.consumer_sensitivity ?? profile.consumer_sensitivity_level
+      profile.consumer_sensitivity ?? profile.consumer_sensitivity_level,
     ),
     financial_leverage_sensitivity: numberOrZero(
       profile.financial_leverage_sensitivity ??
-        profile.financial_leverage_sensitivity_level
+        profile.financial_leverage_sensitivity_level,
     ),
   };
 }
@@ -369,8 +368,8 @@ function SourceCoveragePanel({
           {failed.length > 0 ? (
             <p className="mt-3 text-xs leading-6 text-amber-700">
               {failed.length} connector(s) did not return readable content. This
-              is expected during early connector expansion and should be tracked,
-              not hidden.
+              is expected during early connector expansion and should be
+              tracked, not hidden.
             </p>
           ) : null}
 
@@ -392,21 +391,23 @@ export default function CompanyIntelligenceWorkspace({
 }: CompanyIntelligenceWorkspaceProps) {
   const [saveStatus, setSaveStatus] = useState<string>("Not saved yet.");
   const [companySearch, setCompanySearch] = useState(
-    String(profile.company_name ?? "")
+    String(profile.company_name ?? ""),
   );
   const [searchResults, setSearchResults] = useState<
     CompaniesHouseSearchResult[]
   >([]);
   const [loadingSearch, setLoadingSearch] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [sourceCoverage, setSourceCoverage] = useState<LocalCoverage | null>(null);
-  const [sourceConnectors, setSourceConnectors] = useState<LocalConnectorResult[]>(
-    []
-);
-const [sourceCoverageStatus, setSourceCoverageStatus] = useState(
-  "Coverage not checked yet."
-);
-const [loadingSourceCoverage, setLoadingSourceCoverage] = useState(false);
+  const [sourceCoverage, setSourceCoverage] = useState<LocalCoverage | null>(
+    null,
+  );
+  const [sourceConnectors, setSourceConnectors] = useState<
+    LocalConnectorResult[]
+  >([]);
+  const [sourceCoverageStatus, setSourceCoverageStatus] = useState(
+    "Coverage not checked yet.",
+  );
+  const [loadingSourceCoverage, setLoadingSourceCoverage] = useState(false);
 
   const setField = (key: string, value: any) => {
     onUpdate({
@@ -433,7 +434,7 @@ const [loadingSourceCoverage, setLoadingSourceCoverage] = useState(false);
     ];
 
     return Math.round(
-      (checks.filter(Boolean).length / Math.max(1, checks.length)) * 100
+      (checks.filter(Boolean).length / Math.max(1, checks.length)) * 100,
     );
   }, [profile]);
 
@@ -444,16 +445,12 @@ const [loadingSourceCoverage, setLoadingSourceCoverage] = useState(false);
 
       const intelProfile = buildIntelProfile(profile);
 
-      const response = await fetch(`${API_BASE}/intel/company-profile`, {
+      const response = await fetch(`${API_BASE}/company/profile`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          company_id: intelProfile.company_id,
-          company_name: intelProfile.company_name,
-          profile: intelProfile,
-        }),
+        body: JSON.stringify(intelProfile),
       });
 
       if (!response.ok) {
@@ -473,7 +470,9 @@ const [loadingSourceCoverage, setLoadingSourceCoverage] = useState(false);
     } catch (error) {
       console.error(error);
       setSaveStatus(
-        error instanceof Error ? `Save failed: ${error.message}` : "Save failed."
+        error instanceof Error
+          ? `Save failed: ${error.message}`
+          : "Save failed.",
       );
     } finally {
       setSaving(false);
@@ -481,61 +480,63 @@ const [loadingSourceCoverage, setLoadingSourceCoverage] = useState(false);
   };
 
   const resolveCompanyIdForCoverage = () => {
-  return String(
-    profile.registration_number ||
-      profile.company_number ||
-      profile.company_id ||
-      ""
-  ).trim();
-};
+    return String(
+      profile.registration_number ||
+        profile.company_number ||
+        profile.company_id ||
+        "",
+    ).trim();
+  };
 
-const handleRefreshSourceCoverage = async () => {
-  const companyId = resolveCompanyIdForCoverage();
+  const handleRefreshSourceCoverage = async () => {
+    const companyId = resolveCompanyIdForCoverage();
 
-  if (!companyId) {
-    setSourceCoverageStatus(
-      "Add and save a company registration number before checking source coverage."
-    );
-    return;
-  }
-
-  try {
-    setLoadingSourceCoverage(true);
-    setSourceCoverageStatus("Checking real local source connectors...");
-
-    const response = await fetch(
-      `${API_BASE}/intel/signals/local-real?company_id=${encodeURIComponent(
-        companyId
-      )}`
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(errorText || "Source coverage request failed.");
+    if (!companyId) {
+      setSourceCoverageStatus(
+        "Add and save a company registration number before checking source coverage.",
+      );
+      return;
     }
 
-    const data: LocalSourceCoverageResponse = await response.json();
+    try {
+      setLoadingSourceCoverage(true);
+      setSourceCoverageStatus("Checking real local source connectors...");
 
-    setSourceCoverage(data.coverage ?? null);
-    setSourceConnectors(Array.isArray(data.connectors) ? data.connectors : []);
-    setSourceCoverageStatus(
-      data.coverage?.credibility_summary ||
-        data.message ||
-        "Source coverage loaded."
-    );
-  } catch (error) {
-    console.error(error);
-    setSourceCoverage(null);
-    setSourceConnectors([]);
-    setSourceCoverageStatus(
-      error instanceof Error
-        ? `Source coverage failed: ${error.message}`
-        : "Source coverage failed."
-    );
-  } finally {
-    setLoadingSourceCoverage(false);
-  }
-};
+      const response = await fetch(
+        `${API_BASE}/intel/signals/local-real?company_id=${encodeURIComponent(
+          companyId,
+        )}`,
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Source coverage request failed.");
+      }
+
+      const data: LocalSourceCoverageResponse = await response.json();
+
+      setSourceCoverage(data.coverage ?? null);
+      setSourceConnectors(
+        Array.isArray(data.connectors) ? data.connectors : [],
+      );
+      setSourceCoverageStatus(
+        data.coverage?.credibility_summary ||
+          data.message ||
+          "Source coverage loaded.",
+      );
+    } catch (error) {
+      console.error(error);
+      setSourceCoverage(null);
+      setSourceConnectors([]);
+      setSourceCoverageStatus(
+        error instanceof Error
+          ? `Source coverage failed: ${error.message}`
+          : "Source coverage failed.",
+      );
+    } finally {
+      setLoadingSourceCoverage(false);
+    }
+  };
 
   const handleCompanySearch = async () => {
     const query = companySearch.trim();
@@ -549,7 +550,7 @@ const handleRefreshSourceCoverage = async () => {
       setSaveStatus("Searching Companies House...");
 
       const response = await fetch(
-        `${API_BASE}/company/companies/search?q=${encodeURIComponent(query)}`
+        `${API_BASE}/company/companies/search?q=${encodeURIComponent(query)}`,
       );
 
       if (!response.ok) {
@@ -564,7 +565,7 @@ const handleRefreshSourceCoverage = async () => {
       setSaveStatus(
         results.length > 0
           ? "Companies House results loaded."
-          : "No Companies House matches found."
+          : "No Companies House matches found.",
       );
     } catch (error) {
       console.error(error);
@@ -572,7 +573,7 @@ const handleRefreshSourceCoverage = async () => {
       setSaveStatus(
         error instanceof Error
           ? `Search failed: ${error.message}`
-          : "Search failed."
+          : "Search failed.",
       );
     } finally {
       setLoadingSearch(false);
@@ -585,8 +586,8 @@ const handleRefreshSourceCoverage = async () => {
 
       const response = await fetch(
         `${API_BASE}/company/companies/${encodeURIComponent(
-          item.company_number
-        )}`
+          item.company_number,
+        )}`,
       );
 
       if (!response.ok) {
@@ -618,8 +619,7 @@ const handleRefreshSourceCoverage = async () => {
           data?.registered_office_address?.locality ||
           profile.registered_town_city,
         registered_county:
-          data?.registered_office_address?.region ||
-          profile.registered_county,
+          data?.registered_office_address?.region || profile.registered_county,
         registered_postcode:
           data?.registered_office_address?.postal_code ||
           profile.registered_postcode,
@@ -638,7 +638,7 @@ const handleRefreshSourceCoverage = async () => {
       setSaveStatus(
         error instanceof Error
           ? `Prefill failed: ${error.message}`
-          : "Prefill failed."
+          : "Prefill failed.",
       );
     }
   };
@@ -659,8 +659,8 @@ const handleRefreshSourceCoverage = async () => {
 
               <p className="mt-4 max-w-4xl text-base leading-8 text-slate-400">
                 Calibrate GeoPulse with verified company details, strategic
-                priorities, operating sensitivities, and local/regional intelligence
-                context.
+                priorities, operating sensitivities, and local/regional
+                intelligence context.
               </p>
             </div>
 
@@ -732,9 +732,7 @@ const handleRefreshSourceCoverage = async () => {
                       </div>
                       <div className="mt-1 text-xs text-slate-500">
                         {item.company_number}
-                        {item.company_status
-                          ? ` · ${item.company_status}`
-                          : ""}
+                        {item.company_status ? ` · ${item.company_status}` : ""}
                       </div>
                       {item.address_snippet ? (
                         <div className="mt-1 text-xs text-slate-500">
@@ -786,8 +784,8 @@ const handleRefreshSourceCoverage = async () => {
                 Save calibration profile
               </h3>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
-                Edit the company profile and address fields, then save to the
-                V9 intelligence memory store.
+                Edit the company profile and address fields, then save to the V9
+                intelligence memory store.
               </p>
             </div>
 
@@ -870,13 +868,17 @@ const handleRefreshSourceCoverage = async () => {
             <InputField
               label="Growth Objectives"
               value={arrayOrEmpty(profile.growth_objectives).join(", ")}
-              onChange={(value) => setField("growth_objectives", splitCsv(value))}
+              onChange={(value) =>
+                setField("growth_objectives", splitCsv(value))
+              }
             />
 
             <InputField
               label="Cost Sensitivities"
               value={arrayOrEmpty(profile.cost_sensitivities).join(", ")}
-              onChange={(value) => setField("cost_sensitivities", splitCsv(value))}
+              onChange={(value) =>
+                setField("cost_sensitivities", splitCsv(value))
+              }
             />
 
             <InputField
@@ -905,26 +907,22 @@ const handleRefreshSourceCoverage = async () => {
                 Local / Regional Intelligence Context
               </div>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                These fields allow GeoPulse to monitor local authority,
-                regional business, infrastructure, planning, procurement, and
-                grant signals relevant to this company.
+                These fields allow GeoPulse to monitor local authority, regional
+                business, infrastructure, planning, procurement, and grant
+                signals relevant to this company.
               </p>
             </div>
 
             <InputField
               label="Registered Address Line 1"
               value={profile.registered_address_line_1}
-              onChange={(value) =>
-                setField("registered_address_line_1", value)
-              }
+              onChange={(value) => setField("registered_address_line_1", value)}
             />
 
             <InputField
               label="Registered Address Line 2"
               value={profile.registered_address_line_2}
-              onChange={(value) =>
-                setField("registered_address_line_2", value)
-              }
+              onChange={(value) => setField("registered_address_line_2", value)}
             />
 
             <InputField

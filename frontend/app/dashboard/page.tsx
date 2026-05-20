@@ -36,8 +36,7 @@ import type {
   WorkspaceMessage,
 } from "../../types/intelligence";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8000";
 
 type BackendCompanyProfileResponse = {
   company_name?: string | null;
@@ -59,29 +58,25 @@ function mapProfileToIntelligenceProfile(profile: any): CompanyProfile {
     Array.isArray(profile?.markets) && profile.markets.length > 0
       ? profile.markets
       : typeof profile?.exposure_regions === "string"
-      ? profile.exposure_regions
-          .split(",")
-          .map((item: string) => item.trim())
-          .filter(Boolean)
-      : typeof profile?.exposureRegions === "string"
-      ? profile.exposureRegions
-          .split(",")
-          .map((item: string) => item.trim())
-          .filter(Boolean)
-      : [];
+        ? profile.exposure_regions
+            .split(",")
+            .map((item: string) => item.trim())
+            .filter(Boolean)
+        : typeof profile?.exposureRegions === "string"
+          ? profile.exposureRegions
+              .split(",")
+              .map((item: string) => item.trim())
+              .filter(Boolean)
+          : [];
 
   const strategicPriorities =
     Array.isArray(profile?.strategic_priorities) &&
     profile.strategic_priorities.length > 0
       ? profile.strategic_priorities
       : Array.isArray(profile?.strategicPriorities) &&
-        profile.strategicPriorities.length > 0
-      ? profile.strategicPriorities
-      : [
-          "Protect margin",
-          "Grow revenue",
-          "Improve strategic visibility",
-        ];
+          profile.strategicPriorities.length > 0
+        ? profile.strategicPriorities
+        : ["Protect margin", "Grow revenue", "Improve strategic visibility"];
 
   return {
     company_name:
@@ -124,9 +119,7 @@ function mapProfileToIntelligenceProfile(profile: any): CompanyProfile {
 
 function normaliseSignal(signal: any): SignalItem {
   const timestamp =
-    signal?.timestamp ||
-    signal?.detected_at ||
-    new Date().toISOString();
+    signal?.timestamp || signal?.detected_at || new Date().toISOString();
 
   return {
     id: String(signal?.id ?? crypto.randomUUID()),
@@ -142,21 +135,19 @@ function normaliseSignal(signal: any): SignalItem {
       typeof signal?.confidence_score === "number"
         ? signal.confidence_score
         : typeof signal?.confidence === "number"
-        ? signal.confidence
-        : 0,
+          ? signal.confidence
+          : 0,
     freshness_minutes:
       typeof signal?.freshness_minutes === "number"
         ? signal.freshness_minutes
         : 0,
     signal_strength:
-      typeof signal?.signal_strength === "number"
-        ? signal.signal_strength
-        : 0,
+      typeof signal?.signal_strength === "number" ? signal.signal_strength : 0,
     timestamp,
     detected_at: signal?.detected_at || timestamp,
     lifecycle: signal?.lifecycle || "Unknown",
     relative_time: signal?.relative_time || "unknown",
-	source_url: signal?.source_url || signal?.metadata?.article_url || "",
+    source_url: signal?.source_url || signal?.metadata?.article_url || "",
   } as SignalItem;
 }
 
@@ -167,21 +158,27 @@ function buildFallbackSummary(args: {
   loadingSignals: boolean;
   loadingSummary: boolean;
 }): DashboardSummary {
-  const { signals, chainOutputs, companyProfile, loadingSignals, loadingSummary } =
-    args;
+  const {
+    signals,
+    chainOutputs,
+    companyProfile,
+    loadingSignals,
+    loadingSummary,
+  } = args;
 
   const riskSignals = signals.filter((signal) => signal.kind === "risk");
   const opportunitySignals = signals.filter(
-    (signal) => signal.kind === "opportunity"
+    (signal) => signal.kind === "opportunity",
   );
 
   const avgConfidence =
     signals.length > 0
       ? Math.round(
           signals.reduce(
-            (sum, signal) => sum + toPercent(Number(signal.confidence_score || 0)),
-            0
-          ) / signals.length
+            (sum, signal) =>
+              sum + toPercent(Number(signal.confidence_score || 0)),
+            0,
+          ) / signals.length,
         )
       : 0;
 
@@ -189,9 +186,10 @@ function buildFallbackSummary(args: {
     signals.length > 0
       ? Math.round(
           signals.reduce(
-            (sum, signal) => sum + toPercent(Number(signal.signal_strength || 0)),
-            0
-          ) / signals.length
+            (sum, signal) =>
+              sum + toPercent(Number(signal.signal_strength || 0)),
+            0,
+          ) / signals.length,
         )
       : 0;
 
@@ -201,8 +199,8 @@ function buildFallbackSummary(args: {
           riskSignals.reduce(
             (sum, signal) =>
               sum + toPercent(Number(signal.signal_strength || 0)),
-            0
-          ) / riskSignals.length
+            0,
+          ) / riskSignals.length,
         )
       : Math.max(35, Math.min(85, avgStrength));
 
@@ -212,56 +210,58 @@ function buildFallbackSummary(args: {
           opportunitySignals.reduce(
             (sum, signal) =>
               sum + toPercent(Number(signal.signal_strength || 0)),
-            0
-          ) / opportunitySignals.length
+            0,
+          ) / opportunitySignals.length,
         )
       : Math.max(30, Math.min(85, Math.round(avgStrength * 0.92)));
 
   const freshestMinutes =
     signals.length > 0
-      ? Math.min(...signals.map((signal) => Number(signal.freshness_minutes || 0)))
+      ? Math.min(
+          ...signals.map((signal) => Number(signal.freshness_minutes || 0)),
+        )
       : 999999;
 
   const horizon =
     freshestMinutes <= 60
       ? "Immediate"
       : freshestMinutes <= 360
-      ? "Near-Term"
-      : "Medium-Term";
+        ? "Near-Term"
+        : "Medium-Term";
 
   const posture =
     derivedRiskScore >= 75
       ? "Heightened Attention"
       : derivedRiskScore >= 60
-      ? "Active Monitoring"
-      : "Measured Watch";
+        ? "Active Monitoring"
+        : "Measured Watch";
 
   const opportunityPosture =
     derivedOpportunityScore >= 75
       ? "Active Opportunity Window"
       : derivedOpportunityScore >= 60
-      ? "Targeted Upside"
-      : "Selective Monitoring";
+        ? "Targeted Upside"
+        : "Selective Monitoring";
 
   const urgency =
     freshestMinutes <= 60
       ? "High"
       : freshestMinutes <= 360
-      ? "Elevated"
-      : "Moderate";
+        ? "Elevated"
+        : "Moderate";
 
   const summaryText =
     loadingSignals || loadingSummary
       ? "Loading live executive intelligence..."
       : signals.length === 0
-      ? "No live signals are available yet. GeoPulse is ready to populate the executive surface as new intelligence arrives."
-      : `GeoPulse is currently tracking ${signals.length} live signal${
-          signals.length === 1 ? "" : "s"
-        }, with ${riskSignals.length} risk-led and ${
-          opportunitySignals.length
-        } opportunity-led items shaping the current executive picture for ${
-          companyProfile.company_name || "this company"
-        }.`;
+        ? "No live signals are available yet. GeoPulse is ready to populate the executive surface as new intelligence arrives."
+        : `GeoPulse is currently tracking ${signals.length} live signal${
+            signals.length === 1 ? "" : "s"
+          }, with ${riskSignals.length} risk-led and ${
+            opportunitySignals.length
+          } opportunity-led items shaping the current executive picture for ${
+            companyProfile.company_name || "this company"
+          }.`;
 
   return {
     overall_risk_score: derivedRiskScore,
@@ -285,7 +285,7 @@ function buildFallbackSummary(args: {
         (chainOutputs as any)?.profile?.key_insight ||
         (companyProfile?.strategic_priorities?.length
           ? `GeoPulse is currently calibrated around: ${companyProfile.strategic_priorities.join(
-              ", "
+              ", ",
             )}.`
           : "No profile agent snapshot available yet."),
     },
@@ -302,7 +302,7 @@ function buildPanelContent(args: {
 
   const riskSignals = signals.filter((signal) => signal.kind === "risk");
   const opportunitySignals = signals.filter(
-    (signal) => signal.kind === "opportunity"
+    (signal) => signal.kind === "opportunity",
   );
 
   if (title === "Risk Posture" || title === "Risk Analysis") {
@@ -317,16 +317,29 @@ function buildPanelContent(args: {
               {summary.posture}
             </h3>
             <p className="mt-4 text-sm leading-8 text-slate-700">
-              GeoPulse is identifying the current risk posture as a live executive
-              condition shaped by external signal strength, timing pressure, and
-              concentration across the most material negative developments.
+              GeoPulse is identifying the current risk posture as a live
+              executive condition shaped by external signal strength, timing
+              pressure, and concentration across the most material negative
+              developments.
             </p>
 
             <div className="mt-5 flex flex-wrap gap-2">
-              <PanelPill label="Risk Score" value={`${summary.overall_risk_score}`} tone="risk" />
+              <PanelPill
+                label="Risk Score"
+                value={`${summary.overall_risk_score}`}
+                tone="risk"
+              />
               <PanelPill label="Urgency" value={summary.urgency} tone="risk" />
-              <PanelPill label="Horizon" value={summary.horizon} tone="neutral" />
-              <PanelPill label="Confidence" value={`${summary.confidence}%`} tone="neutral" />
+              <PanelPill
+                label="Horizon"
+                value={summary.horizon}
+                tone="neutral"
+              />
+              <PanelPill
+                label="Confidence"
+                value={`${summary.confidence}%`}
+                tone="neutral"
+              />
             </div>
           </div>
 
@@ -359,16 +372,20 @@ function buildPanelContent(args: {
         </div>
 
         <div className="space-y-6">
-          <PanelMetricCard label="Risk Signals" value={String(riskSignals.length)} />
+          <PanelMetricCard
+            label="Risk Signals"
+            value={String(riskSignals.length)}
+          />
           <PanelMetricCard
             label="Average Strength"
             value={`${
               riskSignals.length
                 ? Math.round(
                     riskSignals.reduce(
-                      (sum, signal) => sum + toPercent(Number(signal.signal_strength || 0)),
-                      0
-                    ) / riskSignals.length
+                      (sum, signal) =>
+                        sum + toPercent(Number(signal.signal_strength || 0)),
+                      0,
+                    ) / riskSignals.length,
                   )
                 : 0
             }%`}
@@ -379,9 +396,10 @@ function buildPanelContent(args: {
               riskSignals.length
                 ? Math.round(
                     riskSignals.reduce(
-                      (sum, signal) => sum + toPercent(Number(signal.confidence_score || 0)),
-                      0
-                    ) / riskSignals.length
+                      (sum, signal) =>
+                        sum + toPercent(Number(signal.confidence_score || 0)),
+                      0,
+                    ) / riskSignals.length,
                   )
                 : 0
             }%`}
@@ -403,16 +421,32 @@ function buildPanelContent(args: {
               {summary.opportunity_posture}
             </h3>
             <p className="mt-4 text-sm leading-8 text-slate-700">
-              GeoPulse is identifying actionable upside conditions shaped by live
-              resilience demand, timing-sensitive openings, and signal clustering
-              around commercially relevant opportunity themes.
+              GeoPulse is identifying actionable upside conditions shaped by
+              live resilience demand, timing-sensitive openings, and signal
+              clustering around commercially relevant opportunity themes.
             </p>
 
             <div className="mt-5 flex flex-wrap gap-2">
-              <PanelPill label="Opportunity Score" value={`${summary.opportunity_score}`} tone="opportunity" />
-              <PanelPill label="Positive Signals" value={`${summary.positive_signal_count}`} tone="opportunity" />
-              <PanelPill label="Horizon" value={summary.horizon} tone="neutral" />
-              <PanelPill label="Confidence" value={`${summary.confidence}%`} tone="neutral" />
+              <PanelPill
+                label="Opportunity Score"
+                value={`${summary.opportunity_score}`}
+                tone="opportunity"
+              />
+              <PanelPill
+                label="Positive Signals"
+                value={`${summary.positive_signal_count}`}
+                tone="opportunity"
+              />
+              <PanelPill
+                label="Horizon"
+                value={summary.horizon}
+                tone="neutral"
+              />
+              <PanelPill
+                label="Confidence"
+                value={`${summary.confidence}%`}
+                tone="neutral"
+              />
             </div>
           </div>
 
@@ -445,16 +479,20 @@ function buildPanelContent(args: {
         </div>
 
         <div className="space-y-6">
-          <PanelMetricCard label="Opportunity Signals" value={String(opportunitySignals.length)} />
+          <PanelMetricCard
+            label="Opportunity Signals"
+            value={String(opportunitySignals.length)}
+          />
           <PanelMetricCard
             label="Average Strength"
             value={`${
               opportunitySignals.length
                 ? Math.round(
                     opportunitySignals.reduce(
-                      (sum, signal) => sum + toPercent(Number(signal.signal_strength || 0)),
-                      0
-                    ) / opportunitySignals.length
+                      (sum, signal) =>
+                        sum + toPercent(Number(signal.signal_strength || 0)),
+                      0,
+                    ) / opportunitySignals.length,
                   )
                 : 0
             }%`}
@@ -465,9 +503,10 @@ function buildPanelContent(args: {
               opportunitySignals.length
                 ? Math.round(
                     opportunitySignals.reduce(
-                      (sum, signal) => sum + toPercent(Number(signal.confidence_score || 0)),
-                      0
-                    ) / opportunitySignals.length
+                      (sum, signal) =>
+                        sum + toPercent(Number(signal.confidence_score || 0)),
+                      0,
+                    ) / opportunitySignals.length,
                   )
                 : 0
             }%`}
@@ -480,7 +519,9 @@ function buildPanelContent(args: {
               Opportunity interpretation is being framed against{" "}
               {companyProfile.company_name || "the current company profile"} and
               its active priorities of{" "}
-              {companyProfile.strategic_priorities?.join(", ") || "growth and resilience"}.
+              {companyProfile.strategic_priorities?.join(", ") ||
+                "growth and resilience"}
+              .
             </p>
           </div>
         </div>
@@ -493,16 +534,14 @@ function buildPanelContent(args: {
       <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
         <div className="text-sm font-medium text-white">Panel Summary</div>
         <p className="mt-3 text-sm leading-7 text-slate-300">
-          This focus mode is designed to widen exploration surfaces,
-          reduce clutter, and give GeoPulse a premium boardroom-grade
-          drill-down experience.
+          This focus mode is designed to widen exploration surfaces, reduce
+          clutter, and give GeoPulse a premium boardroom-grade drill-down
+          experience.
         </p>
       </div>
 
       <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
-        <div className="text-sm font-medium text-white">
-          Mid-Layer Insight
-        </div>
+        <div className="text-sm font-medium text-white">Mid-Layer Insight</div>
         <p className="mt-3 text-sm leading-7 text-slate-300">
           Use this space to inject richer cluster analysis, scenario
           implications, source metadata, and deeper agent interpretation.
@@ -514,8 +553,8 @@ function buildPanelContent(args: {
           Deeper Workspace Surface
         </div>
         <p className="mt-3 text-sm leading-7 text-slate-300">
-          This shell is intentionally wide so future drill-downs can
-          include charts, timelines, agent debates, source provenance, and
+          This shell is intentionally wide so future drill-downs can include
+          charts, timelines, agent debates, source provenance, and
           company-specific calibration overlays.
         </p>
       </div>
@@ -550,10 +589,18 @@ export default function HomePage() {
   const [config, setConfig] = useState<ConfigState>(demoConfig);
   const [themeMode, setThemeMode] = useState<"dark" | "light">("light");
 
-  const [analystMessages, setAnalystMessages] = useState<WorkspaceMessage[]>([]);
-  const [advisorMessages, setAdvisorMessages] = useState<WorkspaceMessage[]>([]);
-  const [plannerMessages, setPlannerMessages] = useState<WorkspaceMessage[]>([]);
-  const [profileMessages, setProfileMessages] = useState<WorkspaceMessage[]>([]);
+  const [analystMessages, setAnalystMessages] = useState<WorkspaceMessage[]>(
+    [],
+  );
+  const [advisorMessages, setAdvisorMessages] = useState<WorkspaceMessage[]>(
+    [],
+  );
+  const [plannerMessages, setPlannerMessages] = useState<WorkspaceMessage[]>(
+    [],
+  );
+  const [profileMessages, setProfileMessages] = useState<WorkspaceMessage[]>(
+    [],
+  );
 
   const [chainOutputs, setChainOutputs] = useState<ChainOutputs>({
     analyse: null,
@@ -563,7 +610,7 @@ export default function HomePage() {
   });
 
   const [chainInput, setChainInput] = useState(
-    "Resilience-led service expansion\nRising resilience concerns create room for support services, consulting, rapid implementation, and efficiency-driven offers."
+    "Resilience-led service expansion\nRising resilience concerns create room for support services, consulting, rapid implementation, and efficiency-driven offers.",
   );
   const [chainResult, setChainResult] = useState<any | null>(null);
   const [chainLoading, setChainLoading] = useState(false);
@@ -571,9 +618,9 @@ export default function HomePage() {
 
   const [signals, setSignals] = useState<SignalItem[]>([]);
   const [liveOpportunities, setLiveOpportunities] =
-	useState<OpportunityItem[]>(demoOpportunities);
+    useState<OpportunityItem[]>(demoOpportunities);
   const [rawDashboardSummary, setRawDashboardSummary] =
-	useState<DashboardSummary | null>(null);
+    useState<DashboardSummary | null>(null);
   const [loadingSignals, setLoadingSignals] = useState(false);
   const [loadingOpportunities, setLoadingOpportunities] = useState(false);
   const [loadingSummary, setLoadingSummary] = useState(false);
@@ -587,7 +634,7 @@ export default function HomePage() {
     "Panel",
   ]);
   const [selectedSignal, setSelectedSignal] = useState<SignalItem | null>(null);
-  
+
   const [plannerExecutionRequest, setPlannerExecutionRequest] = useState<{
     id: string;
     prompt: string;
@@ -600,10 +647,10 @@ export default function HomePage() {
 
   const companyProfile = useMemo(
     () => mapProfileToIntelligenceProfile(profile),
-    [profile]
+    [profile],
   );
-  
-    useEffect(() => {
+
+  useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [activeWorkspace]);
 
@@ -623,15 +670,14 @@ export default function HomePage() {
         }
 
         const data = await response.json();
-		if (!cancelled) {
-		  const nextSignals = Array.isArray(data)
-			? data
-			: Array.isArray(data?.signals)
-			? data.signals
-			: [];
-		  setSignals(nextSignals.map(normaliseSignal));
-		}
-		
+        if (!cancelled) {
+          const nextSignals = Array.isArray(data)
+            ? data
+            : Array.isArray(data?.signals)
+              ? data.signals
+              : [];
+          setSignals(nextSignals.map(normaliseSignal));
+        }
       } catch (error) {
         console.error("Failed to load signals", error);
         if (!cancelled) {
@@ -679,7 +725,7 @@ export default function HomePage() {
       try {
         setLoadingProfile(true);
 
-        const response = await fetch(`${API_BASE}/intel/company-profile`, {
+        const response = await fetch(`${API_BASE}/company/profile/latest`, {
           cache: "no-store",
         });
 
@@ -687,33 +733,29 @@ export default function HomePage() {
           return;
         }
 
-        const data: BackendCompanyProfileResponse | null = await response.json();
+        const data: BackendCompanyProfileResponse | null =
+          await response.json();
         if (!data || !data.profile || cancelled) {
           return;
         }
 
         const savedProfile = data.profile;
 
-		setProfile((prev: any) => ({
-			...prev,
-			...savedProfile,
-			company_name:
-				savedProfile.company_name ||
-				data.company_name ||
-				prev.company_name,
-			strategic_priorities:
-				savedProfile.strategic_priorities ||
-				data.strategic_priorities ||
-				prev.strategic_priorities,
-			recommendation_style:
-				savedProfile.recommendation_style ||
-				data.recommendation_posture ||
-				prev.recommendation_style,
-			markets:
-				savedProfile.markets ||
-				data.market_focus ||
-				prev.markets,
-		  }));
+        setProfile((prev: any) => ({
+          ...prev,
+          ...savedProfile,
+          company_name:
+            savedProfile.company_name || data.company_name || prev.company_name,
+          strategic_priorities:
+            savedProfile.strategic_priorities ||
+            data.strategic_priorities ||
+            prev.strategic_priorities,
+          recommendation_style:
+            savedProfile.recommendation_style ||
+            data.recommendation_posture ||
+            prev.recommendation_style,
+          markets: savedProfile.markets || data.market_focus || prev.markets,
+        }));
       } catch (error) {
         console.error("Failed to load saved company profile", error);
       } finally {
@@ -722,68 +764,70 @@ export default function HomePage() {
         }
       }
     }
-	
-	async function loadOpportunities() {
-	  try {
-		setLoadingOpportunities(true);
 
-		const response = await fetch(`${API_BASE}/intel/opportunities`, {
-		  cache: "no-store",
-		});
+    async function loadOpportunities() {
+      try {
+        setLoadingOpportunities(true);
 
-		if (!response.ok) {
-		  throw new Error(`Failed to load opportunities: ${response.status}`);
-		}
+        const response = await fetch(`${API_BASE}/intel/opportunities`, {
+          cache: "no-store",
+        });
 
-		const data = await response.json();
+        if (!response.ok) {
+          throw new Error(`Failed to load opportunities: ${response.status}`);
+        }
 
-		if (!cancelled) {
-		  const nextOpportunities = Array.isArray(data)
-			? data
-			: Array.isArray(data?.opportunities)
-			? data.opportunities
-			: [];
+        const data = await response.json();
 
-		  setLiveOpportunities(
-			nextOpportunities.length > 0 ? nextOpportunities : demoOpportunities
-		  );
-		}
-	  } catch (error) {
-		console.error("Failed to load opportunities", error);
+        if (!cancelled) {
+          const nextOpportunities = Array.isArray(data)
+            ? data
+            : Array.isArray(data?.opportunities)
+              ? data.opportunities
+              : [];
 
-		if (!cancelled) {
-		  setLiveOpportunities(demoOpportunities);
-	    }
+          setLiveOpportunities(
+            nextOpportunities.length > 0
+              ? nextOpportunities
+              : demoOpportunities,
+          );
+        }
+      } catch (error) {
+        console.error("Failed to load opportunities", error);
+
+        if (!cancelled) {
+          setLiveOpportunities(demoOpportunities);
+        }
       } finally {
-		if (!cancelled) {
-		  setLoadingOpportunities(false);
-		}
-	  }
-	}
-	
+        if (!cancelled) {
+          setLoadingOpportunities(false);
+        }
+      }
+    }
+
     async function loadAll() {
-	  await Promise.all([
-		loadSignals(),
-		loadOpportunities(),
-		loadSummary(),
-		loadSavedCompanyProfile(),
-	  ]);
+      await Promise.all([
+        loadSignals(),
+        loadOpportunities(),
+        loadSummary(),
+        loadSavedCompanyProfile(),
+      ]);
 
-	  if (!cancelled) {
-		setLastUpdated(new Date());
-	  }
-	}
+      if (!cancelled) {
+        setLastUpdated(new Date());
+      }
+    }
 
-	void loadAll();
+    void loadAll();
 
-	const interval = setInterval(() => {
-	  void loadAll();
-	}, 60000);
+    const interval = setInterval(() => {
+      void loadAll();
+    }, 60000);
 
-	return () => {
-	  cancelled = true;
-	  clearInterval(interval);
-	};    
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, []);
 
   const dashboardSummary = useMemo(() => {
@@ -821,7 +865,7 @@ export default function HomePage() {
           (chainOutputs as any)?.profile?.key_insight ||
           (companyProfile?.strategic_priorities?.length
             ? `GeoPulse is currently calibrated around: ${companyProfile.strategic_priorities.join(
-                ", "
+                ", ",
               )}.`
             : safeSummary.agent_snapshots?.profile_agent) ||
           "No profile agent snapshot available yet.",
@@ -855,20 +899,23 @@ export default function HomePage() {
       case "executive":
         return (
           <div className="space-y-4">
-            {(loadingSignals || loadingOpportunities || loadingSummary || loadingProfile) && (
-			  <div className="rounded-2xl border border-cyan-400/20 bg-cyan-50 px-4 py-3 text-sm text-cyan-100">
-				Loading live GeoPulse intelligence...
-			  </div>
-			)}
+            {(loadingSignals ||
+              loadingOpportunities ||
+              loadingSummary ||
+              loadingProfile) && (
+              <div className="rounded-2xl border border-cyan-400/20 bg-cyan-50 px-4 py-3 text-sm text-cyan-100">
+                Loading live GeoPulse intelligence...
+              </div>
+            )}
 
             <ExecutiveDashboardView
-			  summary={dashboardSummary}
-			  signals={signals}
-			  opportunities={liveOpportunities}
-			  profile={profile}
-			  onExpandPanel={openPanel}
-			  onNavigate={(target) => setActiveWorkspace(target)}
-			/>
+              summary={dashboardSummary}
+              signals={signals}
+              opportunities={liveOpportunities}
+              profile={profile}
+              onExpandPanel={openPanel}
+              onNavigate={(target) => setActiveWorkspace(target)}
+            />
           </div>
         );
 
@@ -881,19 +928,16 @@ export default function HomePage() {
               </div>
             )}
 
-            <LiveSignalsWorkspace
-              signals={signals}
-              onOpenSignal={openSignal}
-            />
+            <LiveSignalsWorkspace signals={signals} onOpenSignal={openSignal} />
           </div>
         );
 
       case "opportunities":
         return (
           <OpportunityWorkspace
-			opportunities={liveOpportunities}
-			signals={signals}
-		  />
+            opportunities={liveOpportunities}
+            signals={signals}
+          />
         );
 
       case "company":
@@ -927,17 +971,17 @@ export default function HomePage() {
         );
 
       case "planner":
-  return (
-    <PlannerAgentWorkspace
-      messages={plannerMessages}
-      setMessages={setPlannerMessages}
-      chainOutputs={chainOutputs}
-      setChainOutputs={setChainOutputs}
-      companyProfile={companyProfile}
-      executionRequest={plannerExecutionRequest}
-      clearExecutionRequest={() => setPlannerExecutionRequest(null)}
-    />
-  );
+        return (
+          <PlannerAgentWorkspace
+            messages={plannerMessages}
+            setMessages={setPlannerMessages}
+            chainOutputs={chainOutputs}
+            setChainOutputs={setChainOutputs}
+            companyProfile={companyProfile}
+            executionRequest={plannerExecutionRequest}
+            clearExecutionRequest={() => setPlannerExecutionRequest(null)}
+          />
+        );
 
       case "profile-agent":
         return (
@@ -960,44 +1004,45 @@ export default function HomePage() {
             ) : null}
 
             <AgentChainWorkspace
-			  input={chainInput}
-			  setInput={setChainInput}
-			  result={chainResult}
-			  setResult={setChainResult}
-			  loading={chainLoading}
-			  setLoading={setChainLoading}
-			  companyProfile={companyProfile}
-			  chainOutputs={chainOutputs}
-			  setChainOutputs={setChainOutputs}
-			  signals={signals}
-			  opportunities={liveOpportunities}
-			  onExecute={({ prompt, methodology }) => {
-			    const methodologyLabel =
-			  	  methodology === "prince2"
-			  	    ? "PRINCE2"
-				    : methodology === "agile"
-				    ? "Agile"
-				    : "Auto";
+              input={chainInput}
+              setInput={setChainInput}
+              result={chainResult}
+              setResult={setChainResult}
+              loading={chainLoading}
+              setLoading={setChainLoading}
+              companyProfile={companyProfile}
+              chainOutputs={chainOutputs}
+              setChainOutputs={setChainOutputs}
+              signals={signals}
+              opportunities={liveOpportunities}
+              onExecute={({ prompt, methodology }) => {
+                const methodologyLabel =
+                  methodology === "prince2"
+                    ? "PRINCE2"
+                    : methodology === "agile"
+                      ? "Agile"
+                      : "Auto";
 
-			    setPlannerExecutionRequest({
-				  id: crypto.randomUUID(),
-				  prompt,
-				  methodology,
-				  summary: {
-				    methodologyLabel,
-				    objectiveHint: "Convert the selected intelligence into an execution-grade plan.",
-				  },
-			    });
+                setPlannerExecutionRequest({
+                  id: crypto.randomUUID(),
+                  prompt,
+                  methodology,
+                  summary: {
+                    methodologyLabel,
+                    objectiveHint:
+                      "Convert the selected intelligence into an execution-grade plan.",
+                  },
+                });
 
-			    setActiveWorkspace("planner");
-			  }}
-			  onSave={() => {
-				console.log("Save for later clicked");
-			  }}
-			  onReject={() => {
-				console.log("Reject clicked");
-			  }}
-			/>
+                setActiveWorkspace("planner");
+              }}
+              onSave={() => {
+                console.log("Save for later clicked");
+              }}
+              onReject={() => {
+                console.log("Reject clicked");
+              }}
+            />
           </div>
         );
 
@@ -1009,20 +1054,20 @@ export default function HomePage() {
           />
         );
 
-            case "configuration":
-			  return (
-			    <ConfigurationWorkspace
-				  config={config}
-				  onChange={(nextConfig) => {
-				    setConfig(nextConfig);
+      case "configuration":
+        return (
+          <ConfigurationWorkspace
+            config={config}
+            onChange={(nextConfig) => {
+              setConfig(nextConfig);
 
-				    const backgroundTheme = (nextConfig as any)?.background_theme;
-				      if (backgroundTheme === "dark" || backgroundTheme === "light") {
-					setThemeMode(backgroundTheme);
-				    }
-				  }}
-			    />
-			  );
+              const backgroundTheme = (nextConfig as any)?.background_theme;
+              if (backgroundTheme === "dark" || backgroundTheme === "light") {
+                setThemeMode(backgroundTheme);
+              }
+            }}
+          />
+        );
 
       default:
         return null;
@@ -1058,14 +1103,12 @@ export default function HomePage() {
 
       <div className="space-y-4">
         <div className="rounded-3xl border border-cyan-400/20 bg-cyan-500/10 p-5">
-          <div className="text-sm font-medium text-cyan-200">
-            Analyst View
-          </div>
+          <div className="text-sm font-medium text-cyan-200">Analyst View</div>
           <p className="mt-3 text-sm leading-7 text-slate-200">
-            This signal matters because it reinforces broader cluster
-            momentum around {selectedSignal.cluster_tag}. The likely
-            implication is heightened executive need for timing-sensitive
-            visibility and targeted response planning.
+            This signal matters because it reinforces broader cluster momentum
+            around {selectedSignal.cluster_tag}. The likely implication is
+            heightened executive need for timing-sensitive visibility and
+            targeted response planning.
           </p>
         </div>
 
@@ -1074,9 +1117,9 @@ export default function HomePage() {
             Advisor View
           </div>
           <p className="mt-3 text-sm leading-7 text-slate-200">
-            Recommended response: assess exposure, identify direct
-            commercial risk or upside, and convert this signal into either
-            a mitigation plan or an opportunity capture action.
+            Recommended response: assess exposure, identify direct commercial
+            risk or upside, and convert this signal into either a mitigation
+            plan or an opportunity capture action.
           </p>
         </div>
       </div>
@@ -1090,33 +1133,33 @@ export default function HomePage() {
     })
   );
 
-    const appThemeClass =
+  const appThemeClass =
     themeMode === "light"
       ? "min-h-screen bg-white text-slate-900"
       : "min-h-screen bg-[radial-gradient(circle_at_top,_rgba(6,182,212,0.12),_transparent_30%),radial-gradient(circle_at_right,_rgba(16,185,129,0.10),_transparent_25%),linear-gradient(180deg,_#020617_0%,_#020617_100%)] text-white";
-  
+
   return (
     <main className={`${appThemeClass} overflow-x-hidden`}>
-	  <div className="mx-auto w-full max-w-[1760px] px-3 py-3 sm:px-4 md:px-5 lg:px-6 lg:py-5">
-	    <div className="rounded-[28px] border border-slate-300 bg-slate-100 p-3 shadow-[0_24px_80px_rgba(15,23,42,0.14)] md:p-4 lg:p-5">
-	      {lastUpdated ? (
-		    <div className="mb-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-500">
-		      Last updated: {lastUpdated.toLocaleTimeString()}
-			 </div>
-		   ) : null}
+      <div className="mx-auto w-full max-w-[1760px] px-3 py-3 sm:px-4 md:px-5 lg:px-6 lg:py-5">
+        <div className="rounded-[28px] border border-slate-300 bg-slate-100 p-3 shadow-[0_24px_80px_rgba(15,23,42,0.14)] md:p-4 lg:p-5">
+          {lastUpdated ? (
+            <div className="mb-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-500">
+              Last updated: {lastUpdated.toLocaleTimeString()}
+            </div>
+          ) : null}
 
-		   <div className="grid gap-5 lg:grid-cols-[240px_minmax(0,1fr)]">
-			 <WorkspaceNavigation
-			   active={activeWorkspace}
-			   onChange={setActiveWorkspace}
-			 />
+          <div className="grid gap-5 lg:grid-cols-[240px_minmax(0,1fr)]">
+            <WorkspaceNavigation
+              active={activeWorkspace}
+              onChange={setActiveWorkspace}
+            />
 
-			 <section className="min-w-0 overflow-hidden rounded-2xl border border-slate-300 bg-white p-3 text-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] md:p-4">
-			  {renderWorkspace()}
-			 </section>
-		   </div>
-		 </div>
-	  </div>
+            <section className="min-w-0 overflow-hidden rounded-2xl border border-slate-300 bg-white p-3 text-slate-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)] md:p-4">
+              {renderWorkspace()}
+            </section>
+          </div>
+        </div>
+      </div>
 
       <FocusModePanelShell
         open={focusOpen}
@@ -1140,12 +1183,9 @@ function PanelPill({
   tone?: "neutral" | "risk" | "opportunity";
 }) {
   const toneMap = {
-    neutral:
-      "border-slate-300 bg-white text-slate-800 shadow-sm",
-    risk:
-      "border-amber-300 bg-amber-50 text-amber-800 shadow-sm",
-    opportunity:
-      "border-emerald-300 bg-emerald-50 text-emerald-800 shadow-sm",
+    neutral: "border-slate-300 bg-white text-slate-800 shadow-sm",
+    risk: "border-amber-300 bg-amber-50 text-amber-800 shadow-sm",
+    opportunity: "border-emerald-300 bg-emerald-50 text-emerald-800 shadow-sm",
   };
 
   const dotMap = {
@@ -1164,17 +1204,10 @@ function PanelPill({
     </span>
   );
 }
-function PanelMetricCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  const tone =
-    label.includes("Confidence")
-      ? "border-indigo-400 bg-indigo-950/95"
-      : label.includes("Strength")
+function PanelMetricCard({ label, value }: { label: string; value: string }) {
+  const tone = label.includes("Confidence")
+    ? "border-indigo-400 bg-indigo-950/95"
+    : label.includes("Strength")
       ? "border-cyan-400 bg-cyan-950/95"
       : "border-sky-400 bg-sky-950/95";
 

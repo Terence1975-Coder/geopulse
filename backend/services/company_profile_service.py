@@ -174,6 +174,7 @@ def get_latest_company_profile(db: Session) -> Optional[CompanyProfileModel]:
 def save_or_update_company_profile(db: Session, data: Dict[str, Any]) -> Dict[str, Any]:
     payload = _normalise_payload(data)
     company_id = str(data.get("id") or data.get("company_id") or "").strip()
+    payload.pop("id", None)
 
     profile: Optional[CompanyProfileModel] = None
     if company_id:
