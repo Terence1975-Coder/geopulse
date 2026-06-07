@@ -38,9 +38,11 @@ frontend/
 
 ## Run backend
 ```bash
-cd backend
-pip install fastapi uvicorn pydantic
-uvicorn main:app --reload
+cd ~/dev/geopulse-ai
+python3 -m venv backend/.venv
+source backend/.venv/bin/activate
+pip install -r backend/requirements.txt
+uvicorn backend.main:app --reload
 ```
 
 ## Run frontend
@@ -53,7 +55,7 @@ npm run dev
 ## Frontend env
 Create `.env.local`
 ```env
-NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+NEXT_PUBLIC_API_BASE=http://127.0.0.1:8000
 ```
 
 ## Integration notes
