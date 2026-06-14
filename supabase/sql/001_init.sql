@@ -201,4 +201,17 @@ create policy "agent_runs service role update" on public.agent_runs
     for update using (auth.role() = 'service_role')
     with check (auth.role() = 'service_role');
 
+-- API role grants
+grant usage on schema public to authenticated, service_role;
+
+grant select, insert, update on public.profiles to authenticated;
+grant select on public.companies to authenticated;
+grant select on public.workspace_settings to authenticated;
+grant select, insert on public.agent_runs to authenticated;
+
+grant select, insert, update, delete on public.profiles to service_role;
+grant select, insert, update, delete on public.companies to service_role;
+grant select, insert, update, delete on public.workspace_settings to service_role;
+grant select, insert, update, delete on public.agent_runs to service_role;
+
 commit;

@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.db import Base, engine
 from backend.intel.router import router as intel_router
 from backend.api.company_intelligence import router as company_router
+from backend.api.admin import router as admin_router
 
 # Ensure DB tables exist
 Base.metadata.create_all(bind=engine)
@@ -36,6 +37,7 @@ app.add_middleware(
 # Routers
 app.include_router(intel_router)
 app.include_router(company_router)
+app.include_router(admin_router)
 
 # Health check
 @app.get("/health")
