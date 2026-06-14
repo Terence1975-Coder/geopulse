@@ -45,7 +45,9 @@ create table if not exists public.agent_runs (
     id uuid primary key default gen_random_uuid(),
     company_id uuid references public.companies (id),
     user_id uuid references public.profiles (id),
-    status text,
+    status text not null default 'queued'
+        constraint agent_runs_status_check
+            check (status in ('queued', 'running', 'completed', 'failed', 'cancelled')),
     input jsonb,
     output_summary text,
     started_at timestamptz not null default now(),
@@ -63,18 +65,13 @@ create unique index if not exists workspace_settings_company_id_idx
 
 create index if not exists agent_runs_company_id_idx on public.agent_runs (company_id);
 create index if not exists agent_runs_user_id_idx on public.agent_runs (user_id);
-create index if not exists agent_runs_status_open_idx on public.agent_runs (status) where status = 'open';
+create index if not exists agent_runs_status_open_idx on public.agent_runs (status) where status in ('queued', 'running');
 
 -- RLS enablement (default deny)
 alter table public.profiles enable row level security;
 alter table public.companies enable row level security;
 alter table public.workspace_settings enable row level security;
 alter table public.agent_runs enable row level security;
-
-alter table public.profiles force row level security;
-alter table public.companies force row level security;
-alter table public.workspace_settings force row level security;
-alter table public.agent_runs force row level security;
 
 -- Helper to read the role claim from JWT
 create or replace function public.jwt_role() returns text
@@ -84,21 +81,48 @@ as $$
     select coalesce(current_setting('request.jwt.claims', true)::jsonb ->> 'role', '');
 $$;
 
+-- updated_at trigger helper
+create or replace function public.set_updated_at() returns trigger
+    language plpgsql
+as $$
+begin
+    new.updated_at = now();
+    return new;
+end;
+$$;
+
+drop trigger if exists profiles_set_updated_at on public.profiles;
+create trigger profiles_set_updated_at
+    before update on public.profiles
+    for each row
+    execute procedure public.set_updated_at();
+
+drop trigger if exists workspace_settings_set_updated_at on public.workspace_settings;
+create trigger workspace_settings_set_updated_at
+    before update on public.workspace_settings
+    for each row
+    execute procedure public.set_updated_at();
+
 -- profiles policies
-create policy if not exists "profiles select self" on public.profiles
+drop policy if exists "profiles select self" on public.profiles;
+create policy "profiles select self" on public.profiles
     for select using (auth.uid() = id);
 
-create policy if not exists "profiles insert self" on public.profiles
+drop policy if exists "profiles insert self" on public.profiles;
+create policy "profiles insert self" on public.profiles
     for insert with check (auth.uid() = id);
 
-create policy if not exists "profiles update self" on public.profiles
+drop policy if exists "profiles update self" on public.profiles;
+create policy "profiles update self" on public.profiles
     for update using (auth.uid() = id) with check (auth.uid() = id);
 
-create policy if not exists "profiles service role full access" on public.profiles
+drop policy if exists "profiles service role full access" on public.profiles;
+create policy "profiles service role full access" on public.profiles
     for all using (auth.role() = 'service_role') with check (auth.role() = 'service_role');
 
 -- companies policies
-create policy if not exists "companies select same company" on public.companies
+drop policy if exists "companies select same company" on public.companies;
+create policy "companies select same company" on public.companies
     for select using (
         exists (
             select 1
@@ -108,7 +132,8 @@ create policy if not exists "companies select same company" on public.companies
         )
     );
 
-create policy if not exists "companies write admin or service role" on public.companies
+drop policy if exists "companies write admin or service role" on public.companies;
+create policy "companies write admin or service role" on public.companies
     for all using (
         auth.role() = 'service_role'
         or public.jwt_role() = 'admin'
@@ -118,7 +143,8 @@ create policy if not exists "companies write admin or service role" on public.co
     );
 
 -- workspace_settings policies
-create policy if not exists "workspace_settings select same company" on public.workspace_settings
+drop policy if exists "workspace_settings select same company" on public.workspace_settings;
+create policy "workspace_settings select same company" on public.workspace_settings
     for select using (
         exists (
             select 1
@@ -128,12 +154,14 @@ create policy if not exists "workspace_settings select same company" on public.w
         )
     );
 
-create policy if not exists "workspace_settings service role write" on public.workspace_settings
+drop policy if exists "workspace_settings service role write" on public.workspace_settings;
+create policy "workspace_settings service role write" on public.workspace_settings
     for all using (auth.role() = 'service_role')
     with check (auth.role() = 'service_role');
 
 -- agent_runs policies
-create policy if not exists "agent_runs select same company" on public.agent_runs
+drop policy if exists "agent_runs select same company" on public.agent_runs;
+create policy "agent_runs select same company" on public.agent_runs
     for select using (
         exists (
             select 1
@@ -143,7 +171,8 @@ create policy if not exists "agent_runs select same company" on public.agent_run
         )
     );
 
-create policy if not exists "agent_runs insert same company" on public.agent_runs
+drop policy if exists "agent_runs insert same company" on public.agent_runs;
+create policy "agent_runs insert same company" on public.agent_runs
     for insert with check (
         exists (
             select 1
@@ -153,7 +182,8 @@ create policy if not exists "agent_runs insert same company" on public.agent_run
         )
     );
 
-create policy if not exists "agent_runs service role update" on public.agent_runs
+drop policy if exists "agent_runs service role update" on public.agent_runs;
+create policy "agent_runs service role update" on public.agent_runs
     for update using (auth.role() = 'service_role')
     with check (auth.role() = 'service_role');
 
