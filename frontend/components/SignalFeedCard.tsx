@@ -107,7 +107,7 @@ function StatusPill({
   tone?: "neutral" | "risk" | "opportunity" | "info" | "good";
 }) {
   const toneMap = {
-    neutral: "border-slate-200 bg-white text-slate-600",
+    neutral: "border-slate-200 bg-white text-slate-700",
     risk: "border-amber-200 bg-amber-50 text-amber-700",
     opportunity: "border-emerald-200 bg-emerald-50 text-emerald-700",
     info: "border-cyan-200 bg-cyan-50 text-cyan-700",
@@ -116,7 +116,7 @@ function StatusPill({
 
   return (
     <span
-      className={`rounded-full border px-2.5 py-1 text-xs font-medium ${toneMap[tone]}`}
+      className={`rounded-xl border px-2.5 py-1 text-xs font-semibold leading-tight ${toneMap[tone]}`}
     >
       {children}
     </span>
@@ -131,11 +131,11 @@ function ReadoutItem({
   value: string | number;
 }) {
   return (
-    <div className="min-w-0 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-center">
+    <div className="min-w-0 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-center shadow-[0_4px_12px_rgba(15,23,42,0.04)]">
       <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
         {label}
       </div>
-      <div className="mt-1 truncate text-sm font-semibold text-slate-950">
+      <div className="mt-1 truncate text-sm font-semibold text-slate-900">
         {value}
       </div>
     </div>
@@ -154,11 +154,11 @@ export default function SignalFeedCard({
   const lifecycle = resolveLifecycle(signal);
   const sourceUrl = signal.source_url || signal.url;
 
-    const borderTone = isOpportunity
+  const borderTone = isOpportunity
     ? "border-emerald-300"
     : signal.severity === "high"
-    ? "border-red-300"
-    : "border-slate-300";
+      ? "border-red-200"
+      : "border-slate-200";
 
   const cardTone = "bg-white";
 
@@ -171,7 +171,7 @@ export default function SignalFeedCard({
 
   return (
     <article
-      className={`overflow-hidden rounded-lg border ${borderTone} ${cardTone} shadow-sm`}
+      className={`overflow-hidden rounded-xl border ${borderTone} ${cardTone} shadow-[0_12px_30px_rgba(15,23,42,0.08)] transition hover:-translate-y-[1px] hover:shadow-[0_16px_36px_rgba(15,23,42,0.12)]`}
     >
       <div className="p-4">
         <div className="flex flex-col gap-3">
@@ -216,7 +216,7 @@ export default function SignalFeedCard({
             {onOpen ? (
               <button
                 onClick={onOpen}
-                className="rounded-md border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
               >
                 Open Signal
               </button>
@@ -225,7 +225,7 @@ export default function SignalFeedCard({
             {onViewSupportingSignals ? (
               <button
                 onClick={() => onViewSupportingSignals(signal)}
-                className="rounded-md border border-cyan-300 bg-cyan-50 px-3.5 py-2 text-sm font-medium text-cyan-800 transition hover:bg-cyan-100"
+                className="rounded-lg border border-cyan-200 bg-cyan-50 px-3.5 py-2 text-sm font-semibold text-cyan-800 transition hover:bg-cyan-100"
               >
                 View Supporting Signals
               </button>
@@ -236,7 +236,7 @@ export default function SignalFeedCard({
                 href={sourceUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-md border border-slate-300 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
               >
                 Source
               </a>

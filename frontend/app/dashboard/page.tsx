@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import WorkspaceNavigation from "../../components/WorkspaceNavigation";
 import FocusModePanelShell from "../../components/FocusModePanelShell";
+import Panel from "../../components/ui/Panel";
+import Badge from "../../components/ui/Badge";
+import Button from "../../components/ui/Button";
 import ExecutiveDashboardView from "../../workspaces/ExecutiveDashboardView";
 import LiveSignalsWorkspace from "../../workspaces/LiveSignalsWorkspace";
 import OpportunityWorkspace from "../../workspaces/OpportunityWorkspace";
@@ -1075,53 +1078,51 @@ export default function HomePage() {
   };
 
   const focusContent = selectedSignal ? (
-    <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-      <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6">
-        <div className="text-xs uppercase tracking-[0.2em] text-slate-500">
+    <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+      <Panel variant="soft" padding="lg" className="border border-white/10 text-white">
+        <div className="text-xs uppercase tracking-[0.18em] text-slate-300">
           Signal Detail
         </div>
-        <h3 className="mt-3 text-2xl font-semibold text-white">
+        <h3 className="mt-3 text-3xl font-semibold leading-tight text-white">
           {selectedSignal.headline}
         </h3>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-slate-300">
+          <Badge tone="info" variant="outline" className="text-white/90">
             {selectedSignal.source}
-          </span>
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-slate-300">
+          </Badge>
+          <Badge tone="neutral" variant="outline" className="text-white/90">
             {selectedSignal.region}
-          </span>
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-slate-300">
+          </Badge>
+          <Badge tone="neutral" variant="outline" className="text-white/90">
             {selectedSignal.cluster_tag}
-          </span>
+          </Badge>
         </div>
 
-        <p className="mt-5 text-base leading-8 text-slate-300">
+        <p className="mt-5 text-base leading-8 text-slate-200">
           {selectedSignal.summary}
         </p>
-      </div>
+      </Panel>
 
       <div className="space-y-4">
-        <div className="rounded-3xl border border-cyan-400/20 bg-cyan-500/10 p-5">
-          <div className="text-sm font-medium text-cyan-200">Analyst View</div>
-          <p className="mt-3 text-sm leading-7 text-slate-200">
+        <Panel variant="soft" padding="lg" className="border border-cyan-300/30 text-white">
+          <div className="text-sm font-semibold text-cyan-100">Analyst View</div>
+          <p className="mt-3 text-sm leading-7 text-slate-100">
             This signal matters because it reinforces broader cluster momentum
             around {selectedSignal.cluster_tag}. The likely implication is
             heightened executive need for timing-sensitive visibility and
             targeted response planning.
           </p>
-        </div>
+        </Panel>
 
-        <div className="rounded-3xl border border-emerald-400/20 bg-emerald-500/10 p-5">
-          <div className="text-sm font-medium text-emerald-200">
-            Advisor View
-          </div>
-          <p className="mt-3 text-sm leading-7 text-slate-200">
+        <Panel variant="soft" padding="lg" className="border border-emerald-300/30 text-white">
+          <div className="text-sm font-semibold text-emerald-100">Advisor View</div>
+          <p className="mt-3 text-sm leading-7 text-slate-100">
             Recommended response: assess exposure, identify direct commercial
-            risk or upside, and convert this signal into either a mitigation
-            plan or an opportunity capture action.
+            risk or upside, and convert this signal into either a mitigation plan
+            or an opportunity capture action.
           </p>
-        </div>
+        </Panel>
       </div>
     </div>
   ) : (
@@ -1141,12 +1142,12 @@ export default function HomePage() {
   return (
     <main className={`${appThemeClass} overflow-x-hidden`}>
       <div className="mx-auto w-full max-w-[1760px] px-3 py-3 sm:px-4 md:px-5 lg:px-6 lg:py-5">
-        <div className="rounded-[28px] border border-slate-300 bg-slate-100 p-3 shadow-[0_24px_80px_rgba(15,23,42,0.14)] md:p-4 lg:p-5">
-          {lastUpdated ? (
-            <div className="mb-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-500">
-              Last updated: {lastUpdated.toLocaleTimeString()}
-            </div>
-          ) : null}
+          <div className="rounded-[28px] border border-slate-300 bg-slate-100 p-3 shadow-[0_24px_80px_rgba(15,23,42,0.14)] md:p-4 lg:p-5">
+            {lastUpdated ? (
+              <div className="mb-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-500">
+                Last updated: {lastUpdated.toLocaleTimeString()}
+              </div>
+            ) : null}
 
           <div className="grid gap-5 lg:grid-cols-[240px_minmax(0,1fr)]">
             <WorkspaceNavigation

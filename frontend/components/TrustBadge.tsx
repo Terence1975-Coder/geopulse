@@ -15,23 +15,23 @@ export default function TrustBadge({
 }: Props) {
   const lifecycleTone =
     lifecycle === "Fresh"
-      ? "border-emerald-400/30 bg-emerald-500/15 text-emerald-200"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
       : lifecycle === "Active"
-      ? "border-amber-400/30 bg-amber-500/15 text-amber-200"
-      : "border-red-400/30 bg-red-500/15 text-red-200";
+        ? "border-amber-200 bg-amber-50 text-amber-700"
+        : "border-rose-200 bg-rose-50 text-rose-700";
 
   return (
     <div className={compact ? "flex flex-wrap items-center gap-2" : "space-y-2"}>
       <div className="flex flex-wrap items-center gap-2">
-        <span className={`rounded-full border px-3 py-1 text-xs font-medium ${lifecycleTone}`}>
+        <span className={`rounded-xl border px-3 py-1 text-xs font-semibold ${lifecycleTone}`}>
           {lifecycle}
         </span>
 
-        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300">
+        <span className="rounded-xl border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700">
           Confidence {Math.round(confidenceScore * 100)}%
         </span>
 
-        <span className="rounded-full border border-cyan-400/20 bg-cyan-500/10 px-3 py-1 text-xs text-cyan-200">
+        <span className="rounded-xl border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-800">
           Strength {Math.round(signalStrength * 100)}%
         </span>
       </div>

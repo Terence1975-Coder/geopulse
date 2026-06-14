@@ -3,6 +3,10 @@
 import DashboardPanel from "../components/DashboardPanel";
 import SignalFeedCard from "../components/SignalFeedCard";
 import ProfileCompletenessCard from "../components/ProfileCompletenessCard";
+import Panel from "../components/ui/Panel";
+import Button from "../components/ui/Button";
+import Badge from "../components/ui/Badge";
+import MetricCard from "../components/ui/MetricCard";
 import {
   DashboardSummary,
   SignalItem,
@@ -32,125 +36,94 @@ export default function ExecutiveDashboardView({
 
   return (
     <div className="relative space-y-6">
-      <section className="overflow-hidden rounded-lg border border-white/10 bg-gradient-to-br from-slate-950 via-[#020617] to-slate-900 shadow-[0_0_60px_rgba(0,0,0,0.6)]">
-        <div className="px-6 py-7 md:px-8 md:py-8 xl:px-10 xl:py-9">
-          <div className="grid gap-8 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.95fr)] xl:items-start">
-            <div className="min-w-0">
-              <div className="text-[11px] font-medium uppercase tracking-[0.38em] text-cyan-300">
-                GeoPulse Command Surface
-              </div>
-
-              <h1 className="mt-4 max-w-5xl text-4xl font-semibold leading-[1.05] text-white md:text-5xl xl:text-6xl">
-                Executive Intelligence Dashboard
-              </h1>
-
-              <p className="mt-5 max-w-4xl text-base leading-8 text-slate-300 md:text-lg">
-                A boardroom-grade overview of current risk posture, opportunity
-                windows, agent interpretations, live signal flow, and
-                company-aware intelligence calibration.
-              </p>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                <button
-                  onClick={() => onNavigate("agent-chain")}
-                  className="rounded-lg border border-slate-600 bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-[0_10px_22px_rgba(0,0,0,0.25)] transition hover:-translate-y-[1px] hover:bg-slate-800"
-                >
-                  Open Agent Chain
-                </button>
-
-                <button
-                  onClick={() => onNavigate("planner")}
-                  className="rounded-lg border border-slate-600 bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-[0_10px_22px_rgba(0,0,0,0.25)] transition hover:-translate-y-[1px] hover:bg-slate-800"
-                >
-                  Open Planner
-                </button>
-
-                <button
-                  onClick={() => onNavigate("signals")}
-                  className="rounded-lg border border-cyan-400/30 bg-cyan-500/10 px-4 py-2.5 text-sm font-medium text-cyan-100 shadow-[0_10px_22px_rgba(0,0,0,0.24)] transition hover:-translate-y-[1px] hover:bg-cyan-500/20"
-                >
-                  Open Live Signals
-                </button>
-
-                <button
-                  onClick={() => onNavigate("company")}
-                  className="rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-slate-100 shadow-[0_10px_22px_rgba(0,0,0,0.22)] transition hover:-translate-y-[1px] hover:bg-white/10"
-                >
-                  Open Company Intelligence
-                </button>
-              </div>
+      <Panel variant="base" padding="xl" className="overflow-hidden rounded-2xl">
+        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.95fr)] xl:items-start">
+          <div className="min-w-0">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.32em] text-slate-500">
+              GeoPulse Command Surface
             </div>
 
-            <div className="min-w-0">
-              <div className="rounded-lg border border-white/10 bg-slate-800/90 p-5 shadow-[0_18px_42px_rgba(0,0,0,0.28)]">
-                <div className="mb-5 flex items-center justify-between gap-4">
-                  <div className="text-xs font-semibold uppercase tracking-[0.22em] text-white">
-                    Executive Metrics
-                  </div>
-                  <div className="rounded-full border border-slate-500 bg-slate-950 px-3 py-1 text-[11px] font-medium text-white">
-                    Horizon {summary.horizon}
-                  </div>
-                </div>
+            <h1 className="mt-4 max-w-5xl text-4xl font-semibold leading-[1.05] text-slate-950 md:text-5xl xl:text-6xl">
+              Executive Intelligence Dashboard
+            </h1>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <StatCard
-                    label="Risk"
-                    value={summary.overall_risk_score}
-                    tone="risk"
-                  />
-                  <StatCard
-                    label="Opportunity"
-                    value={summary.opportunity_score}
-                    tone="opportunity"
-                  />
-                  <StatCard
-                    label="Live Signals"
-                    value={summary.live_signal_count}
-                    tone="signals"
-                  />
-                  <StatCard
-                    label="Confidence"
-                    value={summary.confidence}
-                    tone="confidence"
-                  />
-                </div>
-              </div>
+            <p className="mt-5 max-w-4xl text-base leading-8 text-slate-600 md:text-lg">
+              A boardroom-grade overview of current risk posture, opportunity
+              windows, agent interpretations, live signal flow, and company-aware
+              intelligence calibration.
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button onClick={() => onNavigate("agent-chain")} size="md">
+                Open Agent Chain
+              </Button>
+
+              <Button onClick={() => onNavigate("planner")} variant="secondary" size="md">
+                Open Planner
+              </Button>
+
+              <Button
+                onClick={() => onNavigate("signals")}
+                variant="primary"
+                size="md"
+              >
+                Open Live Signals
+              </Button>
+
+              <Button onClick={() => onNavigate("company")} variant="ghost" size="md">
+                Open Company Intelligence
+              </Button>
             </div>
           </div>
-        </div>
-      </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
-        <DashboardPanel
-          title="Risk Posture"
-          onExpand={() => onExpandPanel("Risk Posture")}
-        >
-          <div className="space-y-5">
-            <div className="rounded-md border border-slate-200 bg-white p-5 shadow-[0_12px_28px_rgba(15,23,42,0.08)]">
-              <div className="text-3xl font-semibold text-slate-950">
-                {summary.posture}
+          <div className="min-w-0">
+            <Panel variant="soft" padding="lg" className="space-y-5 rounded-xl border border-slate-200">
+              <div className="flex items-center justify-between gap-4">
+                <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+                  Executive Metrics
+                </div>
+                <Badge tone="info" variant="outline" className="px-3 py-1 text-[11px] uppercase tracking-[0.14em]">
+                  Horizon {summary.horizon}
+                </Badge>
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <MetricCard label="Risk" value={summary.overall_risk_score} tone="risk" />
+                <MetricCard label="Opportunity" value={summary.opportunity_score} tone="opportunity" />
+                <MetricCard label="Live Signals" value={summary.live_signal_count} tone="signals" />
+                <MetricCard label="Confidence" value={`${summary.confidence}%`} tone="confidence" />
+              </div>
+            </Panel>
+          </div>
+        </div>
+      </Panel>
+
+      <section className="grid gap-6 xl:grid-cols-[1fr_1fr]">
+        <DashboardPanel title="Risk Posture" onExpand={() => onExpandPanel("Risk Posture")}>
+          <div className="space-y-5">
+            <Panel variant="soft" padding="lg" className="border border-slate-200 text-slate-900">
+              <div className="text-3xl font-semibold text-slate-950">{summary.posture}</div>
+
               <div className="mt-4 flex flex-wrap gap-2">
-                <Badge tone="risk-soft">Urgency: {summary.urgency}</Badge>
+                <Badge tone="risk">Urgency: {summary.urgency}</Badge>
                 <Badge tone="neutral">Horizon: {summary.horizon}</Badge>
                 <Badge tone="neutral">Confidence: {summary.confidence}%</Badge>
               </div>
-            </div>
+            </Panel>
 
             {topRiskSignals.length > 0 ? (
               <ul className="space-y-3 text-sm leading-7 text-slate-700">
                 {topRiskSignals.map((signal) => (
                   <li
                     key={signal.id}
-                    className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 shadow-sm"
                   >
                     — {signal.headline}
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-7 text-slate-700">
+              <p className="rounded-xl border border-slate-200 bg-white p-4 text-sm leading-7 text-slate-700 shadow-sm">
                 GeoPulse has identified the current risk posture as the leading
                 executive condition requiring attention across your operating
                 environment.
@@ -158,44 +131,30 @@ export default function ExecutiveDashboardView({
             )}
 
             <div className="flex flex-wrap gap-3 pt-1">
-              <button
-                onClick={() => onExpandPanel("Risk Analysis")}
-                className="rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_22px_rgba(15,23,42,0.25)] transition hover:-translate-y-[1px] hover:bg-slate-800"
-              >
-                Why this score
-              </button>
-
-              <button
-                onClick={() => onNavigate("signals")}
-                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 shadow-[0_8px_18px_rgba(15,23,42,0.12)] transition hover:-translate-y-[1px] hover:bg-slate-50"
-              >
+              <Button onClick={() => onExpandPanel("Risk Analysis")}>Why this score</Button>
+              <Button onClick={() => onNavigate("signals")} variant="secondary">
                 View supporting signals
-              </button>
+              </Button>
             </div>
           </div>
         </DashboardPanel>
 
-        <DashboardPanel
-          title="Opportunity Posture"
-          onExpand={() => onExpandPanel("Opportunity Posture")}
-        >
+        <DashboardPanel title="Opportunity Posture" onExpand={() => onExpandPanel("Opportunity Posture")}>
           <div className="space-y-5">
-            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-[0_12px_28px_rgba(15,23,42,0.08)]">
+            <Panel variant="soft" padding="lg" className="border border-slate-200 text-slate-900">
               <div className="text-3xl font-semibold text-slate-950">
                 {summary.opportunity_posture}
               </div>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                <Badge tone="opportunity-soft">
+                <Badge tone="opportunity">
                   Positive signals: {summary.positive_signal_count}
                 </Badge>
-                <Badge tone="neutral">
-                  Opportunity score: {summary.opportunity_score}
-                </Badge>
+                <Badge tone="neutral">Opportunity score: {summary.opportunity_score}</Badge>
               </div>
-            </div>
+            </Panel>
 
-            <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-7 text-slate-700">
+            <p className="rounded-xl border border-slate-200 bg-white p-4 text-sm leading-7 text-slate-700 shadow-sm">
               Current opportunity conditions reflect the most actionable windows
               emerging from resilience, timing, and cross-signal alignment.
             </p>
@@ -204,57 +163,38 @@ export default function ExecutiveDashboardView({
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-        <div className="rounded-lg border border-slate-300 bg-white p-6 shadow-[0_18px_36px_rgba(15,23,42,0.14)]">
+        <Panel variant="soft" padding="lg" className="border border-slate-200 text-slate-900">
           <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
             Executive Summary
           </div>
-          <p className="mt-4 text-lg leading-8 text-slate-800">
-            {summary.summary}
-          </p>
-        </div>
+          <p className="mt-4 text-lg leading-8 text-slate-700">{summary.summary}</p>
+        </Panel>
 
-        <div className="rounded-xl border border-slate-300 bg-white p-6 shadow-[0_18px_36px_rgba(15,23,42,0.14)]">
+        <Panel variant="soft" padding="lg" className="border border-slate-200 text-slate-900">
           <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
             Agent Snapshots
           </div>
 
           <div className="mt-4 space-y-4">
-            <SnapshotBlock
-              title="Analyst"
-              text={summary.agent_snapshots?.analyst}
-            />
-            <SnapshotBlock
-              title="Advisor"
-              text={summary.agent_snapshots?.advisor}
-            />
-            <SnapshotBlock
-              title="Profile Agent"
-              text={summary.agent_snapshots?.profile_agent}
-            />
+            <SnapshotBlock title="Analyst" text={summary.agent_snapshots?.analyst} />
+            <SnapshotBlock title="Advisor" text={summary.agent_snapshots?.advisor} />
+            <SnapshotBlock title="Profile Agent" text={summary.agent_snapshots?.profile_agent} />
           </div>
-        </div>
+        </Panel>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
         <div className="space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <div className="text-xl font-semibold text-slate-950">
-                Live Intelligence Summary
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="text-xl font-semibold text-slate-950">Live Intelligence Summary</div>
+                <div className="mt-1 text-sm text-slate-600">
+                  The most relevant active signals shaping current executive posture.
+                </div>
               </div>
-              <div className="mt-1 text-sm text-slate-600">
-                The most relevant active signals shaping current executive
-                posture.
-              </div>
-            </div>
 
-            <button
-              onClick={() => onNavigate("signals")}
-              className="rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_22px_rgba(15,23,42,0.25)] transition hover:-translate-y-[1px] hover:bg-slate-800"
-            >
-              Open Workspace
-            </button>
-          </div>
+              <Button onClick={() => onNavigate("signals")} variant="secondary">Open Workspace</Button>
+            </div>
 
           <div className="space-y-4">
             {signals.slice(0, 3).map((s) => (
@@ -267,7 +207,7 @@ export default function ExecutiveDashboardView({
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[0.85fr_1.15fr]">
-        <div className="rounded-xl border border-slate-300 bg-white p-6 shadow-[0_18px_36px_rgba(15,23,42,0.14)]">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-[0_18px_36px_rgba(15,23,42,0.10)]">
           <div className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
             Command Summary
           </div>
@@ -296,7 +236,7 @@ export default function ExecutiveDashboardView({
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-300 bg-white p-6 shadow-[0_18px_36px_rgba(15,23,42,0.14)]">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-[0_18px_36px_rgba(15,23,42,0.10)]">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="text-xl font-semibold text-slate-950">
@@ -309,7 +249,7 @@ export default function ExecutiveDashboardView({
 
             <button
               onClick={() => onNavigate("opportunities")}
-              className="rounded-lg border border-slate-700 bg-slate-950 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_22px_rgba(15,23,42,0.25)] transition hover:-translate-y-[1px] hover:bg-slate-800"
+              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm transition hover:-translate-y-[1px] hover:border-cyan-300 hover:bg-cyan-50"
             >
               Open Opportunities
             </button>
@@ -324,7 +264,7 @@ export default function ExecutiveDashboardView({
               {topOpportunities.map((opportunity, index) => (
                 <div
                   key={`${opportunity.title ?? "opportunity"}-${index}`}
-                  className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 shadow-[0_10px_24px_rgba(15,23,42,0.08)]"
+                  className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 shadow-[0_10px_24px_rgba(15,23,42,0.06)]"
                 >
                   <div className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
                     Opportunity
@@ -392,28 +332,6 @@ function SnapshotBlock({
         {text ?? "No snapshot available yet."}
       </p>
     </div>
-  );
-}
-
-function Badge({
-  children,
-  tone,
-}: {
-  children: React.ReactNode;
-  tone: "risk-soft" | "opportunity-soft" | "neutral";
-}) {
-  const toneMap = {
-    "risk-soft": "border-red-200 bg-red-50 text-red-700",
-    "opportunity-soft": "border-emerald-200 bg-emerald-50 text-emerald-700",
-    neutral: "border-slate-300 bg-slate-100 text-slate-700",
-  };
-
-  return (
-    <span
-      className={`rounded-full border px-3 py-1 text-xs font-medium ${toneMap[tone]}`}
-    >
-      {children}
-    </span>
   );
 }
 

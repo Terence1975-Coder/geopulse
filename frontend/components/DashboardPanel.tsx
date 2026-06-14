@@ -37,17 +37,17 @@ export default function DashboardPanel({
   return (
     <section
       className={[
-        "rounded-[2rem] border p-6 shadow-[0_18px_36px_rgba(0,0,0,0.14)]",
+        "rounded-2xl border p-6 shadow-[0_14px_32px_rgba(15,23,42,0.12)] bg-white",
         shellMap[accent],
       ].join(" ")}
     >
       <div className="mb-5 flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <div className={isLight ? "text-2xl font-semibold text-slate-950" : "text-2xl font-semibold text-white"}>
+          <div className="text-2xl font-semibold text-slate-950">
             {title}
           </div>
           {subtitle ? (
-            <div className={isLight ? "mt-1 text-sm text-slate-600" : "mt-1 text-sm text-slate-300"}>
+            <div className="mt-1 text-sm text-slate-600">
               {subtitle}
             </div>
           ) : null}
@@ -56,7 +56,7 @@ export default function DashboardPanel({
         {onExpand ? (
           <button
             onClick={onExpand}
-            className="shrink-0 rounded-2xl border border-slate-600 bg-[linear-gradient(180deg,#1f2937_0%,#172033_45%,#0f172a_100%)] px-4 py-2.5 text-sm font-medium text-white shadow-[0_8px_14px_rgba(0,0,0,0.26),inset_0_1px_0_rgba(255,255,255,0.05),inset_0_-1px_0_rgba(0,0,0,0.35)] transition hover:-translate-y-[1px] hover:bg-[linear-gradient(180deg,#273449_0%,#1e293b_45%,#111827_100%)]"
+            className="shrink-0 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm transition hover:-translate-y-[1px] hover:border-cyan-300 hover:bg-cyan-50"
           >
             <span className="flex items-center gap-2">
               <Expand size={14} />

@@ -20,27 +20,27 @@ export default function FocusModePanelShell({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/55 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 bg-slate-900/65 backdrop-blur">
       <div className="absolute inset-0 p-3 md:p-4 lg:p-5">
-        <div className="mx-auto flex max-h-[calc(100vh-2rem)] max-w-[1320px] flex-col overflow-hidden rounded-lg border border-slate-300 bg-slate-50 shadow-[0_22px_72px_rgba(15,23,42,0.28)]">
-          <div className="flex items-center justify-between border-b border-slate-300 bg-slate-950 px-5 py-4 text-white">
+        <div className="mx-auto flex max-h-[calc(100vh-2rem)] max-w-[1320px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-[0_24px_96px_rgba(15,23,42,0.20)]">
+          <div className="flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4">
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-slate-300">
+              <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-slate-500">
                 {breadcrumb.map((item, idx) => (
                   <div key={`${item}-${idx}`} className="flex items-center gap-2">
                     <span>{item}</span>
-                    {idx < breadcrumb.length - 1 ? <ChevronRight size={14} /> : null}
+                    {idx < breadcrumb.length - 1 ? <ChevronRight size={14} className="text-slate-400" /> : null}
                   </div>
                 ))}
               </div>
-              <h2 className="mt-1.5 text-2xl font-semibold text-white">
+              <h2 className="mt-1.5 text-2xl font-semibold text-slate-950">
                 {title}
               </h2>
             </div>
 
             <button
               onClick={onClose}
-              className="rounded-md border border-white/10 bg-white/5 px-3.5 py-2 text-sm text-slate-200 transition hover:bg-white/10"
+              className="rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-semibold text-slate-900 transition hover:border-cyan-300 hover:bg-cyan-50"
             >
               <span className="flex items-center gap-2">
                 <X size={16} />
@@ -49,7 +49,7 @@ export default function FocusModePanelShell({
             </button>
           </div>
 
-          <div className="flex-1 overflow-auto bg-slate-50 p-4">{children}</div>
+          <div className="flex-1 overflow-auto bg-white p-5 text-slate-900">{children}</div>
         </div>
       </div>
     </div>
