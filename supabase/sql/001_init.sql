@@ -26,10 +26,24 @@ create table if not exists public.profiles (
     updated_at timestamptz not null default now()
 );
 
--- Add the circular FK after both tables exist
-alter table public.companies
-    add constraint companies_created_by_fkey
-        foreign key (created_by) references public.profiles (id);
+-- Add the circular FK after both tables exist (idempotent)
+do $$
+begin
+    if not exists (
+        select 1
+        from pg_constraint c
+        join pg_class t on t.oid = c.conrelid
+        join pg_namespace n on n.oid = t.relnamespace
+        where n.nspname = 'public'
+          and t.relname = 'companies'
+          and c.conname = 'companies_created_by_fkey'
+    ) then
+        alter table public.companies
+            add constraint companies_created_by_fkey
+                foreign key (created_by) references public.profiles (id);
+    end if;
+end;
+$$;
 
 create table if not exists public.workspace_settings (
     id uuid primary key default gen_random_uuid(),
