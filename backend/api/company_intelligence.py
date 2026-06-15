@@ -15,6 +15,11 @@ from backend.services.company_profile_service import (
     save_or_update_company_profile,
     serialise_company_profile,
 )
+from backend.services.supabase_workspace import (
+    CalibrationPayload,
+    fetch_workspace_settings,
+    upsert_workspace_settings,
+)
 
 router = APIRouter(prefix="/company", tags=["company"])
 
@@ -155,7 +160,13 @@ async def get_company_from_companies_house(company_number: str) -> Dict[str, Any
 
 
 @router.get("/profile/latest")
-async def get_latest_profile():
+async def get_latest_profile(company_id: Optional[str] = None):
+    record = await fetch_workspace_settings(company_id)
+    if record:
+        calibration = (record.get("feature_flags") or {}).get("calibration")
+        if calibration:
+            return {"profile": calibration}
+
     db = SessionLocal()
     try:
         profile = get_latest_company_profile(db)
@@ -184,6 +195,13 @@ async def save_profile(payload: CompanyProfilePayload):
         return {"ok": True, "profile": saved}
     finally:
         db.close()
+
+
+@router.post("/profile/save")
+async def save_profile_supabase(payload: CalibrationPayload):
+    record = await upsert_workspace_settings(payload.company_id, payload.calibration)
+    calibration = (record.get("feature_flags") or {}).get("calibration", {})
+    return {"ok": True, "workspace_settings": record, "profile": calibration}
 
 
 @router.post("/upload")
