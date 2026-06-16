@@ -87,6 +87,15 @@ function numberOrZero(value: unknown): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function isUuid(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value,
+    )
+  );
+}
+
 function InputField({ label, value, onChange, placeholder }: InputFieldProps) {
   return (
     <label className="block">
@@ -139,9 +148,7 @@ function buildIntelProfile(profile: MutableProfile): MutableProfile {
       ? splitCsv(profile.exposure_regions)
       : arrayOrEmpty(profile.markets);
 
-  const companyId = stringOrEmpty(
-    profile.registration_number || profile.company_number || profile.company_id,
-  );
+  const companyId = stringOrEmpty(profile.company_id);
 
   return {
     ...profile,
@@ -441,16 +448,27 @@ export default function CompanyIntelligenceWorkspace({
   const handleSaveCalibration = async () => {
     try {
       setSaving(true);
-      setSaveStatus("Saving profile to GeoPulse intelligence memory...");
+      setSaveStatus("Saving calibration to GeoPulse backend...");
 
       const intelProfile = buildIntelProfile(profile);
+      const fallbackCompanyId = "d6117c23-dac8-41bd-9e10-9ebc9741d671";
 
-      const response = await fetch(`${API_BASE}/company/profile`, {
+      const candidateCompanyId =
+        profile.company_id || intelProfile.company_id || profile.supabase_company_id;
+
+      const companyId = isUuid(candidateCompanyId)
+        ? candidateCompanyId
+        : fallbackCompanyId;
+
+      const response = await fetch(`${API_BASE}/company/profile/save`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(intelProfile),
+        body: JSON.stringify({
+          company_id: companyId,
+          calibration: { ...intelProfile, company_id: companyId },
+        }),
       });
 
       if (!response.ok) {
@@ -458,15 +476,15 @@ export default function CompanyIntelligenceWorkspace({
         throw new Error(errorText || "Save request failed.");
       }
 
-      const data = await response.json();
-      const savedProfile = data.profile || intelProfile;
+      await response.json();
 
       onUpdate({
         ...profile,
-        ...savedProfile,
+        ...intelProfile,
+        company_id: companyId,
       });
 
-      setSaveStatus("Saved to V9 intelligence memory.");
+      setSaveStatus("Calibration saved to backend workspace settings.");
     } catch (error) {
       console.error(error);
       setSaveStatus(
