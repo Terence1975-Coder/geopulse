@@ -41,15 +41,34 @@ import type {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://127.0.0.1:8000";
 
+type WorkspaceSettingsResponse = {
+  company_id?: string | null;
+  feature_flags?: {
+    calibration?: Record<string, any> | null;
+    [key: string]: unknown;
+  } | null;
+  [key: string]: unknown;
+} | null;
+
 type BackendCompanyProfileResponse = {
   company_name?: string | null;
   company_id?: string | null;
   market_focus?: string[];
   strategic_priorities?: string[];
   recommendation_posture?: string | null;
-  profile?: Record<string, any>;
+  profile?: Record<string, any> | null;
+  workspace_settings?: WorkspaceSettingsResponse;
   updated_at?: string | null;
 };
+
+function isUuid(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      value,
+    )
+  );
+}
 
 function toPercent(value?: number): number {
   if (typeof value !== "number" || Number.isNaN(value)) return 0;
@@ -738,26 +757,42 @@ export default function HomePage() {
 
         const data: BackendCompanyProfileResponse | null =
           await response.json();
-        if (!data || !data.profile || cancelled) {
+        if (!data || cancelled) {
           return;
         }
 
-        const savedProfile = data.profile;
+        const workspaceSettings = data.workspace_settings;
+        const calibration =
+          (workspaceSettings?.feature_flags ||
+            (workspaceSettings as any)?.featureFlags ||
+            {})?.calibration || data.profile;
+
+        if (!calibration || Object.keys(calibration || {}).length === 0) {
+          return;
+        }
+
+        const savedCompanyId =
+          calibration.company_id || workspaceSettings?.company_id || data.company_id;
+
+        const nextProfile: any = {
+          ...calibration,
+          company_id: isUuid(savedCompanyId) ? savedCompanyId : calibration.company_id,
+          company_name:
+            calibration.company_name || data.company_name || profile.company_name,
+          strategic_priorities:
+            calibration.strategic_priorities ||
+            data.strategic_priorities ||
+            profile.strategic_priorities,
+          recommendation_style:
+            calibration.recommendation_style ||
+            data.recommendation_posture ||
+            profile.recommendation_style,
+          markets: calibration.markets || data.market_focus || profile.markets,
+        };
 
         setProfile((prev: any) => ({
           ...prev,
-          ...savedProfile,
-          company_name:
-            savedProfile.company_name || data.company_name || prev.company_name,
-          strategic_priorities:
-            savedProfile.strategic_priorities ||
-            data.strategic_priorities ||
-            prev.strategic_priorities,
-          recommendation_style:
-            savedProfile.recommendation_style ||
-            data.recommendation_posture ||
-            prev.recommendation_style,
-          markets: savedProfile.markets || data.market_focus || prev.markets,
+          ...nextProfile,
         }));
       } catch (error) {
         console.error("Failed to load saved company profile", error);
