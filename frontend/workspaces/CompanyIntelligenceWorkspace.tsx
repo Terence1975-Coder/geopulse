@@ -152,7 +152,7 @@ function buildIntelProfile(profile: MutableProfile): MutableProfile {
 
   return {
     ...profile,
-    company_id: companyId || "geopulse-demo",
+    company_id: companyId,
     company_name: stringOrEmpty(profile.company_name),
     registration_number: stringOrEmpty(
       profile.registration_number || profile.company_number,
@@ -451,14 +451,15 @@ export default function CompanyIntelligenceWorkspace({
       setSaveStatus("Saving calibration to GeoPulse backend...");
 
       const intelProfile = buildIntelProfile(profile);
-      const fallbackCompanyId = "d6117c23-dac8-41bd-9e10-9ebc9741d671";
-
       const candidateCompanyId =
         profile.company_id || intelProfile.company_id || profile.supabase_company_id;
 
-      const companyId = isUuid(candidateCompanyId)
-        ? candidateCompanyId
-        : fallbackCompanyId;
+      const companyId = isUuid(candidateCompanyId) ? candidateCompanyId : null;
+
+      if (!companyId) {
+        setSaveStatus("Save unavailable: no Supabase company profile is loaded yet.");
+        return;
+      }
 
       const response = await fetch(`${API_BASE}/company/profile/save`, {
         method: "POST",
