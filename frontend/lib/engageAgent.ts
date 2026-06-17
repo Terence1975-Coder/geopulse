@@ -75,6 +75,18 @@ export async function engageAgent(
   const base = API_BASE.replace(/\/+$/, "");
   const url = `${base}/intel/agent/engage`;
 
+  if (process.env.NODE_ENV !== "production") {
+    /* Temporary observability log for company context; remove when backend logs are stable */
+    // eslint-disable-next-line no-console
+    console.debug("agent_engage_payload", {
+      company_id: body.company_id,
+      company_name: body.company_name,
+      profile_keys: Object.keys(body.company_profile || {}),
+      strategic_priorities: (body.company_profile as any)?.strategic_priorities,
+      context_keys: Object.keys(body.company_context || {}),
+    });
+  }
+
   const response = await fetch(url, {
     method: "POST",
     headers: {

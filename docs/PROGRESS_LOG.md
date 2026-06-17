@@ -45,3 +45,31 @@ Preparing GeoPulse AI for staged Supabase integration without applying live data
 * SQL policies are explicit.
 * Existing frontend/backend files are not unnecessarily changed.
 * `git status --short` clearly shows only the intended file changes.
+
+## 2026-06-17 — Supabase Persistence Milestone — Agent Context Propagation
+
+Completed frontend agent context propagation so hydrated Supabase company profile data now flows into agent requests.
+
+### Achieved
+
+- Preserved Supabase `company_id` in dashboard profile mapping.
+- Derived `companyId` from hydrated company profile state.
+- Passed `companyId` into Analyst, Advisor, Planner, Profile Agent, and Agent Chain workspaces.
+- Updated Agent Chain to forward `companyId` into full-chain agent calls.
+- Confirmed `engageAgent()` request payload includes:
+  - `company_id`
+  - `company_name`
+  - `company_profile`
+- Confirmed frontend build passes.
+- No Supabase schema changes.
+- No auth changes.
+- No service-role key exposure.
+- No demo fallback company IDs reintroduced.
+
+### Product Impact
+
+GeoPulse now has a working persistence-to-reasoning loop:
+
+Saved Supabase company calibration → dashboard hydration → agent request payload → backend company context → company-aware intelligence output.
+
+This is the first proper memory loop in the product.

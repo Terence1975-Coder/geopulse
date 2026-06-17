@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import logging
 import traceback
-from typing import Any
+from typing import Any, Dict
 
 from fastapi import APIRouter, HTTPException, Query
 
@@ -15,6 +16,37 @@ router = APIRouter(prefix="/intel", tags=["intelligence"])
 service = AgentService()
 
 company_profile_store: dict[str, Any] = {}
+
+logger = logging.getLogger(__name__)
+
+
+def _safe_profile_summary(profile: Any) -> Dict[str, Any]:
+    if not profile:
+        return {}
+
+    data: Dict[str, Any]
+    if hasattr(profile, "model_dump"):
+        data = profile.model_dump()
+    elif isinstance(profile, dict):
+        data = profile
+    else:
+        try:
+            data = dict(profile)  # type: ignore[arg-type]
+        except Exception:
+            data = {}
+
+    strategic_priorities = data.get("strategic_priorities") or []
+    markets = data.get("markets") or data.get("market_focus") or []
+
+    return {
+        "company_id": data.get("company_id"),
+        "company_name": data.get("company_name"),
+        "strategic_priorities": strategic_priorities[:3]
+        if isinstance(strategic_priorities, list)
+        else strategic_priorities,
+        "markets": markets[:3] if isinstance(markets, list) else markets,
+        "keys": sorted(k for k in data.keys() if k not in {"profile_json"}),
+    }
 
 
 def _normalise_company_context(payload: AgentEngageRequest) -> dict[str, Any]:
@@ -483,8 +515,34 @@ async def get_local_signal_coverage(company_id: str = "") -> dict[str, Any]:
 @router.post("/agent/engage", response_model=AgentEngageResponse)
 async def engage_agent(payload: AgentEngageRequest) -> AgentEngageResponse:
     try:
+        profile_summary = _safe_profile_summary(payload.company_profile)
+        company_context_keys = sorted((payload.company_context or {}).keys())
+
+        logger.info(
+            "agent_engage_request stage=%s company_id=%s company_name=%s profile_keys=%s profile_priorities=%s context_keys=%s",
+            payload.stage,
+            payload.company_id,
+            payload.company_name
+            or (
+                payload.company_profile.company_name
+                if payload.company_profile
+                else None
+            ),
+            profile_summary.get("keys"),
+            profile_summary.get("strategic_priorities"),
+            company_context_keys,
+        )
+
         if payload.stage == "multi_path":
             company_context = _normalise_company_context(payload)
+
+            logger.info(
+                "agent_engage_multi_path_context company_id=%s company_name=%s context_keys=%s profile_priorities=%s",
+                company_context.get("company_id") or payload.company_id,
+                company_context.get("company_name") or payload.company_name,
+                sorted(company_context.keys()),
+                profile_summary.get("strategic_priorities"),
+            )
 
             multi_path_output = await run_multi_path_chain(
                 input_text=payload.input,
