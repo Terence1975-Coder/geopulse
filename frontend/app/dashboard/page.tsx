@@ -76,6 +76,15 @@ function toPercent(value?: number): number {
 }
 
 function mapProfileToIntelligenceProfile(profile: any): CompanyProfile {
+  const companyId = profile?.company_id ?? profile?.companyId ?? null;
+  const companyName =
+    profile?.company_name ||
+    profile?.companyName ||
+    profile?.name ||
+    "GeoPulse Intelligence Ltd";
+
+  const sector = profile?.sector || profile?.industry || "Professional Services";
+
   const markets =
     Array.isArray(profile?.markets) && profile.markets.length > 0
       ? profile.markets
@@ -100,13 +109,25 @@ function mapProfileToIntelligenceProfile(profile: any): CompanyProfile {
         ? profile.strategicPriorities
         : ["Protect margin", "Grow revenue", "Improve strategic visibility"];
 
+  const riskTolerance =
+    profile?.risk_tolerance || profile?.riskTolerance || "balanced";
+
+  const recommendationStyle =
+    profile?.recommendation_style || profile?.recommendationStyle || "balanced";
+
+  const notes =
+    profile?.notes ||
+    profile?.note ||
+    profile?.sub_sector ||
+    profile?.subSector ||
+    profile?.sic_context ||
+    profile?.sic ||
+    "";
+
   return {
-    company_name:
-      profile?.company_name ||
-      profile?.companyName ||
-      profile?.name ||
-      "GeoPulse Intelligence Ltd",
-    sector: profile?.sector || "Professional Services",
+    company_id: companyId,
+    company_name: companyName,
+    sector,
     markets,
     strategic_priorities: strategicPriorities,
     operating_model:
@@ -124,18 +145,9 @@ function mapProfileToIntelligenceProfile(profile: any): CompanyProfile {
     growth_objectives: Array.isArray(profile?.growth_objectives)
       ? profile.growth_objectives
       : ["Expand accounts", "Improve resilience", "Increase visibility value"],
-    risk_tolerance:
-      profile?.risk_tolerance || profile?.riskTolerance || "balanced",
-    recommendation_style:
-      profile?.recommendation_style ||
-      profile?.recommendationStyle ||
-      "balanced",
-    notes:
-      profile?.sub_sector ||
-      profile?.subSector ||
-      profile?.sic_context ||
-      profile?.sic ||
-      "",
+    risk_tolerance: riskTolerance,
+    recommendation_style: recommendationStyle,
+    notes,
   } as CompanyProfile;
 }
 
@@ -672,6 +684,11 @@ export default function HomePage() {
     [profile],
   );
 
+  const companyId = useMemo(
+    () => companyProfile.company_id || profile?.company_id || undefined,
+    [companyProfile.company_id, profile?.company_id],
+  );
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [activeWorkspace]);
@@ -994,6 +1011,7 @@ export default function HomePage() {
             chainOutputs={chainOutputs}
             setChainOutputs={setChainOutputs}
             companyProfile={companyProfile}
+            companyId={companyId}
           />
         );
 
@@ -1005,6 +1023,7 @@ export default function HomePage() {
             chainOutputs={chainOutputs}
             setChainOutputs={setChainOutputs}
             companyProfile={companyProfile}
+            companyId={companyId}
           />
         );
 
@@ -1016,6 +1035,7 @@ export default function HomePage() {
             chainOutputs={chainOutputs}
             setChainOutputs={setChainOutputs}
             companyProfile={companyProfile}
+            companyId={companyId}
             executionRequest={plannerExecutionRequest}
             clearExecutionRequest={() => setPlannerExecutionRequest(null)}
           />
@@ -1029,6 +1049,7 @@ export default function HomePage() {
             chainOutputs={chainOutputs}
             setChainOutputs={setChainOutputs}
             companyProfile={companyProfile}
+            companyId={companyId}
           />
         );
 
@@ -1049,6 +1070,7 @@ export default function HomePage() {
               loading={chainLoading}
               setLoading={setChainLoading}
               companyProfile={companyProfile}
+              companyId={companyId}
               chainOutputs={chainOutputs}
               setChainOutputs={setChainOutputs}
               signals={signals}

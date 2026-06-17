@@ -46,6 +46,7 @@ type Props = {
   loading: boolean;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   companyProfile?: CompanyProfile | null;
+  companyId?: string;
   chainOutputs: ChainOutputs;
   setChainOutputs: React.Dispatch<React.SetStateAction<ChainOutputs>>;
   onExecute?: (payload: ExecutePayload) => void;
@@ -911,6 +912,7 @@ export default function AgentChainWorkspace({
   loading,
   setLoading,
   companyProfile,
+  companyId,
   chainOutputs,
   setChainOutputs,
   onExecute,
@@ -982,6 +984,7 @@ export default function AgentChainWorkspace({
         input: text,
         stage: "full_chain",
         companyProfile,
+        companyId,
         chainOutputs,
         messages: [],
       });
@@ -1376,6 +1379,5 @@ Be concrete, structured, and executive-grade.
     </div>
   );
 }
-
 
 
