@@ -568,7 +568,7 @@ async def engage_agent(payload: AgentEngageRequest) -> AgentEngageResponse:
                 },
             )
 
-        return service.engage(payload)
+        return await service.engage(payload)
 
     except Exception as exc:
         traceback.print_exc()

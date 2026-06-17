@@ -20,6 +20,11 @@ from backend.intel.schemas import (
     StructuredAgentOutput,
     SupportingSignalDetail,
 )
+from backend.services.agent_runs import (
+    complete_agent_run,
+    create_agent_run,
+    fail_agent_run,
+)
 from backend.services.signal_ingestion import select_supporting_signals_for_text
 
 
@@ -27,20 +32,20 @@ class AgentService:
     def __init__(self) -> None:
         self.llm = LLMClient()
 
-    def engage(self, req: AgentEngageRequest) -> AgentEngageResponse:
+    async def engage(self, req: AgentEngageRequest) -> AgentEngageResponse:
         if req.stage == "full_chain":
-            return self._run_full_chain(req)
+            return await self._run_full_chain(req)
 
-        return self._run_single_stage(req)
+        return await self._run_single_stage(req)
 
-    def _run_full_chain(self, req: AgentEngageRequest) -> AgentEngageResponse:
+    async def _run_full_chain(self, req: AgentEngageRequest) -> AgentEngageResponse:
         chain_outputs: Optional[ChainOutputs] = req.chain_outputs
         outputs: Dict[str, StructuredAgentOutput] = {}
 
         analyse_req = req.model_copy(
             update={"stage": "analyse", "chain_outputs": chain_outputs}
         )
-        analyse_res = self._run_single_stage(analyse_req)
+        analyse_res = await self._run_single_stage(analyse_req)
         chain_outputs = analyse_res.chain_outputs
         if analyse_res.output and isinstance(analyse_res.output, StructuredAgentOutput):
             outputs["analyse"] = analyse_res.output
@@ -48,7 +53,7 @@ class AgentService:
         advise_req = req.model_copy(
             update={"stage": "advise", "chain_outputs": chain_outputs}
         )
-        advise_res = self._run_single_stage(advise_req)
+        advise_res = await self._run_single_stage(advise_req)
         chain_outputs = advise_res.chain_outputs
         if advise_res.output and isinstance(advise_res.output, StructuredAgentOutput):
             outputs["advise"] = advise_res.output
@@ -56,7 +61,7 @@ class AgentService:
         plan_req = req.model_copy(
             update={"stage": "plan", "chain_outputs": chain_outputs}
         )
-        plan_res = self._run_single_stage(plan_req)
+        plan_res = await self._run_single_stage(plan_req)
         chain_outputs = plan_res.chain_outputs
         if plan_res.output and isinstance(plan_res.output, StructuredAgentOutput):
             outputs["plan"] = plan_res.output
@@ -127,11 +132,32 @@ class AgentService:
             },
         )
 
-    def _run_single_stage(self, req: AgentEngageRequest) -> AgentEngageResponse:
+    async def _run_single_stage(self, req: AgentEngageRequest) -> AgentEngageResponse:
         conversation_history = [
             item.model_dump() if hasattr(item, "model_dump") else item
             for item in (req.conversation_history or [])
         ]
+
+        run_id = None
+        try:
+            context_summary_seed = {
+                "company_id": req.company_id,
+                "company_name": req.company_name
+                or (req.company_profile.company_name if req.company_profile else None),
+                "stage": req.stage,
+                "profile_references": list(req.chain_outputs.profile.profile_references)
+                if req.chain_outputs and req.chain_outputs.profile and req.chain_outputs.profile.profile_references
+                else [],
+            }
+
+            run_id = await create_agent_run(
+                company_id=req.company_id,
+                stage=req.stage,
+                input_text=req.input,
+                context_summary=context_summary_seed,
+            )
+        except Exception:
+            run_id = None
 
         supporting_signals = select_supporting_signals_for_text(req.input, limit=4)
 
@@ -210,7 +236,7 @@ class AgentService:
             output=output,
         )
 
-        return AgentEngageResponse(
+        response = AgentEngageResponse(
             output=output,
             outputs=None,
             chain_outputs=updated_chain,
@@ -231,6 +257,14 @@ class AgentService:
                 "contract_version": "v8.4",
             },
         )
+
+        try:
+            summary_text = output.summary or output.key_insight or output.headline
+            await complete_agent_run(run_id, summary_text)
+        except Exception:
+            pass
+
+        return response
 
     def _repair_generic_output(
         self,
