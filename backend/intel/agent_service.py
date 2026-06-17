@@ -18,6 +18,7 @@ from backend.intel.schemas import (
     StrategicPath,
     StrategyDecision,
     StructuredAgentOutput,
+    SupportingSignalDetail,
 )
 from backend.services.signal_ingestion import select_supporting_signals_for_text
 
@@ -176,23 +177,25 @@ class AgentService:
         output.based_on_signals = [signal.get("id", "") for signal in supporting_signals]
         output.time_relevance = time_relevance
         output.supporting_signal_details = [
-            {
-                "id": signal.get("id", ""),
-                "headline": signal.get("headline", ""),
-                "summary": signal.get("summary", ""),
-                "source": signal.get("source", ""),
-                "source_type": signal.get("source_type", ""),
-                "region": signal.get("region", ""),
-                "cluster_tag": signal.get("cluster_tag", ""),
-                "kind": signal.get("kind", ""),
-                "severity": signal.get("severity", ""),
-                "lifecycle": signal.get("lifecycle", ""),
-                "confidence_score": float(signal.get("confidence_score", 0.0)),
-                "signal_strength": float(signal.get("signal_strength", 0.0)),
-                "freshness_minutes": int(signal.get("freshness_minutes", 0)),
-                "relative_time": signal.get("relative_time", ""),
-                "timestamp": signal.get("timestamp", ""),
-            }
+            SupportingSignalDetail.model_validate(
+                {
+                    "id": signal.get("id", ""),
+                    "headline": signal.get("headline", ""),
+                    "summary": signal.get("summary", ""),
+                    "source": signal.get("source", ""),
+                    "source_type": signal.get("source_type", ""),
+                    "region": signal.get("region", ""),
+                    "cluster_tag": signal.get("cluster_tag", ""),
+                    "kind": signal.get("kind", ""),
+                    "severity": signal.get("severity", ""),
+                    "lifecycle": signal.get("lifecycle", ""),
+                    "confidence_score": float(signal.get("confidence_score", 0.0)),
+                    "signal_strength": float(signal.get("signal_strength", 0.0)),
+                    "freshness_minutes": int(signal.get("freshness_minutes", 0)),
+                    "relative_time": signal.get("relative_time", ""),
+                    "timestamp": signal.get("timestamp", ""),
+                }
+            )
             for signal in supporting_signals
         ]
 
