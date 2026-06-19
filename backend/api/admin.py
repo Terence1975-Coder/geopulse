@@ -2,7 +2,7 @@ import os
 from typing import Any, Dict, List, Optional
 
 import httpx
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from backend.services.supabase_workspace import (
@@ -57,6 +57,85 @@ async def supabase_status(_: bool = Depends(require_admin_token)) -> dict[str, o
         "ok": ok,
         "supabase_configured": configured,
         "tables_visible": visible,
+    }
+
+
+@router.get("/agent-runs/recent")
+async def recent_agent_runs(
+    limit: int = Query(default=10, ge=1, le=50),
+    _: bool = Depends(require_admin_token),
+) -> Dict[str, Any]:
+    if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
+        raise HTTPException(status_code=503, detail="Supabase not configured")
+
+    headers = {
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+    }
+
+    columns = ",".join(
+        [
+            "id",
+            "company_id",
+            "user_id",
+            "status",
+            "input",
+            "output_summary",
+            "started_at",
+            "completed_at",
+        ]
+    )
+
+    url = (
+        f"{SUPABASE_URL}/rest/v1/agent_runs"
+        f"?select={columns}"
+        f"&order=started_at.desc"
+        f"&limit={limit}"
+    )
+
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.get(url, headers=headers)
+            response.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=exc.response.status_code,
+            detail=f"Supabase agent_runs query failed: {exc.response.text}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Could not fetch recent agent runs: {str(exc)}",
+        ) from exc
+
+    raw_runs = response.json()
+
+    runs = []
+    for run in raw_runs:
+        input_payload = run.get("input") or {}
+        if not isinstance(input_payload, dict):
+            input_payload = {}
+
+        runs.append(
+            {
+                "id": run.get("id"),
+                "company_id": run.get("company_id"),
+                "user_id": run.get("user_id"),
+                "stage": input_payload.get("stage"),
+                "status": run.get("status"),
+                "input_hash": input_payload.get("input_hash"),
+                "input_preview": input_payload.get("input_preview"),
+                "context_summary": input_payload.get("context_summary"),
+                "output_summary": run.get("output_summary"),
+                "started_at": run.get("started_at"),
+                "completed_at": run.get("completed_at"),
+            }
+        )
+
+    return {
+        "ok": True,
+        "limit": limit,
+        "runs": runs,
     }
 
 
