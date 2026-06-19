@@ -78,9 +78,12 @@ async def recent_agent_runs(
             "id",
             "company_id",
             "user_id",
+            "stage",
             "status",
+            "input_hash",
             "input",
             "output_summary",
+            "error_message",
             "started_at",
             "completed_at",
         ]
@@ -116,17 +119,25 @@ async def recent_agent_runs(
         if not isinstance(input_payload, dict):
             input_payload = {}
 
+        derived_error_message = run.get("error_message")
+        output_summary = run.get("output_summary")
+
+        if not derived_error_message and isinstance(output_summary, str):
+            if output_summary.startswith("error:"):
+                derived_error_message = output_summary[6:].strip()
+
         runs.append(
             {
                 "id": run.get("id"),
                 "company_id": run.get("company_id"),
                 "user_id": run.get("user_id"),
-                "stage": input_payload.get("stage"),
+                "stage": run.get("stage") or input_payload.get("stage"),
                 "status": run.get("status"),
-                "input_hash": input_payload.get("input_hash"),
+                "input_hash": run.get("input_hash") or input_payload.get("input_hash"),
                 "input_preview": input_payload.get("input_preview"),
                 "context_summary": input_payload.get("context_summary"),
                 "output_summary": run.get("output_summary"),
+                "error_message": derived_error_message,
                 "started_at": run.get("started_at"),
                 "completed_at": run.get("completed_at"),
             }

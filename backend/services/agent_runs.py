@@ -25,12 +25,17 @@ def _hash_text(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
-def _input_envelope(stage: str, input_text: str, context_summary: Dict[str, Any]) -> Dict[str, Any]:
+def _input_envelope(
+    stage: str,
+    input_text: str,
+    context_summary: Dict[str, Any],
+    input_hash: Optional[str] = None,
+) -> Dict[str, Any]:
     preview = input_text[:500] if input_text else None
     return {
         "stage": stage,
         "input_preview": preview,
-        "input_hash": _hash_text(input_text) if input_text else None,
+        "input_hash": input_hash,
         "context_summary": context_summary or {},
     }
 
@@ -48,10 +53,14 @@ async def create_agent_run(
         logger.info("Supabase not configured; skipping agent_runs create")
         return None
 
+    input_hash = _hash_text(input_text) if input_text else None
+
     payload: Dict[str, Any] = {
         "company_id": company_id,
         "status": "running",
-        "input": _input_envelope(stage, input_text, context_summary),
+        "stage": stage,
+        "input_hash": input_hash,
+        "input": _input_envelope(stage, input_text, context_summary, input_hash),
         "started_at": _iso_now(),
     }
 
@@ -139,10 +148,13 @@ async def fail_agent_run(run_id: Optional[str], error_message: str) -> None:
     except HTTPException:
         return
 
+    clean_error = _error_text(error_message)
+
     payload: Dict[str, Any] = {
         "status": "failed",
         "completed_at": _iso_now(),
-        "output_summary": f"error: {_error_text(error_message)}",
+        "error_message": clean_error,
+        "output_summary": f"error: {clean_error}",
     }
 
     try:

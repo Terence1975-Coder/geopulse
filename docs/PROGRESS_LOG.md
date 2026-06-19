@@ -196,3 +196,37 @@ GET /admin/agent-runs/recent
 ```
 
 Purpose: verify persisted agent history, inspect company-linked activity, confirm run status/timestamps, and debug before UI work.
+
+## 2026-06-19 — Phase 10A Agent Run Operational Metadata
+
+### Decision
+
+GeoPulse will use a hybrid `agent_runs` model.
+
+Operational fields are promoted into nullable first-class columns:
+
+- `stage`
+- `input_hash`
+- `error_message`
+
+Flexible/debug fields remain inside the `input` JSON envelope:
+
+- `input_preview`
+- `context_summary`
+
+### Reason
+
+This keeps the table queryable for admin/debug workflows without over-normalising the agent run payload too early.
+
+### Compatibility
+
+The admin endpoint remains backward-compatible with existing rows by reading column values first and falling back to the existing JSON envelope.
+
+Failed runs now have structured `error_message` while keeping the previous `output_summary = "error: ..."` fallback.
+
+### Guardrails
+
+- No frontend UI changes.
+- No auth work.
+- No service-role exposure.
+- Existing persisted rows remain compatible.
